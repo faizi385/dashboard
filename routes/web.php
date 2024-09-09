@@ -1,11 +1,13 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\LogController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProvinceController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\ProvinceLogController;
 
 /*
 |--------------------------------------------------------------------------
@@ -42,5 +44,9 @@ Route::get('/permissions', [PermissionController::class, 'index'])->name('permis
 Route::resource('permissions', PermissionController::class);
 
 Route::resource('provinces', ProvinceController::class);
+
+Route::get('/logs', [LogController::class, 'index'])->name('logs.index');
+
+Route::get('/province-logs', [ProvinceLogController::class, 'index'])->name('province-logs.index');
 
 require __DIR__.'/auth.php';
