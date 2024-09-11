@@ -12,7 +12,7 @@
 
     <div class="row">
         <div class="col">
-            <table id="example" class="table table-bordered table-hover table-striped">
+            <table id="example" class="table  table-hover ">
                 <thead>
                     <tr>
                         <th>Name</th>
@@ -76,6 +76,9 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <!-- DataTables JS -->
 <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+<!-- Toastr JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
 <script>
     $(document).ready(function() {
         $('#example').DataTable();
@@ -100,7 +103,13 @@
                 });
             });
         });
+
+        // Display Toastr messages
+        @if(session('toast_success'))
+            toastr.success("{{ session('toast_success') }}");
+        @endif
     });
 </script>
 @endpush
+
 @endsection

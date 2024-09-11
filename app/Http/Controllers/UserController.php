@@ -55,7 +55,8 @@ class UserController extends Controller
             $user->givePermissionTo($permissions);
         }
     
-        return redirect()->route('users.index')->with('success', 'User created successfully.');
+        return redirect()->route('users.index')
+        ->with('toast_success', 'User created successfully.');
     }
     
     
@@ -98,13 +99,14 @@ class UserController extends Controller
             $permissions = Permission::whereIn('id', $request->permissions)->pluck('name')->toArray();
             $user->syncPermissions($permissions);
         }
-    
-        return redirect()->route('users.index')->with('success', 'User updated successfully.');
+        return redirect()->route('users.index')
+        ->with('toast_success', 'User updated successfully.');
     }
     
     public function destroy(User $user)
     {
         $user->delete();
-        return redirect()->route('users.index')->with('success', 'User deleted successfully.');
+        return redirect()->route('users.index')
+        ->with('toast_success', 'User deleted successfully.');
     }
 }

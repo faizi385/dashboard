@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ config('app.name', 'Laravel') }}</title>
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css">
+<!-- Toastr CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+
+<!-- Toastr JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
 <!-- SweetAlert2 CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
@@ -96,92 +102,112 @@
                 </li>
             </ul>
         </nav>
+
+
         <aside class="main-sidebar sidebar-dark-primary elevation-4">
-            <a href="{{ route('dashboard') }}" class="brand-link">
-                <span class="brand-text font-weight-light">AdminLTE</span>
+            <!-- Dynamically assign the dashboard route based on the user's role -->
+            <a style="text-decoration: none" href="{{ auth()->user()->hasRole('Super Admin') ? route('dashboard') : (auth()->user()->hasRole('Retailer') ? route('retailer.dashboard') : route('lp.dashboard')) }}" class="brand-link">
+                <span class="brand-text font-weight-light">Novatore</span>
             </a>
-            <!-- Sidebar content -->
-            <div class="sidebar">
-                <!-- Sidebar Menu -->
-                <nav class="mt-2">
-                    <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-                        <!-- Other menu items -->
-        
-                        <!-- Manage Users Dropdown -->
-                        <li class="nav-item has-treeview">
-                            <input type="checkbox" id="manageUsersToggle" class="d-none">
-                            <a href="#" class="nav-link" onclick="document.getElementById('manageUsersToggle').checked = !document.getElementById('manageUsersToggle').checked;">
-                                <i class="nav-icon fas fa-users"></i>
-                                <p>
-                                    Manage Users
-                                    <i class="right fas fa-angle-down"></i>
-                                </p>
-                            </a>
-                            <ul class="nav nav-treeview">
-                                <!-- Manage Users -->
-                                <li class="nav-item">
-                                    <a href="{{ route('users.index') }}" class="nav-link">
-                                        <i class="nav-icon"></i>
-                                        <p>Users</p>
-                                    </a>
-                                </li>
-                                <!-- Manage Roles -->
-                                <li class="nav-item">
-                                    <a href="{{ route('roles.index') }}" class="nav-link">
-                                        <i class="nav-icon"></i>
-                                        <p>Roles</p>
-                                    </a>
-                                </li>
-                                <!-- Manage Permissions -->
-                                <li class="nav-item">
-                                    <a href="{{ route('permissions.index') }}" class="nav-link">
-                                        <i class="nav-icon"></i>
-                                        <p>Permissions</p>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-        
-                        <!-- Manage Provinces Dropdown -->
+    <!-- Sidebar content -->
+    <div class="sidebar">
+        <!-- SidebarSearch Form -->
+        <div class="form-inline mt-3">
+            <div class="input-group" data-widget="sidebar-search">
+                <input class="form-control form-control-sidebar" type="search" placeholder="Search" aria-label="Search">
+                <div class="input-group-append">
+                    <button class="btn btn-sidebar">
+                        <i class="fas fa-search fa-fw"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Menu -->
+        <nav class="mt-2">
+            <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                <!-- Other menu items -->
+                
+                <!-- Manage Users Dropdown -->
+                <li class="nav-item has-treeview">
+                    <input type="checkbox" id="manageUsersToggle" class="d-none">
+                    <a href="#" class="nav-link" onclick="document.getElementById('manageUsersToggle').checked = !document.getElementById('manageUsersToggle').checked;">
+                        <i class="nav-icon fas fa-users"></i>
+                        <p>
+                            Manage Users
+                            <i class="right fas fa-angle-down"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ route('provinces.index') }}" class="nav-link">
-                                <i class="nav-icon fas fa-map"></i>
-                                <p>
-                                    Provinces
-                                </p>
+                            <a href="{{ route('users.index') }}" class="nav-link">
+                                <i class="nav-icon"></i>
+                                <p>Users</p>
                             </a>
                         </li>
-                        <li class="nav-item has-treeview">
-                            <a href="#" class="nav-link">
-                                <i class="nav-icon fas fa-book"></i>
-                                <p>
-                                    Logs
-                                    <i class="right fas fa-angle-left"></i>
-                                </p>
+                        <li class="nav-item">
+                            <a href="{{ route('roles.index') }}" class="nav-link">
+                                <i class="nav-icon"></i>
+                                <p>Roles</p>
                             </a>
-                            <ul class="nav nav-treeview">
-                                <li class="nav-item">
-                                    <a href="{{ route('logs.index') }}" class="nav-link">
-                                        <i class="nav-icon"></i>
-                                        <p>User Logs</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{{ route('province-logs.index') }}" class="nav-link">
-                                        <i class="nav-icon"></i>
-                                        <p>Province Logs</p>
-                                    </a>
-                                </li>
-                            </ul>
                         </li>
+                        <li class="nav-item">
+                            <a href="{{ route('permissions.index') }}" class="nav-link">
+                                <i class="nav-icon"></i>
+                                <p>Permissions</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <!-- Manage Provinces Dropdown -->
+                <li class="nav-item">
+                    <a href="{{ route('provinces.index') }}" class="nav-link">
+                        <i class="nav-icon fas fa-map"></i>
+                        <p>Provinces</p>
+                    </a>
+                </li>
+
+                <!-- Logs -->
+                <li class="nav-item has-treeview">
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon fas fa-book"></i>
+                        <p>Logs
+                            <i class="right fas fa-angle-left"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ route('logs.index') }}" class="nav-link">
+                                <i class="nav-icon"></i>
+                                <p>User Logs</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('province-logs.index') }}" class="nav-link">
+                                <i class="nav-icon"></i>
+                                <p>Province Logs</p>
+                            </a>
+                        </li>
+                      
                         
                     </ul>
-                </nav>
-                <!-- /.sidebar-menu -->
-            </div>
-            <!-- /.sidebar -->
-        </aside>
-        
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('retailers.create') }}" class="nav-link">
+                        <i class="nav-icon fas fa-user"></i>
+                        <p>Retailer Management</p>
+                    </a>
+                </li>
+                
+            </ul>
+        </nav>
+        <!-- /.sidebar-menu -->
+    </div>
+    <!-- /.sidebar -->
+</aside>
+
+
         
         <!-- Content Wrapper -->
         <div class="content-wrapper">
@@ -234,10 +260,13 @@
   
     <!-- Bootstrap Bundle (includes Popper) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
-    
+
+    <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+    <!-- Latest jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<!-- Latest DataTables -->
+<script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
+
 
     
    

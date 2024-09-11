@@ -1,5 +1,6 @@
 <?php
 
+
 // database/seeders/RolesTableSeeder.php
 namespace Database\Seeders;
 
@@ -10,9 +11,12 @@ class RolesTableSeeder extends Seeder
 {
     public function run()
     {
-        // Create roles
-        Role::create(['name' => 'admin']);
-        Role::create(['name' => 'editor']);
-        Role::create(['name' => 'viewer']);
+        // Remove all existing roles
+        Role::query()->delete();
+
+        // Create new roles
+        Role::create(['name' => 'Retailer']);
+        Role::create(['name' => 'LP']);
+        Role::create(['name' => 'Super Admin']);
     }
 }

@@ -42,4 +42,23 @@ class ProvinceObserver
             ]),
         ]);
     }
+
+    public function deleted(Province $province)
+    {
+        $actionUserId = Auth::check() ? Auth::id() : null;
+
+        ProvinceLog::create([
+            'user_id' => $actionUserId,
+            'province_id' => $province->id,
+            'action' => 'deleted',
+            'description' => json_encode([
+                'name' => $province->name,
+                'slug' => $province->slug,
+                'timezone_1' => $province->timezone_1,
+                'timezone_2' => $province->timezone_2,
+                'tax_value' => $province->tax_value,
+                'status' => $province->status,
+            ]),
+        ]);
+    }
 }

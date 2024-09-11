@@ -3,15 +3,22 @@
 @section('content')
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Create Role</h1>
-        <a href="{{ url()->previous() }}" class="btn btn-secondary">Back</a>
+        <h1>
+            <i class="fas fa-user-tag"></i> Create Role
+        </h1>
+        <a href="{{ route('roles.index') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+        
     </div>
 
     <form action="{{ route('roles.store') }}" method="POST">
         @csrf
         
         <div class="mb-3">
-            <label for="name" class="form-label">Role Name</label>
+            <label for="name" class="form-label">
+                <i class="fas fa-briefcase"></i> Role Name
+            </label>
             <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" placeholder="Enter role name" value="{{ old('name') }}" required>
             @error('name')
                 <div class="invalid-feedback">
@@ -21,10 +28,12 @@
         </div>
 
         <div class="mb-4">
-            <label class="form-label">Assign Permissions</label>
+            <label class="form-label">
+                <i class="fas fa-lock"></i> Assign Permissions
+            </label>
             <div class="row">
                 @foreach($permissions as $permission)
-                    <div class="col-md-3 mb-2">
+                    <div class="col-md-4 mb-2">
                         <div class="form-check">
                             <input type="checkbox" name="permissions[]" value="{{ $permission->id }}" id="permission-{{ $permission->id }}" class="form-check-input" {{ in_array($permission->id, old('permissions', [])) ? 'checked' : '' }}>
                             <label class="form-check-label" for="permission-{{ $permission->id }}">
@@ -41,7 +50,9 @@
             @enderror
         </div>
 
-        <button type="submit" class="btn btn-primary">Create Role</button>
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> Create Role
+        </button>
     </form>
 </div>
 @endsection
