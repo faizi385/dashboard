@@ -79,28 +79,30 @@
             </ul>
 
             <!-- Right navbar links -->
-            <ul class="navbar-nav ml-auto">
-                <!-- User Dropdown -->
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-user"></i> {{ Auth::user()->first_name }}
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-user-circle mr-2"></i> Profile</a></li>
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-cogs mr-2"></i> Settings</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item" href="{{ route('logout') }}"
-                               onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                <i class="fas fa-sign-out-alt mr-2"></i> Logout
-                            </a>
-                            <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-                                @csrf
-                            </form>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
+          <!-- Right navbar links -->
+<ul class="navbar-nav ml-auto">
+    <!-- User Dropdown -->
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-user"></i> {{ Auth::user()->first_name }}
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+            <li><a class="dropdown-item" href="{{ route('profile') }}"><i class="fas fa-user-circle mr-2"></i> Profile</a></li>
+            <li><a class="dropdown-item" href="{{ route('settings') }}"><i class="fas fa-cogs mr-2"></i> Settings</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <a class="dropdown-item" href="{{ route('logout') }}"
+                   onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                    <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                </a>
+                <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                    @csrf
+                </form>
+            </li>
+        </ul>
+    </li>
+</ul>
+
         </nav>
 
 
@@ -109,105 +111,114 @@
             <a style="text-decoration: none" href="{{ auth()->user()->hasRole('Super Admin') ? route('dashboard') : (auth()->user()->hasRole('Retailer') ? route('retailer.dashboard') : route('lp.dashboard')) }}" class="brand-link">
                 <span class="brand-text font-weight-light">Novatore</span>
             </a>
-    <!-- Sidebar content -->
-    <div class="sidebar">
-        <!-- SidebarSearch Form -->
-        <div class="form-inline mt-3">
-            <div class="input-group" data-widget="sidebar-search">
-                <input class="form-control form-control-sidebar" type="search" placeholder="Search" aria-label="Search">
-                <div class="input-group-append">
-                    <button class="btn btn-sidebar">
-                        <i class="fas fa-search fa-fw"></i>
-                    </button>
+        
+            <!-- Sidebar content -->
+            <div class="sidebar">
+                <!-- SidebarSearch Form -->
+                <div class="form-inline mt-3">
+                    <div class="input-group" data-widget="sidebar-search">
+                        <input class="form-control form-control-sidebar" type="search" placeholder="Search" aria-label="Search">
+                        <div class="input-group-append">
+                            <button class="btn btn-sidebar">
+                                <i class="fas fa-search fa-fw"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Sidebar Menu -->
-        <nav class="mt-2">
-            <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-                <!-- Other menu items -->
-                
-                <!-- Manage Users Dropdown -->
-                <li class="nav-item has-treeview">
-                    <input type="checkbox" id="manageUsersToggle" class="d-none">
-                    <a href="#" class="nav-link" onclick="document.getElementById('manageUsersToggle').checked = !document.getElementById('manageUsersToggle').checked;">
-                        <i class="nav-icon fas fa-users"></i>
-                        <p>
-                            Manage Users
-                            <i class="right fas fa-angle-down"></i>
-                        </p>
-                    </a>
-                    <ul class="nav nav-treeview">
+        
+                <!-- Sidebar Menu -->
+                <nav class="mt-2">
+                    <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                        <!-- Manage Users Dropdown -->
+                        <li class="nav-item has-treeview {{ request()->is('users*') || request()->is('roles*') || request()->is('permissions*') ? 'menu-open' : '' }}">
+                            <a href="#" class="nav-link {{ request()->is('users*') || request()->is('roles*') || request()->is('permissions*') ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-users"></i>
+                                <p>
+                                    Manage Users
+                                    <i class="right fas fa-angle-down"></i>
+                                </p>
+                            </a>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    <a href="{{ route('users.index') }}" class="nav-link {{ Route::currentRouteName() == 'users.index' ? 'active' : '' }}">
+                                        <i class="nav-icon"></i>
+                                        <p>Users</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('roles.index') }}" class="nav-link {{ Route::currentRouteName() == 'roles.index' ? 'active' : '' }}">
+                                        <i class="nav-icon"></i>
+                                        <p>Roles</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('permissions.index') }}" class="nav-link {{ Route::currentRouteName() == 'permissions.index' ? 'active' : '' }}">
+                                        <i class="nav-icon"></i>
+                                        <p>Permissions</p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+        
+                        <!-- Manage Provinces -->
                         <li class="nav-item">
-                            <a href="{{ route('users.index') }}" class="nav-link">
-                                <i class="nav-icon"></i>
-                                <p>Users</p>
+                            <a href="{{ route('provinces.index') }}" class="nav-link {{ Route::currentRouteName() == 'provinces.index' ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-map"></i>
+                                <p>Provinces</p>
                             </a>
                         </li>
+        
+                        <!-- Logs Dropdown -->
+                        <li class="nav-item has-treeview {{ request()->is('logs*') || request()->is('province-logs*') || request()->is('retailer-logs*') ? 'menu-open' : '' }}">
+                            <a href="#" class="nav-link {{ request()->is('logs*') || request()->is('province-logs*') || request()->is('retailer-logs*') ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-book"></i>
+                                <p>Logs
+                                    <i class="right fas fa-angle-left"></i>
+                                </p>
+                            </a>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    <a href="{{ route('logs.index') }}" class="nav-link {{ Route::currentRouteName() == 'logs.index' ? 'active' : '' }}">
+                                        <i class="nav-icon"></i>
+                                        <p>User Logs</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('province-logs.index') }}" class="nav-link {{ Route::currentRouteName() == 'province-logs.index' ? 'active' : '' }}">
+                                        <i class="nav-icon"></i>
+                                        <p>Province Logs</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('retailer.logs') }}" class="nav-link {{ Route::currentRouteName() == 'retailer.logs' ? 'active' : '' }}">
+                                        <i class="nav-icon"></i>
+                                        <p>Retailer Logs</p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+        
+                        <!-- Retailer Management -->
                         <li class="nav-item">
-                            <a href="{{ route('roles.index') }}" class="nav-link">
-                                <i class="nav-icon"></i>
-                                <p>Roles</p>
+                            <a href="{{ route('retailer.index') }}" class="nav-link {{ Route::currentRouteName() == 'retailer.index' ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-user"></i>
+                                <p>Retailer Management</p>
                             </a>
                         </li>
+                        @if(auth()->user()->hasRole('Retailer'))
                         <li class="nav-item">
-                            <a href="{{ route('permissions.index') }}" class="nav-link">
-                                <i class="nav-icon"></i>
-                                <p>Permissions</p>
+                            <a class="nav-link" href="{{ route('retailer.manageInfo') }}">
+                                <i class="nav-icon fas fa-info-circle"></i>
+                                <p>Manage Info</p>
                             </a>
                         </li>
-                    </ul>
-                </li>
-
-                <!-- Manage Provinces Dropdown -->
-                <li class="nav-item">
-                    <a href="{{ route('provinces.index') }}" class="nav-link">
-                        <i class="nav-icon fas fa-map"></i>
-                        <p>Provinces</p>
-                    </a>
-                </li>
-
-                <!-- Logs -->
-                <li class="nav-item has-treeview">
-                    <a href="#" class="nav-link">
-                        <i class="nav-icon fas fa-book"></i>
-                        <p>Logs
-                            <i class="right fas fa-angle-left"></i>
-                        </p>
-                    </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="{{ route('logs.index') }}" class="nav-link">
-                                <i class="nav-icon"></i>
-                                <p>User Logs</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route('province-logs.index') }}" class="nav-link">
-                                <i class="nav-icon"></i>
-                                <p>Province Logs</p>
-                            </a>
-                        </li>
-                      
+                        @endif
                         
                     </ul>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('retailers.create') }}" class="nav-link">
-                        <i class="nav-icon fas fa-user"></i>
-                        <p>Retailer Management</p>
-                    </a>
-                </li>
-                
-            </ul>
-        </nav>
-        <!-- /.sidebar-menu -->
-    </div>
-    <!-- /.sidebar -->
-</aside>
-
-
+                </nav>
+            </div>
+        </aside>
+        
         
         <!-- Content Wrapper -->
         <div class="content-wrapper">

@@ -4,8 +4,10 @@ namespace App\Providers;
 
 use App\Models\User;
 use App\Models\Province;
+use App\Models\Retailer;
 use App\Observers\UserObserver;
 use App\Observers\ProvinceObserver;
+use App\Observers\RetailerLogObserver;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -29,5 +31,6 @@ class AppServiceProvider extends ServiceProvider
     {
         User::observe(UserObserver::class);
         Province::observe(ProvinceObserver::class);
+        Retailer::observe(RetailerLogObserver::class);
     }
 }

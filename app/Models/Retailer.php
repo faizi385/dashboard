@@ -11,6 +11,17 @@ class Retailer extends Model
         'last_name',
         'email',
         'phone',
-        // Add other fields you want to allow mass assignment for
+        'corporate_name',
+        'dba',
+        // Address fields are not included here
     ];
+
+    // In Retailer.php model
+// In Retailer.php model
+public function address()
+{
+    return $this->hasMany(RetailerAddress::class, 'retailer_id');
+}
+
+
 }

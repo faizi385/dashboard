@@ -12,12 +12,14 @@
 
     <div class="row">
         <div class="col">
-            <table id="example" class="table  table-hover ">
+            <table id="example" class="table table-hover">
                 <thead>
                     <tr>
                         <th>Name</th>
                         <th>Email</th>
                         <th>Phone</th>
+                        <th>Role</th> <!-- New Column for Role -->
+                        <th>User ID</th> <!-- New Column for User ID -->
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -27,6 +29,8 @@
                             <td>{{ $user->first_name }} {{ $user->last_name }}</td>
                             <td>{{ $user->email }}</td>
                             <td>{{ $user->phone }}</td>
+                            <td>{{ $user->roles->pluck('name')->implode(', ') }}</td> <!-- Show Role(s) -->
+                            <td>{{ $user->id }}</td> <!-- Show User ID -->
                             <td>
                                 <a href="{{ route('users.edit', $user) }}" class="btn btn-warning btn-sm">Edit</a>
                                 <form action="{{ route('users.destroy', $user) }}" method="POST" class="d-inline delete-form">
@@ -78,6 +82,8 @@
 <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
 <!-- Toastr JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<!-- SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
     $(document).ready(function() {

@@ -76,20 +76,30 @@
         <!-- Sidebar -->
         <aside class="main-sidebar sidebar-dark-primary elevation-4">
             <!-- Dynamically assign the dashboard route based on the user's role -->
-            <a href="{{ auth()->user()->hasRole('Super Admin') ? route('dashboard') : (auth()->user()->hasRole('Retailer') ? route('retailer.dashboard') : route('lp.dashboard')) }}" class="brand-link">
+            <a style="text-decoration: none" href="{{ auth()->user()->hasRole('Super Admin') ? route('dashboard') : (auth()->user()->hasRole('Retailer') ? route('retailer.dashboard') : route('lp.dashboard')) }}" class="brand-link">
                 <span class="brand-text font-weight-light">Novatore</span>
             </a>
+        
             <!-- Sidebar content -->
             <div class="sidebar">
+                <!-- SidebarSearch Form -->
+                <div class="form-inline mt-3">
+                    <div class="input-group" data-widget="sidebar-search">
+                        <input class="form-control form-control-sidebar" type="search" placeholder="Search" aria-label="Search">
+                        <div class="input-group-append">
+                            <button class="btn btn-sidebar">
+                                <i class="fas fa-search fa-fw"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+        
                 <!-- Sidebar Menu -->
                 <nav class="mt-2">
                     <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-                        <!-- Other menu items -->
-        
                         <!-- Manage Users Dropdown -->
-                        <li class="nav-item has-treeview">
-                            <input type="checkbox" id="manageUsersToggle" class="d-none">
-                            <a href="#" class="nav-link" onclick="document.getElementById('manageUsersToggle').checked = !document.getElementById('manageUsersToggle').checked;">
+                        <li class="nav-item has-treeview {{ request()->is('users*') || request()->is('roles*') || request()->is('permissions*') ? 'menu-open' : '' }}">
+                            <a href="#" class="nav-link {{ request()->is('users*') || request()->is('roles*') || request()->is('permissions*') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-users"></i>
                                 <p>
                                     Manage Users
@@ -97,23 +107,20 @@
                                 </p>
                             </a>
                             <ul class="nav nav-treeview">
-                                <!-- Manage Users -->
                                 <li class="nav-item">
-                                    <a href="{{ route('users.index') }}" class="nav-link">
+                                    <a href="{{ route('users.index') }}" class="nav-link {{ Route::currentRouteName() == 'users.index' ? 'active' : '' }}">
                                         <i class="nav-icon"></i>
                                         <p>Users</p>
                                     </a>
                                 </li>
-                                <!-- Manage Roles -->
                                 <li class="nav-item">
-                                    <a href="{{ route('roles.index') }}" class="nav-link">
+                                    <a href="{{ route('roles.index') }}" class="nav-link {{ Route::currentRouteName() == 'roles.index' ? 'active' : '' }}">
                                         <i class="nav-icon"></i>
                                         <p>Roles</p>
                                     </a>
                                 </li>
-                                <!-- Manage Permissions -->
                                 <li class="nav-item">
-                                    <a href="{{ route('permissions.index') }}" class="nav-link">
+                                    <a href="{{ route('permissions.index') }}" class="nav-link {{ Route::currentRouteName() == 'permissions.index' ? 'active' : '' }}">
                                         <i class="nav-icon"></i>
                                         <p>Permissions</p>
                                     </a>
@@ -121,52 +128,65 @@
                             </ul>
                         </li>
         
-                        <!-- Manage Provinces Dropdown -->
+                        <!-- Manage Provinces -->
                         <li class="nav-item">
-                            <a href="{{ route('provinces.index') }}" class="nav-link">
+                            <a href="{{ route('provinces.index') }}" class="nav-link {{ Route::currentRouteName() == 'provinces.index' ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-map"></i>
-                                <p>
-                                    Provinces
-                                </p>
+                                <p>Provinces</p>
                             </a>
                         </li>
-                        <li class="nav-item has-treeview">
-                            <input type="checkbox" id="logsToggle" class="d-none">
-                            <a href="#" class="nav-link" onclick="document.getElementById('logsToggle').checked = !document.getElementById('logsToggle').checked;">
+        
+                        <!-- Logs Dropdown -->
+                        <li class="nav-item has-treeview {{ request()->is('logs*') || request()->is('province-logs*') ? 'menu-open' : '' }}">
+                            <a href="#" class="nav-link {{ request()->is('logs*') || request()->is('province-logs*') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-book"></i>
-                                <p>
-                                    Logs
-                                    <i class="right fas fa-angle-down"></i>
+                                <p>Logs
+                                    <i class="right fas fa-angle-left"></i>
                                 </p>
                             </a>
                             <ul class="nav nav-treeview">
                                 <li class="nav-item">
-                                    <a href="{{ route('logs.index') }}" class="nav-link">
+                                    <a href="{{ route('logs.index') }}" class="nav-link {{ Route::currentRouteName() == 'logs.index' ? 'active' : '' }}">
                                         <i class="nav-icon"></i>
                                         <p>User Logs</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="{{ route('province-logs.index') }}" class="nav-link">
+                                    <a href="{{ route('province-logs.index') }}" class="nav-link {{ Route::currentRouteName() == 'province-logs.index' ? 'active' : '' }}">
                                         <i class="nav-icon"></i>
                                         <p>Province Logs</p>
                                     </a>
                                 </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('retailer.logs') }}" class="nav-link {{ Route::currentRouteName() == 'retailer.logs' ? 'active' : '' }}">
+                                        <i class="nav-icon"></i>
+                                        <p>Retailer Logs</p>
+                                    </a>
+                                </li>
                             </ul>
                         </li>
-                        
+        
+                        <!-- Retailer Management -->
                         <li class="nav-item">
-                            <a href="{{ route('retailers.create') }}" class="nav-link">
+                            <a href="{{ route('retailer.index') }}" class="nav-link {{ Route::currentRouteName() == 'retailer.index' ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-user"></i>
                                 <p>Retailer Management</p>
                             </a>
                         </li>
+                        @if(auth()->user()->hasRole('Retailer'))
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('retailer.manageInfo') }}">
+                                <i class="nav-icon fas fa-info-circle"></i>
+                                <p>Manage Info</p>
+                            </a>
+                        </li>
+                        @endif
+                        
                     </ul>
                 </nav>
-                <!-- /.sidebar-menu -->
             </div>
-            <!-- /.sidebar -->
         </aside>
+
         
         <!-- Content Wrapper -->
         <div class="content-wrapper">

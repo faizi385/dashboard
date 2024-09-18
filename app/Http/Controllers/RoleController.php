@@ -15,7 +15,7 @@ class RoleController extends Controller
 
     public function create()
     {
-        $permissions = Permission::all(); // Fetch all permissions to display in the form
+        $permissions = Permission::all();
         return view('roles.create', compact('permissions'));
     }
 
@@ -23,12 +23,12 @@ class RoleController extends Controller
     {
         $request->validate([
             'name' => 'required|unique:roles,name',
-            'permissions' => 'array', // Validate permissions input
+            'permissions' => 'array', 
         ]);
 
         $role = Role::create(['name' => $request->name]);
 
-        // Ensure permissions are valid before assigning
+   
         if ($request->has('permissions')) {
             $validPermissions = Permission::whereIn('id', $request->permissions)->pluck('id')->toArray();
             $role->syncPermissions($validPermissions);
@@ -39,8 +39,8 @@ class RoleController extends Controller
 
     public function edit(Role $role)
     {
-        $permissions = Permission::all(); // Fetch all permissions for editing
-        $rolePermissions = $role->permissions->pluck('id')->toArray(); // Get current role's permissions
+        $permissions = Permission::all();
+        $rolePermissions = $role->permissions->pluck('id')->toArray();
 
         return view('roles.edit', compact('role', 'permissions', 'rolePermissions'));
     }
@@ -49,17 +49,16 @@ class RoleController extends Controller
     {
         $request->validate([
             'name' => 'required|unique:roles,name,' . $role->id,
-            'permissions' => 'array', // Validate permissions input
+            'permissions' => 'array', 
         ]);
 
         $role->update(['name' => $request->name]);
 
-        // Ensure permissions are valid before assigning
         if ($request->has('permissions')) {
             $validPermissions = Permission::whereIn('id', $request->permissions)->pluck('id')->toArray();
             $role->syncPermissions($validPermissions);
         } else {
-            $role->syncPermissions([]); // Remove all permissions if none selected
+            $role->syncPermissions([]); 
         }
 
         return redirect()->route('roles.index')->with('toast_success', 'Role updated successfully.');
