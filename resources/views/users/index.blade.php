@@ -12,12 +12,14 @@
 
     <div class="row">
         <div class="col">
-            <table id="example" class="table table-bordered table-hover table-striped">
+            <table id="example" class="table table-hover">
                 <thead>
                     <tr>
                         <th>Name</th>
                         <th>Email</th>
                         <th>Phone</th>
+                        <th>Role</th>
+                        <th>User ID</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -27,12 +29,14 @@
                             <td>{{ $user->first_name }} {{ $user->last_name }}</td>
                             <td>{{ $user->email }}</td>
                             <td>{{ $user->phone }}</td>
+                            <td>{{ $user->roles->pluck('name')->implode(', ') }}</td>
+                            <td>{{ $user->id }}</td>
                             <td>
-                                <a href="{{ route('users.edit', $user) }}" class="btn btn-warning btn-sm">Edit</a>
+                                <a href="{{ route('users.edit', $user) }}" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit User">Edit</a>
                                 <form action="{{ route('users.destroy', $user) }}" method="POST" class="d-inline delete-form">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                    <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete User">Delete</button>
                                 </form>
                             </td>
                         </tr>
@@ -46,7 +50,6 @@
 @push('styles')
 <!-- DataTables CSS -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css">
-<!-- Custom CSS for alternating row colors and clearer borders -->
 <style>
     table.dataTable {
         border-collapse: collapse !important;
@@ -76,9 +79,17 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <!-- DataTables JS -->
 <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+<!-- Toastr JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<!-- SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
     $(document).ready(function() {
         $('#example').DataTable();
+
+        // Initialize tooltips
+        $('[data-bs-toggle="tooltip"]').tooltip();
 
         // Initialize delete confirmation
         document.querySelectorAll('.delete-form').forEach(form => {
@@ -95,12 +106,18 @@
                     confirmButtonText: 'Yes, delete it!'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        form.submit(); // Submit the form if confirmed
+                        form.submit();
                     }
                 });
             });
         });
+
+        // Display Toastr messages
+        @if(session('toast_success'))
+            toastr.success("{{ session('toast_success') }}");
+        @endif
     });
 </script>
 @endpush
+
 @endsection

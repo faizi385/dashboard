@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -9,38 +10,56 @@ class RoleController extends Controller
 {
     public function index()
     {
-        $roles = Role::all();
+        // Get the authenticated user
+        $user = auth()->user();
+
+        // Check the user's role and retrieve roles accordingly
+        if ($user->hasRole('Retailer') || $user->hasRole('LP')) {
+            // Retrieve roles created by the logged-in retailer or LP
+            $roles = Role::where('created_by', $user->id)->get();
+        } elseif ($user->hasRole('Super Admin')) {
+            // Retrieve all roles created by the super admin and those not created by anyone
+            $roles = Role::where('created_by', $user->id)
+                ->orWhereNull('created_by')
+                ->get();
+        } else {
+            // Default case for other roles (if applicable)
+            $roles = Role::all();
+        }
+
         return view('roles.index', compact('roles'));
     }
 
     public function create()
     {
-        $permissions = Permission::all(); // Fetch all permissions to display in the form
+        $permissions = Permission::all();
         return view('roles.create', compact('permissions'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|unique:roles,name',
-            'permissions' => 'array', // Validate permissions input
+            'name' => 'required|unique:roles,name,NULL,id,created_by,' . auth()->id(),
+            'permissions' => 'array', 
         ]);
 
-        $role = Role::create(['name' => $request->name]);
+        $role = Role::create([
+            'name' => $request->name,
+            'created_by' => auth()->id(), // Set the creator of the role
+        ]);
 
-        // Ensure permissions are valid before assigning
         if ($request->has('permissions')) {
             $validPermissions = Permission::whereIn('id', $request->permissions)->pluck('id')->toArray();
             $role->syncPermissions($validPermissions);
         }
 
-        return redirect()->route('roles.index')->with('success', 'Role created successfully.');
+        return redirect()->route('roles.index')->with('toast_success', 'Role created successfully.');
     }
 
     public function edit(Role $role)
     {
-        $permissions = Permission::all(); // Fetch all permissions for editing
-        $rolePermissions = $role->permissions->pluck('id')->toArray(); // Get current role's permissions
+        $permissions = Permission::all();
+        $rolePermissions = $role->permissions->pluck('id')->toArray();
 
         return view('roles.edit', compact('role', 'permissions', 'rolePermissions'));
     }
@@ -48,26 +67,25 @@ class RoleController extends Controller
     public function update(Request $request, Role $role)
     {
         $request->validate([
-            'name' => 'required|unique:roles,name,' . $role->id,
-            'permissions' => 'array', // Validate permissions input
+            'name' => 'required|unique:roles,name,' . $role->id . ',id,created_by,' . auth()->id(),
+            'permissions' => 'array', 
         ]);
 
         $role->update(['name' => $request->name]);
 
-        // Ensure permissions are valid before assigning
         if ($request->has('permissions')) {
             $validPermissions = Permission::whereIn('id', $request->permissions)->pluck('id')->toArray();
             $role->syncPermissions($validPermissions);
         } else {
-            $role->syncPermissions([]); // Remove all permissions if none selected
+            $role->syncPermissions([]); 
         }
 
-        return redirect()->route('roles.index')->with('success', 'Role updated successfully.');
+        return redirect()->route('roles.index')->with('toast_success', 'Role updated successfully.');
     }
 
     public function destroy(Role $role)
     {
         $role->delete();
-        return redirect()->route('roles.index')->with('success', 'Role deleted successfully.');
+        return redirect()->route('roles.index')->with('toast_success','Role deleted successfully.');
     }
 }

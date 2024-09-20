@@ -35,6 +35,14 @@ class RouteServiceProvider extends ServiceProvider
 
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
+
+            // Add Retailer route file
+            Route::middleware(['web', 'auth', 'role:Retailer'])  // Ensuring the 'Retailer' role middleware
+                ->group(base_path('routes/retailer.php'));
+
+            // Add LP route file
+            Route::middleware(['web', 'auth', 'role:LP'])  // Ensuring the 'LP' role middleware
+                ->group(base_path('routes/lp.php'));
         });
     }
 

@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
@@ -29,6 +28,15 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        // Custom role-based redirection
+        $user = Auth::user();
+        if ($user->hasRole('Retailer')) {
+            return redirect()->intended('/retailer/dashboard');
+        } elseif ($user->hasRole('LP')) {
+            return redirect()->intended('/lp/dashboard');
+        }
+
+        // Default redirect if no specific role is found
         return redirect()->intended(RouteServiceProvider::HOME);
     }
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
@@ -12,16 +13,37 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::all();
+        // Check if the user is a Retailer or LP
+        if (auth()->user()->hasRole('Retailer') || auth()->user()->hasRole('LP')) {
+            // Retrieve users created by the logged-in retailer or LP
+            $users = User::where('created_by', auth()->id())->with('roles')->get();
+        } else {
+            // Retrieve all users for Super Admins
+            $users = User::with('roles')->get();
+        }
+
         return view('users.index', compact('users'));
     }
 
     public function create()
     {
-        $roles = Role::all();
+        // Determine the roles based on the user's role
+        if (auth()->user()->hasRole('Super Admin')) {
+            // Super Admin can see only roles created by them
+            $roles = Role::where('created_by', auth()->id())->get(); 
+        } elseif (auth()->user()->hasRole('Retailer') || auth()->user()->hasRole('LP')) {
+            // Retailers and LPs can see only roles they created
+            $roles = Role::where('created_by', auth()->id())->get(); 
+        } else {
+            // Default to an empty collection for other roles, if needed
+            $roles = collect(); 
+        }
+    
         $permissions = Permission::all();
+    
         return view('users.create', compact('roles', 'permissions'));
     }
+    
 
     public function store(Request $request)
     {
@@ -30,12 +52,14 @@ class UserController extends Controller
             'last_name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'phone' => 'nullable|string|max:20',
+            'phone' => 'required|string|max:20',
             'address' => 'nullable|string|max:255',
             'roles' => 'array',
             'permissions' => 'array',
+            'userable_id' => 'nullable|integer', 
+            'userable_type' => 'nullable|string',
         ]);
-    
+
         $user = User::create([
             'first_name' => $request->input('first_name'),
             'last_name' => $request->input('last_name'),
@@ -43,27 +67,36 @@ class UserController extends Controller
             'password' => Hash::make($request->input('password')),
             'phone' => $request->input('phone'),
             'address' => $request->input('address'),
+            'userable_id' => $request->input('userable_id'), 
+            'userable_type' => $request->input('userable_type'), 
+            'created_by' => auth()->id(), // Set the creator ID
         ]);
-    
+
+        // Assign roles
         if ($request->roles) {
-            $roles = Role::whereIn('id', $request->roles)->pluck('name')->toArray();
+            $roles = Role::whereIn('id', $request->roles)->where('created_by', auth()->id())->pluck('name')->toArray();
             $user->assignRole($roles);
         }
-    
+
+        // Assign permissions
         if ($request->permissions) {
             $permissions = Permission::whereIn('id', $request->permissions)->pluck('name')->toArray();
             $user->givePermissionTo($permissions);
         }
-    
-        return redirect()->route('users.index')->with('success', 'User created successfully.');
+
+        return redirect()->route('users.index')
+            ->with('toast_success', 'User created successfully.');
     }
-    
-    
 
     public function edit(User $user)
     {
-        $roles = Role::all();
+        // Roles are based on who created them
+        $roles = auth()->user()->hasRole('Super Admin') 
+            ? Role::where('created_by', auth()->id())->get() 
+            : Role::where('created_by', auth()->id())->get();
+
         $permissions = Permission::all();
+        
         return view('users.edit', compact('user', 'roles', 'permissions'));
     }
 
@@ -78,8 +111,10 @@ class UserController extends Controller
             'address' => 'nullable|string|max:255',
             'roles' => 'array',
             'permissions' => 'array',
+            'userable_id' => 'nullable|integer', 
+            'userable_type' => 'nullable|string', 
         ]);
-    
+
         $user->update([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
@@ -87,24 +122,60 @@ class UserController extends Controller
             'password' => $request->password ? Hash::make($request->password) : $user->password,
             'phone' => $request->phone,
             'address' => $request->address,
+            'userable_id' => $request->input('userable_id'), 
+            'userable_type' => $request->input('userable_type'), 
         ]);
-    
+
+        // Sync roles
         if ($request->roles) {
-            $roles = Role::whereIn('id', $request->roles)->pluck('name')->toArray();
+            $roles = Role::whereIn('id', $request->roles)->where('created_by', auth()->id())->pluck('name')->toArray();
             $user->syncRoles($roles);
         }
-    
+
+        // Sync permissions
         if ($request->permissions) {
             $permissions = Permission::whereIn('id', $request->permissions)->pluck('name')->toArray();
             $user->syncPermissions($permissions);
         }
-    
-        return redirect()->route('users.index')->with('success', 'User updated successfully.');
+
+        return redirect()->route('users.index')
+            ->with('toast_success', 'User updated successfully.');
     }
-    
+
     public function destroy(User $user)
     {
         $user->delete();
-        return redirect()->route('users.index')->with('success', 'User deleted successfully.');
+        return redirect()->route('users.index')
+            ->with('toast_success', 'User deleted successfully.');
+    }
+
+    public function profile()
+    {
+        $user = Auth::user();  // Get authenticated user
+        return view('profile', compact('user'));
+    }
+
+    public function settings()
+    {
+        $user = Auth::user();  // Get authenticated user
+        return view('settings', compact('user'));
+    }
+
+    public function updateSettings(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|string|email|max:255|unique:users,email,' . auth()->id(),
+            'phone' => 'nullable|string|max:20',
+        ]);
+
+        $user = auth()->user(); // Fetch the authenticated user
+
+        // Update the user details
+        $user->update([
+            'email' => $request->input('email'),
+            'phone' => $request->input('phone'),
+        ]);
+
+        return redirect()->back()->with('toast_success', 'Settings updated successfully.');
     }
 }

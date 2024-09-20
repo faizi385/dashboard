@@ -24,11 +24,11 @@
                 <tr>
                     <td>{{ $role->name }}</td>
                     <td class="text-center">
-                        <a href="{{ route('roles.edit', $role) }}" class="btn btn-warning btn-sm">Edit</a>
+                        <a href="{{ route('roles.edit', $role) }}" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Role">Edit</a>
                         <form action="{{ route('roles.destroy', $role) }}" method="POST" class="d-inline delete-form">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete Role">Delete</button>
                         </form>
                     </td>
                 </tr>
@@ -43,15 +43,23 @@
 @endpush
 
 @push('scripts')
-<!-- DataTables JS -->
+<!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- DataTables JS -->
 <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+<!-- Toastr JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<!-- Bootstrap Bundle JS (for tooltips) -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
 
 <script>
     $(document).ready(function() {
         // Initialize DataTables
         $('#rolesTable').DataTable();
-        
+
+        // Initialize tooltips
+        $('[data-bs-toggle="tooltip"]').tooltip();
+
         // Initialize delete confirmation
         document.querySelectorAll('.delete-form').forEach(form => {
             form.addEventListener('submit', function(e) {
@@ -72,8 +80,12 @@
                 });
             });
         });
+
+        // Display Toastr messages
+        @if(session('toast_success'))
+            toastr.success("{{ session('toast_success') }}");
+        @endif
     });
 </script>
 @endpush
 @endsection
-
