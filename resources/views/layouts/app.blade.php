@@ -103,10 +103,7 @@
     </li>
 </ul>
 
-        </nav>
-
-
-        <aside class="main-sidebar sidebar-dark-primary elevation-4">
+        </nav><aside class="main-sidebar sidebar-dark-primary elevation-4">
             <!-- Dynamically assign the dashboard route based on the user's role -->
             <a style="text-decoration: none" href="{{ auth()->user()->hasRole('Super Admin') ? route('dashboard') : (auth()->user()->hasRole('Retailer') ? route('retailer.dashboard') : route('lp.dashboard')) }}" class="brand-link">
                 <span class="brand-text font-weight-light">Novatore</span>
@@ -129,7 +126,8 @@
                 <!-- Sidebar Menu -->
                 <nav class="mt-2">
                     <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-                        <!-- Manage Users Dropdown -->
+                        
+                        <!-- Manage Users Dropdown (Visible to both Super Admin and Retailers) -->
                         <li class="nav-item has-treeview {{ request()->is('users*') || request()->is('roles*') || request()->is('permissions*') ? 'menu-open' : '' }}">
                             <a href="#" class="nav-link {{ request()->is('users*') || request()->is('roles*') || request()->is('permissions*') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-users"></i>
@@ -151,16 +149,21 @@
                                         <p>Roles</p>
                                     </a>
                                 </li>
+        
+                                <!-- Permissions (Visible only to Super Admin) -->
+                                @if(auth()->user()->hasRole('Super Admin'))
                                 <li class="nav-item">
                                     <a href="{{ route('permissions.index') }}" class="nav-link {{ Route::currentRouteName() == 'permissions.index' ? 'active' : '' }}">
                                         <i class="nav-icon"></i>
                                         <p>Permissions</p>
                                     </a>
                                 </li>
+                                @endif
                             </ul>
                         </li>
         
-                        <!-- Manage Provinces -->
+                        <!-- Manage Provinces (Visible only to Super Admin) -->
+                        @if(auth()->user()->hasRole('Super Admin'))
                         <li class="nav-item">
                             <a href="{{ route('provinces.index') }}" class="nav-link {{ Route::currentRouteName() == 'provinces.index' ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-map"></i>
@@ -168,9 +171,9 @@
                             </a>
                         </li>
         
-                        <!-- Logs Dropdown -->
-                        <li class="nav-item has-treeview {{ request()->is('logs*') || request()->is('province-logs*') || request()->is('retailer-logs*') ? 'menu-open' : '' }}">
-                            <a href="#" class="nav-link {{ request()->is('logs*') || request()->is('province-logs*') || request()->is('retailer-logs*') ? 'active' : '' }}">
+                        <!-- Logs Dropdown (Visible only to Super Admin) -->
+                        <li class="nav-item has-treeview {{ request()->is('logs*') || request()->is('province-logs*') || request()->is('retailer-logs*') || request()->is('lp-logs*') ? 'menu-open' : '' }}">
+                            <a href="#" class="nav-link {{ request()->is('logs*') || request()->is('province-logs*') || request()->is('retailer-logs*') || request()->is('lp-logs*') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-book"></i>
                                 <p>Logs
                                     <i class="right fas fa-angle-left"></i>
@@ -195,24 +198,44 @@
                                         <p>Retailer Logs</p>
                                     </a>
                                 </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('lp.logs.index') }}" class="nav-link {{ Route::currentRouteName() == 'lp.logs.index' ? 'active' : '' }}">
+                                        <i class="nav-icon"></i>
+                                        <p>LP Logs</p>
+                                    </a>
+                                </li>
                             </ul>
                         </li>
         
-                        <!-- Retailer Management -->
+                        <!-- Retailer Management (Visible only to Super Admin) -->
                         <li class="nav-item">
                             <a href="{{ route('retailer.index') }}" class="nav-link {{ Route::currentRouteName() == 'retailer.index' ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-user"></i>
                                 <p>Retailer Management</p>
                             </a>
                         </li>
-                        @if(auth()->user()->hasRole('Retailer'))
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('retailer.manageInfo') }}">
+                            <a href="{{ route('lp.management') }}" class="nav-link {{ request()->is('lp/management*') ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-building"></i>
+                                <p>
+                                    LP Management
+                                    <span class="right badge badge-danger">New</span>
+                                </p>
+                            </a>
+                        </li>
+                        @endif
+        
+                        <!-- Manage Info (Visible only to LPs) -->
+                        @if(auth()->user()->hasRole('LP'))
+                        <li class="nav-item {{ request()->is('manage-info*') ? 'menu-open' : '' }}">
+                            <a href="{{ route('manage-info.index') }}" class="nav-link {{ request()->is('manage-info*') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-info-circle"></i>
                                 <p>Manage Info</p>
                             </a>
                         </li>
                         @endif
+        
+                        <!-- LP Management (Visible to all roles) -->
                         
                     </ul>
                 </nav>

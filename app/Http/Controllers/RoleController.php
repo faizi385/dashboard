@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -9,7 +10,23 @@ class RoleController extends Controller
 {
     public function index()
     {
-        $roles = Role::all();
+        // Get the authenticated user
+        $user = auth()->user();
+
+        // Check the user's role and retrieve roles accordingly
+        if ($user->hasRole('Retailer') || $user->hasRole('LP')) {
+            // Retrieve roles created by the logged-in retailer or LP
+            $roles = Role::where('created_by', $user->id)->get();
+        } elseif ($user->hasRole('Super Admin')) {
+            // Retrieve all roles created by the super admin and those not created by anyone
+            $roles = Role::where('created_by', $user->id)
+                ->orWhereNull('created_by')
+                ->get();
+        } else {
+            // Default case for other roles (if applicable)
+            $roles = Role::all();
+        }
+
         return view('roles.index', compact('roles'));
     }
 
@@ -22,13 +39,15 @@ class RoleController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|unique:roles,name',
+            'name' => 'required|unique:roles,name,NULL,id,created_by,' . auth()->id(),
             'permissions' => 'array', 
         ]);
 
-        $role = Role::create(['name' => $request->name]);
+        $role = Role::create([
+            'name' => $request->name,
+            'created_by' => auth()->id(), // Set the creator of the role
+        ]);
 
-   
         if ($request->has('permissions')) {
             $validPermissions = Permission::whereIn('id', $request->permissions)->pluck('id')->toArray();
             $role->syncPermissions($validPermissions);
@@ -48,7 +67,7 @@ class RoleController extends Controller
     public function update(Request $request, Role $role)
     {
         $request->validate([
-            'name' => 'required|unique:roles,name,' . $role->id,
+            'name' => 'required|unique:roles,name,' . $role->id . ',id,created_by,' . auth()->id(),
             'permissions' => 'array', 
         ]);
 

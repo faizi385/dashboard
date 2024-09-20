@@ -37,18 +37,18 @@
                     <td class="text-center">
                         <div class="action-icons">
                             <!-- Status Toggle Icon -->
-                            <button class="btn status-toggle p-0" data-id="{{ $province->id }}">
+                            <button class="btn status-toggle p-0" data-id="{{ $province->id }}" data-bs-toggle="tooltip" data-bs-placement="top" title="Toggle Status">
                                 <i class="fas fa-toggle-{{ $province->status ? 'on' : 'off' }}"></i>
                             </button>
                             <!-- Edit Icon -->
-                            <a href="{{ route('provinces.edit', $province) }}" class="text-warning mx-2">
+                            <a href="{{ route('provinces.edit', $province) }}" class="text-warning mx-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Province">
                                 <i class="fas fa-edit"></i>
                             </a>
                             <!-- Delete Icon -->
                             <form action="{{ route('provinces.destroy', $province) }}" method="POST" class="d-inline delete-form">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-link text-danger p-0">
+                                <button type="submit" class="btn btn-link text-danger p-0" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete Province">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </form>
@@ -102,6 +102,9 @@
     $(document).ready(function() {
         // Initialize DataTables
         $('#provincesTable').DataTable();
+
+        // Initialize tooltips
+        $('[data-bs-toggle="tooltip"]').tooltip();
 
         // Initialize delete confirmation
         document.querySelectorAll('.delete-form').forEach(form => {

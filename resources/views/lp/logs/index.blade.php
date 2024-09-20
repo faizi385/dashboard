@@ -2,26 +2,26 @@
 
 @section('content')
 <div class="container">
-    <h1>Retailer Logs</h1>
+    <h1>LP Logs</h1>
 
     <table id="example" class="table">
         <thead>
             <tr>
                 <th>Action User</th>
-                <th>Retailer DBA</th>
+                <th>LP DBA</th>
                 <th>Time</th>
                 <th>Action</th>
                 <th>Description</th>
             </tr>
         </thead>
         <tbody>
-            @foreach($retailerLogs as $log)
+            @foreach($lpLogs as $log)
                 @php
                     $description = json_decode($log->description, true);
                 @endphp
                 <tr>
                     <td>{{ $log->user ? $log->user->first_name . ' ' . $log->user->last_name : 'System' }}</td>
-                    <td>{{ $log->retailer ? $log->retailer->dba : 'N/A' }}</td>
+                    <td>{{ $log->lp ? $log->lp->dba : 'N/A' }}</td>
                     <td>{{ $log->created_at->format('d-M-Y h:i A') }}</td>
                     <td>{{ ucfirst($log->action) }}</td>
                     <td>
@@ -31,7 +31,7 @@
                     </td>
                 </tr>
 
-                <!-- Modal -->
+                <!-- Modal for viewing log details -->
                 <div class="modal fade" id="logModal{{ $log->id }}" tabindex="-1" aria-labelledby="logModalLabel{{ $log->id }}" aria-hidden="true">
                     <div class="modal-dialog modal-lg">
                         <div class="modal-content">
@@ -43,22 +43,20 @@
                                 @if($log->action == 'updated')
                                     <div class="card-container">
                                         <div class="custom-card old-card half-width-card">
-                                            <div class="custom-card-header">Old Retailer</div>
+                                            <div class="custom-card-header">Old LP</div>
                                             <div class="custom-card-body">
                                                 @foreach($description['old'] ?? [] as $key => $value)
                                                     @if(isset($description['new'][$key]) && $description['old'][$key] !== $description['new'][$key])
-                                                        @if($key != 'corporate_name' && $key != 'dba')
-                                                            <div class="mb-2">
-                                                                <strong>{{ ucfirst($key) }}:</strong>
-                                                                {{ $value }}
-                                                            </div>
-                                                        @endif
+                                                        <div class="mb-2">
+                                                            <strong>{{ ucfirst($key) }}:</strong>
+                                                            {{ $value }}
+                                                        </div>
                                                     @endif
                                                 @endforeach
                                             </div>
                                         </div>
                                         <div class="custom-card updated-card half-width-card">
-                                            <div class="custom-card-header">Updated Retailer</div>
+                                            <div class="custom-card-header">Updated LP</div>
                                             <div class="custom-card-body">
                                                 @foreach($description['new'] ?? [] as $key => $value)
                                                     @if(isset($description['old'][$key]) && $description['old'][$key] !== $description['new'][$key])
@@ -73,7 +71,7 @@
                                     </div>
                                 @elseif($log->action == 'created')
                                     <div class="custom-card">
-                                        <div class="custom-card-header">Created Retailer</div>
+                                        <div class="custom-card-header">Created LP</div>
                                         <div class="custom-card-body">
                                             @foreach($description as $key => $value)
                                                 <div class="mb-2">
@@ -85,7 +83,7 @@
                                     </div>
                                 @elseif($log->action == 'deleted')
                                     <div class="custom-card">
-                                        <div class="custom-card-header">Deleted Retailer</div>
+                                        <div class="custom-card-header">Deleted LP</div>
                                         <div class="custom-card-body">
                                             @foreach($description as $key => $value)
                                                 <div class="mb-2">
@@ -103,7 +101,6 @@
                         </div>
                     </div>
                 </div>
-
             @endforeach
         </tbody>
     </table>

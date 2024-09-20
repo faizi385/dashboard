@@ -17,60 +17,68 @@
                     <button type="button" class="btn btn-danger btn-sm remove-address" style="display:none;">Remove</button>
                 </div>
                 <div class="card-body">
-                    <!-- Form fields -->
-                    <div class="form-group">
-                        <label for="street_no">Street No</label>
-                        <input type="text" class="form-control" name="addresses[0][street_no]" required>
+                    <!-- Form fields arranged with icons -->
+                    <div class="form-row">
+                        <div class="col-md-6 form-group">
+                            <label for="street_no"><i class="fas fa-home"></i> Street No</label>
+                            <input type="text" class="form-control" name="addresses[0][street_no]" required>
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label for="street_name"><i class="fas fa-road"></i> Street Name</label>
+                            <input type="text" class="form-control" name="addresses[0][street_name]" required>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="street_name">Street Name</label>
-                        <input type="text" class="form-control" name="addresses[0][street_name]" required>
+                    <div class="form-row">
+                        <div class="col-md-6 form-group">
+                            <label for="province"><i class="fas fa-map-marker-alt"></i> Province</label>
+                            <select class="form-control" name="addresses[0][province]" required>
+                                <option value="" disabled selected>Select a province</option>
+                                <option value="Alberta">Alberta</option>
+                                <option value="British Columbia">British Columbia</option>
+                                <option value="Ontario">Ontario</option>
+                                <option value="Manitoba">Manitoba</option>
+                                <option value="Saskatchewan">Saskatchewan</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label for="city-dropdown"><i class="fas fa-city"></i> City</label>
+                            <select class="form-control city-dropdown" name="addresses[0][city]" required>
+                                <option value="" disabled selected>Select a city</option>
+                                <option value="Calgary">Calgary</option>
+                                <option value="Vancouver">Vancouver</option>
+                                <option value="Toronto">Toronto</option>
+                                <option value="Winnipeg">Winnipeg</option>
+                                <option value="Regina">Regina</option>
+                                <option value="other">Other (Specify)</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="province">Province</label>
-                        <select class="form-control" name="addresses[0][province]" required>
-                            <option value="" disabled selected>Select a province</option>
-                            <option value="Alberta">Alberta</option>
-                            <option value="British Columbia">British Columbia</option>
-                            <option value="Ontario">Ontario</option>
-                            <option value="Manitoba">Manitoba</option>
-                            <option value="Saskatchewan">Saskatchewan</option>
-                        </select>
+                    <div class="form-row">
+                        <div class="col-md-6 form-group custom-city-input" style="display:none;">
+                            <label for="custom_city"><i class="fas fa-city"></i> Enter City Name</label>
+                            <input type="text" class="form-control" name="addresses[0][custom_city]" placeholder="Enter your city name">
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label for="location"><i class="fas fa-map-pin"></i> Location</label>
+                            <input type="text" class="form-control" name="addresses[0][location]" required>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="city-dropdown">City</label>
-                        <select class="form-control city-dropdown" name="addresses[0][city]" required>
-                            <option value="" disabled selected>Select a city</option>
-                            <option value="Calgary">Calgary</option>
-                            <option value="Vancouver">Vancouver</option>
-                            <option value="Toronto">Toronto</option>
-                            <option value="Winnipeg">Winnipeg</option>
-                            <option value="Regina">Regina</option>
-                            <option value="other">Other (Specify)</option>
-                        </select>
-                    </div>
-                    <div class="form-group custom-city-input" style="display:none;">
-                        <label for="custom_city">Enter City Name</label>
-                        <input type="text" class="form-control" name="addresses[0][custom_city]" placeholder="Enter your city name">
-                    </div>
-                    <div class="form-group">
-                        <label for="location">Location</label>
-                        <input type="text" class="form-control" name="addresses[0][location]" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="contact_person_name">Contact Person Name</label>
-                        <input type="text" class="form-control" name="addresses[0][contact_person_name]">
-                    </div>
-                    <div class="form-group">
-                        <label for="contact_person_phone">Contact Person Phone</label>
-                        <input type="text" class="form-control" name="addresses[0][contact_person_phone]">
+                    <div class="form-row">
+                        <div class="col-md-6 form-group">
+                            <label for="contact_person_name"><i class="fas fa-user"></i> Contact Person Name</label>
+                            <input type="text" class="form-control" name="addresses[0][contact_person_name]">
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label for="contact_person_phone"><i class="fas fa-phone"></i> Contact Person Phone</label>
+                            <input type="text" class="form-control" name="addresses[0][contact_person_phone]">
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <button type="button" id="add-address" class="btn btn-primary mt-3">Add Another Address</button>
-        <button type="submit" class="btn btn-success mt-3">Save Locations</button>
+        <button type="button" id="add-address" class="btn btn-primary mt-3"><i class="fas fa-plus"></i> Add Another Address</button>
+        <button type="submit" class="btn btn-success mt-3"><i class="fas fa-save"></i> Save Locations</button>
     </form>
 
     <script>

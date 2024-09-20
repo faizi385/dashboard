@@ -155,8 +155,8 @@
         background-color: #f9f9f9;
     }
     .modal-dialog {
-        width: 80%; /* Adjust width as necessary */
-        max-width: 500px; /* Set a max-width */
+        width: 90%; /* Adjust width as necessary */
+        max-width: 800px; /* Set a max-width */
     }
     .custom-modal-content {
         height: 400px; /* Adjust height as necessary */

@@ -15,7 +15,7 @@
         @csrf
         @method('PUT')
 
-        <div class="mb-3">
+        <div class="mb-3 col-md-6">
             <label for="name" class="form-label">
                 <i class="fas fa-lock"></i> Permission Name
             </label>

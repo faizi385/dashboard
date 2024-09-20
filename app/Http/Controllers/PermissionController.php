@@ -22,10 +22,12 @@ class PermissionController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255|unique:permissions,name',
+            'description' => 'required|string|max:255', // Validate description
         ]);
 
         Permission::create([
             'name' => $request->name,
+            'description' => $request->description, // Save description
         ]);
 
         return redirect()->route('permissions.index')->with('success', 'Permission created successfully.');
@@ -40,10 +42,12 @@ class PermissionController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255|unique:permissions,name,' . $permission->id,
+            'description' => 'required|string|max:255', // Validate description
         ]);
 
         $permission->update([
             'name' => $request->name,
+            'description' => $request->description, // Update description
         ]);
 
         return redirect()->route('permissions.index')->with('success', 'Permission updated successfully.');

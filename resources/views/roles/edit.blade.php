@@ -15,7 +15,7 @@
         @csrf
         @method('PUT')
 
-        <div class="mb-3">
+        <div class="mb-3 col-md-6">
             <label for="name" class="form-label">
                 <i class="fas fa-briefcase"></i> Role Name
             </label>
@@ -33,15 +33,16 @@
             </label>
             <div class="row">
                 @foreach($permissions as $permission)
-                    <div class="col-md-4 mb-2">
-                        <div class="form-check">
-                            <input type="checkbox" name="permissions[]" value="{{ $permission->id }}" id="permission_{{ $permission->id }}" class="form-check-input" {{ in_array($permission->id, $rolePermissions) ? 'checked' : '' }}>
-                            <label class="form-check-label" for="permission_{{ $permission->id }}">
-                                {{ $permission->name }}
-                            </label>
-                        </div>
+                <div class="col-md-4 mb-2">
+                    <div class="form-check">
+                        <input type="checkbox" name="permissions[]" value="{{ $permission->id }}" id="permission_{{ $permission->id }}" class="form-check-input" {{ in_array($permission->id, $rolePermissions) ? 'checked' : '' }}>
+                        <label class="form-check-label" for="permission_{{ $permission->id }}">
+                            {{ \Illuminate\Support\Str::title($permission->name) }}
+                        </label>
                     </div>
-                @endforeach
+                </div>
+            @endforeach
+            
             </div>
             @error('permissions')
                 <div class="invalid-feedback">

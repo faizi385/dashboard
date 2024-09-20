@@ -25,14 +25,14 @@
                     <td>{{ $retailer->phone }}</td>
                     <td>{{ $retailer->email }}</td>
                     <td>
-                        <a href="{{ route('retailer.show', $retailer->id) }}" class="btn btn-sm btn-info">
+                        <a href="{{ route('retailer.show', $retailer->id) }}" class="btn btn-sm btn-info" data-bs-toggle="tooltip" data-bs-placement="top" title="View Retailer">
                             <i class="fas fa-eye"></i>
                         </a>
-                        <a href="{{ route('retailer.edit', $retailer->id) }}" class="btn btn-sm btn-primary">Edit</a>
-                        <form action="{{ route('retailer.destroy', $retailer->id) }}" method="POST" style="display:inline;">
+                        <a href="{{ route('retailer.edit', $retailer->id) }}" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Retailer">Edit</a>
+                        <form action="{{ route('retailer.destroy', $retailer->id) }}" method="POST" style="display:inline;" class="delete-form">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                            <button type="submit" class="btn btn-sm btn-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete Retailer">Delete</button>
                         </form>
                     </td>
                 </tr>
@@ -41,3 +41,33 @@
     </table>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    $(document).ready(function() {
+        // Initialize tooltips
+        $('[data-bs-toggle="tooltip"]').tooltip();
+
+        // Initialize delete confirmation
+        document.querySelectorAll('.delete-form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, Delete It!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit(); // Submit the form if confirmed
+                    }
+                });
+            });
+        });
+    });
+</script>
+@endpush

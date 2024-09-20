@@ -1,8 +1,6 @@
 <?php
-
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Models\RetailerAddress;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
@@ -13,7 +11,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable,HasRoles,SoftDeletes;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -21,6 +19,7 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
+        
         'first_name',
         'last_name',
         'email',
@@ -29,8 +28,8 @@ class User extends Authenticatable
         'address',
         'userable_id',
         'userable_type',
+        'created_by', 
     ];
-    
 
     /**
      * The attributes that should be hidden for serialization.
@@ -41,12 +40,7 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
-    public function retailer()
-    {
-        return $this->hasOne(Retailer::class);
-    }
-    
-    
+
     /**
      * The attributes that should be cast.
      *
@@ -55,4 +49,16 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    /**
+     * Get the retailer associated with the user.
+     */
+    public function retailer()
+    {
+        return $this->hasOne(Retailer::class);
+    }
+    public function lp()
+    {
+        return $this->hasOne(Lp::class); // Ensure this matches your actual relationship
+    }
 }

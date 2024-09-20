@@ -18,8 +18,8 @@
                         <th>Name</th>
                         <th>Email</th>
                         <th>Phone</th>
-                        <th>Role</th> <!-- New Column for Role -->
-                        <th>User ID</th> <!-- New Column for User ID -->
+                        <th>Role</th>
+                        <th>User ID</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -29,14 +29,14 @@
                             <td>{{ $user->first_name }} {{ $user->last_name }}</td>
                             <td>{{ $user->email }}</td>
                             <td>{{ $user->phone }}</td>
-                            <td>{{ $user->roles->pluck('name')->implode(', ') }}</td> <!-- Show Role(s) -->
-                            <td>{{ $user->id }}</td> <!-- Show User ID -->
+                            <td>{{ $user->roles->pluck('name')->implode(', ') }}</td>
+                            <td>{{ $user->id }}</td>
                             <td>
-                                <a href="{{ route('users.edit', $user) }}" class="btn btn-warning btn-sm">Edit</a>
+                                <a href="{{ route('users.edit', $user) }}" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit User">Edit</a>
                                 <form action="{{ route('users.destroy', $user) }}" method="POST" class="d-inline delete-form">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                    <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete User">Delete</button>
                                 </form>
                             </td>
                         </tr>
@@ -50,7 +50,6 @@
 @push('styles')
 <!-- DataTables CSS -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css">
-<!-- Custom CSS for alternating row colors and clearer borders -->
 <style>
     table.dataTable {
         border-collapse: collapse !important;
@@ -89,6 +88,9 @@
     $(document).ready(function() {
         $('#example').DataTable();
 
+        // Initialize tooltips
+        $('[data-bs-toggle="tooltip"]').tooltip();
+
         // Initialize delete confirmation
         document.querySelectorAll('.delete-form').forEach(form => {
             form.addEventListener('submit', function(e) {
@@ -104,7 +106,7 @@
                     confirmButtonText: 'Yes, delete it!'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        form.submit(); // Submit the form if confirmed
+                        form.submit();
                     }
                 });
             });

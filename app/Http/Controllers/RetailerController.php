@@ -53,7 +53,6 @@ class RetailerController extends Controller
 
         return view('retailer.complete_form', compact('retailer'));
     }
-
     public function submitForm(Request $request)
     {
         $validatedData = $request->validate([
@@ -64,18 +63,18 @@ class RetailerController extends Controller
             'corporate_name' => 'nullable|string',
             'dba' => 'nullable|string',
             'password' => 'required|confirmed|min:8',
-            'street_no' => 'nullable|string',
-            'street_name' => 'nullable|string',
-            'province' => 'nullable|string',
-            'city' => 'nullable|string',
-            'location' => 'nullable|string',
-            'contact_person_name' => 'nullable|string',
-            'contact_person_phone' => 'nullable|string',
+            'addresses.*.street_no' => 'nullable|string|max:50',
+            'addresses.*.street_name' => 'nullable|string|max:255',
+            'addresses.*.province' => 'nullable|string|max:255',
+            'addresses.*.city' => 'nullable|string|max:255',
+            'addresses.*.location' => 'nullable|string|max:255',
+            'addresses.*.contact_person_name' => 'nullable|string|max:255',
+            'addresses.*.contact_person_phone' => 'nullable|string|max:20',
         ]);
-
+    
         $retailer = Retailer::findOrFail($request->retailer_id);
         $retailer->update($validatedData);
-
+    
         $user = User::firstOrCreate(
             ['email' => $validatedData['email']],
             [
@@ -85,20 +84,19 @@ class RetailerController extends Controller
                 'phone' => $validatedData['phone'],
             ]
         );
-
+    
         $user->assignRole('Retailer');
-
-        $retailer->address()->updateOrCreate(
-            ['retailer_id' => $retailer->id],
-            $request->only([
-                'street_no', 'street_name', 'province', 'city', 'location',
-                'contact_person_name', 'contact_person_phone'
-            ])
-        );
-
+    
+        // Clear existing addresses and create new ones
+        $retailer->address()->delete();
+    
+        foreach ($request->input('addresses', []) as $addressData) {
+            $retailer->address()->create($addressData);
+        }
+    
         return redirect()->route('login')->with('success', 'Retailer information completed successfully. Please log in.');
     }
-
+    
     public function edit($id)
     {
         $retailer = Retailer::with('address')->findOrFail($id);

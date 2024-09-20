@@ -4,47 +4,71 @@
 <div class="container mt-4">
     <h1><i class="fas fa-user-plus"></i> Create Retailer</h1>
 
-    <!-- Form without card -->
-    <form action="{{ route('retailers.store') }}" method="POST">
-        @csrf
+    <div class="bg-white p-4 rounded shadow-sm mb-4"> <!-- Added white background -->
+        <!-- Form without card -->
+        <form action="{{ route('retailers.store') }}" method="POST">
+            @csrf
 
-        <!-- Row for First Name and Last Name -->
-        <div class="row">
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label for="first_name"><i class="fas fa-user"></i> First Name</label>
-                    <input type="text" name="first_name" class="form-control" id="first_name" required>
+            <!-- Row for First Name and Last Name -->
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                        <label for="first_name"><i class="fas fa-user"></i> First Name</label>
+                        <input type="text" name="first_name" class="form-control @error('first_name') is-invalid @enderror" id="first_name" required>
+                        @error('first_name')
+                            <div class="invalid-feedback">
+                                {{ $message }}
+                            </div>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                        <label for="last_name"><i class="fas fa-user"></i> Last Name</label>
+                        <input type="text" name="last_name" class="form-control @error('last_name') is-invalid @enderror" id="last_name" required>
+                        @error('last_name')
+                            <div class="invalid-feedback">
+                                {{ $message }}
+                            </div>
+                        @enderror
+                    </div>
                 </div>
             </div>
 
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label for="last_name"><i class="fas fa-user"></i> Last Name</label>
-                    <input type="text" name="last_name" class="form-control" id="last_name" required>
+            <!-- Row for Email and Phone -->
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                        <label for="email"><i class="fas fa-envelope"></i> Email</label>
+                        <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" id="email" required>
+                        @error('email')
+                            <div class="invalid-feedback">
+                                {{ $message }}
+                            </div>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                        <label for="phone"><i class="fas fa-phone"></i> Phone Number</label>
+                        <input type="text" name="phone" class="form-control @error('phone') is-invalid @enderror" id="phone" required>
+                        @error('phone')
+                            <div class="invalid-feedback">
+                                {{ $message }}
+                            </div>
+                        @enderror
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Row for Email and Phone -->
-        <div class="row">
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label for="email"><i class="fas fa-envelope"></i> Email</label>
-                    <input type="email" name="email" class="form-control" id="email" required>
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label for="phone"><i class="fas fa-phone"></i> Phone Number</label>
-                    <input type="text" name="phone" class="form-control" id="phone" required>
-                </div>
-            </div>
-        </div>
-
-        <!-- Submit Button -->
-        <button type="submit" class="btn btn-primary btn-sm w-20"><i class="fas fa-paper-plane"></i> Create Retailer</button>
-    </form>
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary btn-sm w-20">
+                <i class="fas fa-paper-plane"></i> Create Retailer
+            </button>
+        </form>
+    </div> <!-- End of white background div -->
 </div>
 @endsection
 
