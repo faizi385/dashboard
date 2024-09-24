@@ -8,7 +8,7 @@ class RetailerLogController extends Controller
 {
     public function index()
     {
-        $retailerLogs = RetailerLog::with('user', 'retailer')->get();
+        $retailerLogs = RetailerLog::with('user', 'retailer')->orderBy('created_at', 'desc')->get();
         return view('retailer.logs', compact('retailerLogs'));
     }
 }

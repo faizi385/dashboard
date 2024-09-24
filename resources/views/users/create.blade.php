@@ -106,11 +106,12 @@
                     </label>
                     <select name="roles[]" id="roles" class="form-select @error('roles') is-invalid @enderror" required>
                         @foreach($roles as $role)
-                            <option value="{{ $role->id }}" {{ isset($user) && $user->roles->pluck('id')->contains($role->id) ? 'selected' : '' }}>
-                                {{ $role->name }}
+                            <option value="{{ $role->original_name }}" {{ isset($user) && $user->hasRole($role->name) ? 'selected' : '' }}>
+                                {{ $role->original_name }}
                             </option>
                         @endforeach
                     </select>
+                    
                     @error('roles')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -118,6 +119,7 @@
                     @enderror
                 </div>
             </div>
+            
 
             <div class="mb-3">
                 <!-- Address Field -->

@@ -4,6 +4,11 @@
 <div class="container">
     <h1>Province Logs</h1>
 
+    <!-- Loader -->
+    <div id="loader" class="loader-overlay">
+        <div class="loader"></div>
+    </div>
+
     <table id="example" class="table">
         <thead>
             <tr>
@@ -33,7 +38,7 @@
 
                 <!-- Modal -->
                 <div class="modal fade" id="logModal{{ $log->id }}" tabindex="-1" aria-labelledby="logModalLabel{{ $log->id }}" aria-hidden="true">
-                    <div class="modal-dialog modal-sm"> <!-- Updated to modal-sm -->
+                    <div class="modal-dialog modal-sm">
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title" id="logModalLabel{{ $log->id }}">Action Details</h5>
@@ -58,8 +63,7 @@
                                                         @endif
                                                     </div>
                                                 @endif
-                                            @endforeach
-                                            
+                                                @endforeach
                                             </div>
                                         </div>
                                         <div class="custom-card updated-card half-width-card">
@@ -78,8 +82,7 @@
                                                         @endif
                                                     </div>
                                                 @endif
-                                            @endforeach
-                                            
+                                                @endforeach
                                             </div>
                                         </div>
                                     </div>
@@ -130,70 +133,6 @@
 </div>
 @endsection
 
-@push('styles')
-<!-- DataTables CSS -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css">
-<!-- Custom CSS -->
-<style>
-    .custom-card {
-        border-radius: 8px;
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        border: 1px solid #dee2e6;
-        margin-bottom: 1rem;
-    }
-
-    .custom-card-header {
-        background-color: #2c3e50;
-        color: white;
-        padding: 10px;
-        font-weight: bold;
-        text-align: center;
-    }
-
-    .custom-card-body {
-        padding: 10px;
-        background-color: #f9f9f9;
-    }
-
-    .btn-info {
-        background-color: #17a2b8;
-        border-color: #17a2b8;
-    }
-
-    .btn-info:hover {
-        background-color: #138496;
-        border-color: #117a8b;
-    }
-    .modal-dialog {
-        width: 90%; /* Adjust width as necessary */
-        max-width: 600px; /* Set a max-width */
-    }
-    .modal-content {
-        height: auto; /* Adjust height as necessary */
-    }
-    .modal-body {
-        max-height: 300px; /* Adjust height if needed */
-        overflow-y: auto;
-    }
-    .card-container {
-        display: flex;
-        gap: 1rem;
-    }
-
-    .custom-card.old-card,
-    .custom-card.updated-card {
-        flex: 1;
-    }
-
-    .half-width-card {
-        width: 100%;
-    }
-
-    .updated-card {
-        margin-right: 0;
-    }
-</style>
-@endpush
 
 @push('scripts')
 <!-- jQuery -->
@@ -204,9 +143,14 @@
 <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
 <script>
     $(document).ready(function() {
+        // Initialize DataTables
         $('#example').DataTable({
             "responsive": true,
-            "autoWidth": false
+            "autoWidth": false,
+            "initComplete": function() {
+                // Hide the loader once the table is initialized
+                $('#loader').addClass('hidden');
+            }
         });
     });
 </script>

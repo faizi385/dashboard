@@ -11,5 +11,11 @@ class Role extends Model
 {
     use HasFactory,HasRoles;
 
+    public function hasRole($role)
+    {
+        // Check based on the 'original_name' field instead of 'name'
+        return $this->roles()->where('original_name', $role)->exists();
+    }
+    
     use SoftDeletes;
 }

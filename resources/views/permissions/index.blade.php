@@ -13,7 +13,7 @@
             <tr>
                 <th>Name</th>
                 <th>Description</th>
-                <th class="text-center">Actions</th>
+                <th class="text-center">Action</th>
             </tr>
         </thead>
         <tbody>
@@ -66,6 +66,10 @@
             });
         });
     });
+
+    @if(session('success'))
+            toastr.success("{{ session('success') }}");
+        @endif
 </script>
 @endpush
 @endsection

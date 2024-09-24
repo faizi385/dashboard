@@ -1,6 +1,5 @@
 <?php
 
-
 // database/seeders/RolesTableSeeder.php
 namespace Database\Seeders;
 
@@ -14,9 +13,23 @@ class RolesTableSeeder extends Seeder
         // Remove all existing roles
         Role::query()->delete();
 
-        // Create new roles
-        Role::create(['name' => 'Retailer']);
-        Role::create(['name' => 'LP']);
-        Role::create(['name' => 'Super Admin']);
+        // Create new roles with the original_name
+        Role::create([
+            'name' => 'retailer_1', // Example of concatenated name
+            'original_name' => 'Retailer', // Store the original name
+            'guard_name' => 'web',
+        ]);
+
+        Role::create([
+            'name' => 'lp_1', // Example of concatenated name
+            'original_name' => 'LP', // Store the original name
+            'guard_name' => 'web',
+        ]);
+
+        Role::create([
+            'name' => 'super_admin_1', // Example of concatenated name
+            'original_name' => 'Super Admin', // Store the original name
+            'guard_name' => 'web',
+        ]);
     }
 }

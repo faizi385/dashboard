@@ -1,13 +1,18 @@
 @extends('layouts.app')
 
 @section('content')
+<!-- Loader -->
+<div id="loader" class="loader-overlay">
+    <div class="loader"></div>
+</div>
+
 <div class="container">
     <div class="d-flex justify-content-between mb-4">
         <h3>Retailer Management</h3>
         <a href="{{ route('retailer.create') }}" class="btn btn-success">Create Retailer</a>
     </div>
 
-    <table class="table table-striped">
+    <table id="retailersTable" class="table table-striped">
         <thead>
             <tr>
                 <th>Full Name</th>
@@ -42,9 +47,68 @@
 </div>
 @endsection
 
+@push('styles')
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css">
+<!-- Toastr CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<!-- Loader CSS -->
+<style>
+    /* Full-screen loader */
+    .loader-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+
+    .loader {
+        border: 8px solid #f3f3f3;
+        border-radius: 50%;
+        border-top: 8px solid #3498db;
+        width: 60px;
+        height: 60px;
+        animation: spin 2s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Hide loader initially */
+    .hidden {
+        display: none;
+    }
+</style>
+@endpush
+
 @push('scripts')
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+<!-- Toastr JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<!-- SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
     $(document).ready(function() {
+        // Initialize DataTables with loader
+        $('#retailersTable').DataTable({
+            "initComplete": function() {
+                // Hide the loader once the table is initialized
+                $('#loader').addClass('hidden');
+            }
+        });
+
         // Initialize tooltips
         $('[data-bs-toggle="tooltip"]').tooltip();
 
@@ -68,6 +132,11 @@
                 });
             });
         });
+
+        // Display Toastr messages if available
+        @if(session('toast_success'))
+            toastr.success("{{ session('toast_success') }}");
+        @endif
     });
 </script>
 @endpush

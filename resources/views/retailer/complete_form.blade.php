@@ -5,29 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Complete Your Details</title>
 
+    <!-- Bootstrap and Font Awesome -->
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+
     <style>
         body {
-            background-color: #f8f9fa;
+            background-color: #e9ecef; /* Light grey background */
             padding: 20px;
         }
         .container {
             max-width: 800px;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             margin: auto;
         }
-        .form-control {
-            border-radius: 0.25rem;
+        h3, h4 {
+            color: #343a40; /* Darker text color */
         }
-        .btn-primary {
-            border-radius: 0.25rem;
+        .form-label {
+            font-weight: 600;
+        }
+        .form-control {
+            border-radius: 0.5rem; /* Softer input field borders */
+        }
+        .btn-primary, .btn-secondary {
+            border-radius: 0.5rem;
         }
         .address-field {
             position: relative;
-            padding: 20px; /* Adjust padding as needed */
+            padding: 20px;
+            background-color: #f8f9fa;
             border: 1px solid #dee2e6;
-            border-radius: 0.25rem;
-            margin-bottom: 20px; /* Space between address fields */
+            border-radius: 0.5rem;
+            margin-bottom: 20px;
         }
         .remove-address-btn {
             position: absolute;
@@ -36,18 +49,27 @@
             background: #dc3545;
             color: #fff;
             border: none;
-            border-radius: 0.25rem;
+            border-radius: 0.5rem;
             cursor: pointer;
             padding: 5px 10px;
             font-size: 0.875rem;
             z-index: 10;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add shadow for better visibility */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         .remove-address-btn:hover {
             background: #c82333;
         }
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        .btn-primary:hover, .btn-secondary:hover {
+            opacity: 0.9;
+        }
+        .container.mt-5 {
+            padding-top: 40px;
+        }
     </style>
-    
 </head>
 <body>
     <div class="container mt-5">
@@ -167,94 +189,74 @@
                     </div>
                 </div>
             </div>
-            
     
-            <div class="text-center mt-4">
-                <button type="button" class="btn btn-secondary" id="add-address"><i class="fas fa-plus"></i> Add Another Address</button>
-                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Submit</button>
+            <button type="button" class="btn btn-secondary mb-4" id="add-address-btn">
+                <i class="fas fa-plus"></i> Add Address
+            </button>
+    
+            <div class="d-flex justify-content-end">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Submit</button>
             </div>
         </form>
     </div>
-    
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Bootstrap JS, Popper.js, and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- Script for dynamically adding and removing address fields -->
     <script>
-        let addressIndex = 1;
-
-        document.getElementById('add-address').addEventListener('click', function() {
+        let addressCount = 1;
+        document.getElementById('add-address-btn').addEventListener('click', function() {
             const addressFields = document.getElementById('address-fields');
-            const newAddressField = document.createElement('div');
-            newAddressField.classList.add('address-field', 'mb-4');
-            newAddressField.innerHTML = `
-                <button type="button" class="remove-address-btn" onclick="removeAddress(this)"><i class="fas fa-trash-alt"></i> Remove</button>
+            const newAddress = document.createElement('div');
+            newAddress.className = 'address-field mb-4';
+            newAddress.innerHTML = `
+                <button type="button" class="remove-address-btn" onclick="removeAddress(this)">
+                    <i class="fas fa-trash-alt"></i> Remove
+                </button>
                 <div class="row mb-3">
                     <div class="col-md-4 mb-3">
-                        <label for="street_no_${addressIndex}" class="form-label"><i class="fas fa-home"></i> Street No</label>
-                        <input type="text" class="form-control" name="addresses[${addressIndex}][street_no]" id="street_no_${addressIndex}">
+                        <label for="street_no_${addressCount}" class="form-label"><i class="fas fa-home"></i> Street No</label>
+                        <input type="text" class="form-control" name="addresses[${addressCount}][street_no]" id="street_no_${addressCount}">
                     </div>
-
                     <div class="col-md-4 mb-3">
-                        <label for="street_name_${addressIndex}" class="form-label"><i class="fas fa-road"></i> Street Name</label>
-                        <input type="text" class="form-control" name="addresses[${addressIndex}][street_name]" id="street_name_${addressIndex}">
+                        <label for="street_name_${addressCount}" class="form-label"><i class="fas fa-road"></i> Street Name</label>
+                        <input type="text" class="form-control" name="addresses[${addressCount}][street_name]" id="street_name_${addressCount}">
                     </div>
-
                     <div class="col-md-4 mb-3">
-                        <label for="location_${addressIndex}" class="form-label"><i class="fas fa-map-marker-alt"></i> Location</label>
-                        <input type="text" class="form-control" name="addresses[${addressIndex}][location]" id="location_${addressIndex}">
+                        <label for="location_${addressCount}" class="form-label"><i class="fas fa-map-marker-alt"></i> Location</label>
+                        <input type="text" class="form-control" name="addresses[${addressCount}][location]" id="location_${addressCount}">
                     </div>
                 </div>
-
                 <div class="row mb-3">
                     <div class="col-md-4 mb-3">
-                        <label for="province_${addressIndex}" class="form-label"><i class="fas fa-globe"></i> Province</label>
-                        <input type="text" class="form-control" name="addresses[${addressIndex}][province]" id="province_${addressIndex}">
+                        <label for="province_${addressCount}" class="form-label"><i class="fas fa-globe"></i> Province</label>
+                        <input type="text" class="form-control" name="addresses[${addressCount}][province]" id="province_${addressCount}">
                     </div>
-
                     <div class="col-md-4 mb-3">
-                        <label for="city_${addressIndex}" class="form-label"><i class="fas fa-city"></i> City</label>
-                        <input type="text" class="form-control" name="addresses[${addressIndex}][city]" id="city_${addressIndex}">
+                        <label for="city_${addressCount}" class="form-label"><i class="fas fa-city"></i> City</label>
+                        <input type="text" class="form-control" name="addresses[${addressCount}][city]" id="city_${addressCount}">
                     </div>
-
                     <div class="col-md-4 mb-3">
-                        <label for="contact_person_name_${addressIndex}" class="form-label"><i class="fas fa-user-tie"></i> Contact Person Name</label>
-                        <input type="text" class="form-control" name="addresses[${addressIndex}][contact_person_name]" id="contact_person_name_${addressIndex}">
+                        <label for="contact_person_name_${addressCount}" class="form-label"><i class="fas fa-user-tie"></i> Contact Person Name</label>
+                        <input type="text" class="form-control" name="addresses[${addressCount}][contact_person_name]" id="contact_person_name_${addressCount}">
                     </div>
                 </div>
-
                 <div class="row">
                     <div class="col-md-4 mb-3">
-                        <label for="contact_person_phone_${addressIndex}" class="form-label"><i class="fas fa-phone"></i> Contact Person Phone</label>
-                        <input type="text" class="form-control" name="addresses[${addressIndex}][contact_person_phone]" id="contact_person_phone_${addressIndex}">
+                        <label for="contact_person_phone_${addressCount}" class="form-label"><i class="fas fa-phone"></i> Contact Person Phone</label>
+                        <input type="text" class="form-control" name="addresses[${addressCount}][contact_person_phone]" id="contact_person_phone_${addressCount}">
                     </div>
-                </div>
-            `;
-            addressFields.appendChild(newAddressField);
-            addressIndex++;
+                </div>`;
+            addressFields.appendChild(newAddress);
+            addressCount++;
         });
 
         function removeAddress(button) {
-            console.log('Remove button clicked');
-            const addressField = button.closest('.address-field');
-            if (addressField) {
-                addressField.remove();
-            }
+            button.parentElement.remove();
         }
-
-        (function() {
-            'use strict';
-            window.addEventListener('load', function() {
-                const forms = document.getElementsByClassName('needs-validation');
-                Array.prototype.filter.call(forms, function(form) {
-                    form.addEventListener('submit', function(event) {
-                        if (form.checkValidity() === false) {
-                            event.preventDefault();
-                            event.stopPropagation();
-                        }
-                        form.classList.add('was-validated');
-                    }, false);
-                });
-            }, false);
-        })();
     </script>
 </body>
 </html>

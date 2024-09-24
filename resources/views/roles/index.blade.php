@@ -12,17 +12,17 @@
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
-    <table id="rolesTable" class="table table-striped table-bordered mt-3">
+    <table id="rolesTable" class="table table-bordered mt-3">
         <thead>
             <tr>
-                <th>Name</th>
+                <th>Original Name</th> <!-- Updated header -->
                 <th class="text-center">Actions</th>
             </tr>
         </thead>
         <tbody>
             @foreach($roles as $role)
                 <tr>
-                    <td>{{ $role->name }}</td>
+                    <td>{{ $role->original_name }}</td> <!-- Display original name -->
                     <td class="text-center">
                         <a href="{{ route('roles.edit', $role) }}" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Role">Edit</a>
                         <form action="{{ route('roles.destroy', $role) }}" method="POST" class="d-inline delete-form">

@@ -1,6 +1,11 @@
 @extends('layouts.app')
 
 @section('content')
+<!-- Loader -->
+<div id="loader" class="loader-overlay">
+    <div class="loader"></div>
+</div>
+
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Provinces</h1>
@@ -65,7 +70,42 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 <!-- FontAwesome CSS -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+<!-- Loader CSS -->
 <style>
+    /* Full-screen loader */
+    .loader-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+
+    .loader {
+        border: 8px solid #f3f3f3;
+        border-radius: 50%;
+        border-top: 8px solid #3498db;
+        width: 60px;
+        height: 60px;
+        animation: spin 2s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Hide loader initially */
+    .hidden {
+        display: none;
+    }
+
     .action-icons {
         display: flex;
         justify-content: center;
@@ -100,8 +140,13 @@
 
 <script>
     $(document).ready(function() {
-        // Initialize DataTables
-        $('#provincesTable').DataTable();
+        // Initialize DataTables with loader
+        $('#provincesTable').DataTable({
+            "initComplete": function() {
+                // Hide the loader once the table is initialized
+                $('#loader').addClass('hidden');
+            }
+        });
 
         // Initialize tooltips
         $('[data-bs-toggle="tooltip"]').tooltip();

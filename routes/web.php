@@ -7,6 +7,7 @@ use App\Http\Controllers\FormController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\LpLogController;
+use App\Http\Controllers\OfferController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProvinceController;
 use App\Http\Controllers\RetailerController;
@@ -117,6 +118,14 @@ Route::middleware(['auth', 'role:LP'])->group(function () {
     Route::get('/manage-info', [ManageInfoController::class, 'index'])->name('manage-info.index');
     Route::post('/manage-info', [ManageInfoController::class, 'update'])->name('manage-info.update');
 });
+
+
+Route::get('/offers/create', [OfferController::class, 'create'])->name('offers.create');
+Route::post('/offers/bulkUpload', [OfferController::class, 'bulkUpload'])->name('offers.bulkUpload');
+// routes/web.php
+
+Route::get('/offers/create', [OfferController::class, 'create'])->name('offers.create');
+Route::post('/offers/store', [OfferController::class, 'store'])->name('offers.store');
 
 
 // Authentication routes

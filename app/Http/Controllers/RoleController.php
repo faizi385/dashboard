@@ -12,23 +12,22 @@ class RoleController extends Controller
     {
         // Get the authenticated user
         $user = auth()->user();
-
+    
         // Check the user's role and retrieve roles accordingly
         if ($user->hasRole('Retailer') || $user->hasRole('LP')) {
             // Retrieve roles created by the logged-in retailer or LP
             $roles = Role::where('created_by', $user->id)->get();
         } elseif ($user->hasRole('Super Admin')) {
-            // Retrieve all roles created by the super admin and those not created by anyone
-            $roles = Role::where('created_by', $user->id)
-                ->orWhereNull('created_by')
-                ->get();
+            // Retrieve roles created by the super admin only
+            $roles = Role::where('created_by', $user->id)->get(); 
         } else {
             // Default case for other roles (if applicable)
             $roles = Role::all();
         }
-
+    
         return view('roles.index', compact('roles'));
     }
+    
 
     public function create()
     {
@@ -39,22 +38,40 @@ class RoleController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|unique:roles,name,NULL,id,created_by,' . auth()->id(),
-            'permissions' => 'array', 
+            'name' => 'required|string|max:255',
+            'permissions' => 'array',
         ]);
+    
+        // Concatenate the user ID with the role name
+        $roleName = $request->name . '_' . auth()->id();
+    
+        // Check if a role with the same name exists for the current user
+        $existingRole = Role::where('name', $roleName)
+            ->where('created_by', auth()->id())
+            ->first();
+    
+        if ($existingRole) {
+            return redirect()->back()->withErrors(['name' => 'A role with this name already exists for the current user.']);
+        }
+    
+        // Create the new role with the concatenated name
+       // Example role creation (in your controller):
+$role = Role::create([
+    'name' => $request->input('name') . '_' . auth()->id(), // For unique naming
+    'original_name' => $request->input('name'), // Base role name
+    'created_by' => auth()->id(), // Track the creator
+]);
 
-        $role = Role::create([
-            'name' => $request->name,
-            'created_by' => auth()->id(), // Set the creator of the role
-        ]);
-
+        
+        // Sync permissions if provided
         if ($request->has('permissions')) {
             $validPermissions = Permission::whereIn('id', $request->permissions)->pluck('id')->toArray();
             $role->syncPermissions($validPermissions);
         }
-
+    
         return redirect()->route('roles.index')->with('toast_success', 'Role created successfully.');
     }
+    
 
     public function edit(Role $role)
     {
@@ -62,7 +79,7 @@ class RoleController extends Controller
         $rolePermissions = $role->permissions->pluck('id')->toArray();
 
         return view('roles.edit', compact('role', 'permissions', 'rolePermissions'));
-    }
+    }   
 
     public function update(Request $request, Role $role)
     {

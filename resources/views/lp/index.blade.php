@@ -1,13 +1,21 @@
 @extends('layouts.app')
 
 @section('content')
+<!-- Loader -->
+<div id="loader" class="loader-overlay">
+    <div class="loader"></div>
+</div>
+
 <div class="container">
     <h1>LP Management</h1>
-    
+
     <div class="col text-end mb-3">
         <a href="{{ route('lp.create') }}" class="btn btn-primary">Create LP</a>
+        <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#addOfferModal">
+            Add Offer
+        </button>
     </div>
-    
+
     @if(session('toast_success'))
         <div class="alert alert-success">{{ session('toast_success') }}</div>
     @endif
@@ -44,9 +52,80 @@
     </table>
 </div>
 
+<!-- Add Offer Modal -->
+<div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addOfferModalLabel">Add Offers</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex justify-content-between">
+                    <!-- Bulk Offer Upload Option -->
+                    <div>
+                        <form action="{{ route('offers.bulkUpload') }}" method="POST" enctype="multipart/form-data">
+                            @csrf
+                            <div class="mb-3">
+                                <label for="offerExcel" class="form-label">Upload Bulk Offers (Excel)</label>
+                                <input type="file" class="form-control" id="offerExcel" name="offerExcel" accept=".xlsx, .xls, .csv" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-upload"></i> Upload Excel
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Single Offer Add Option -->
+                    <div>
+                        <a href="{{ route('offers.create') }}" class="btn btn-secondary">
+                            <i class="fas fa-plus-circle"></i> Add Single Offer
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('styles')
+<!-- DataTables CSS -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css">
+<!-- FontAwesome CSS -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<!-- Loader CSS -->
+<style>
+    .loader-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+
+    .loader {
+        border: 8px solid #f3f3f3;
+        border-radius: 50%;
+        border-top: 8px solid #3498db;
+        width: 60px;
+        height: 60px;
+        animation: spin 2s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .hidden {
+        display: none;
+    }
+</style>
 @endpush
 
 @push('scripts')
@@ -57,13 +136,17 @@
 
 <script>
     $(document).ready(function() {
-        // Initialize DataTable
-        $('#lpTable').DataTable();
+        // Initialize DataTable with loader
+        $('#lpTable').DataTable({
+            "initComplete": function() {
+                $('#loader').addClass('hidden');
+            }
+        });
         
         // Initialize tooltips
         $('[data-bs-toggle="tooltip"]').tooltip();
 
-        // Initialize delete confirmation
+        // Delete confirmation
         document.querySelectorAll('.delete-form').forEach(form => {
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
@@ -84,6 +167,7 @@
             });
         });
 
+        // Toastr messages
         @if(session('toast_success'))
             toastr.success("{{ session('toast_success') }}");
         @endif

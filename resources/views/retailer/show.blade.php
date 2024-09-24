@@ -24,7 +24,6 @@
         </div>
     </div>
 
-    <!-- Make sure to use $retailer->address instead of $retailer->addresses -->
     @if(optional($retailer->address)->count() > 0)
     @foreach($retailer->address as $index => $address)
     <div class="card mt-4">
