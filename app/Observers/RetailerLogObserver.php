@@ -1,6 +1,4 @@
 <?php
-// App/Observers/RetailerLogObserver.php
-
 namespace App\Observers;
 
 use App\Models\Retailer;
@@ -29,8 +27,9 @@ class RetailerLogObserver
         $description = $this->prepareDescription($action, $retailer);
 
         RetailerLog::create([
-            'user_id' => Auth::id(),
+            'user_id' => Auth::id(), // Log the action user
             'retailer_id' => $retailer->id,
+            'retailer_dba' => $retailer->dba, // Store the static retailer DBA
             'action' => $action,
             'description' => json_encode($description),
         ]);
@@ -41,19 +40,26 @@ class RetailerLogObserver
         switch ($action) {
             case 'created':
                 return $retailer->toArray();
-
+    
             case 'updated':
-                // Get the original and updated attributes if needed
                 return [
                     'old' => $retailer->getOriginal(),
                     'new' => $retailer->getAttributes(),
                 ];
-
+    
             case 'deleted':
-                return $retailer->toArray();
-
+                // Only include specific fields in the deletion log
+                return [
+                    'first_name' => $retailer->first_name,
+                    'last_name' => $retailer->last_name,
+                    'email' => $retailer->email,
+                    'phone' => $retailer->phone,
+                 
+                ];
+    
             default:
                 return [];
         }
     }
+    
 }

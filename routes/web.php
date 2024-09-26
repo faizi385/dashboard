@@ -126,6 +126,9 @@ Route::post('/offers/bulkUpload', [OfferController::class, 'bulkUpload'])->name(
 
 Route::get('/offers/create', [OfferController::class, 'create'])->name('offers.create');
 Route::post('/offers/store', [OfferController::class, 'store'])->name('offers.store');
+Route::get('/offers/export', [OfferController::class, 'export'])->name('offers.export');
+Route::post('offers/import', [OfferController::class, 'import'])->name('offers.import');
+
 
 
 // Authentication routes

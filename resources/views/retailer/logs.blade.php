@@ -26,7 +26,18 @@
                 @endphp
                 <tr>
                     <td>{{ $log->user ? $log->user->first_name . ' ' . $log->user->last_name : 'System' }}</td>
-                    <td>{{ $log->retailer ? $log->retailer->dba : 'N/A' }}</td>
+                    <td>
+                        @if($log->retailer && $log->retailer->deleted_at === null)
+                            {{ $log->retailer->dba }} <!-- Dynamic retailer DBA if retailer exists and is not soft-deleted -->
+                        @elseif($log->retailer_dba)
+                            {{ $log->retailer_dba }} <!-- Static retailer DBA from logs if retailer is soft-deleted or fully deleted -->
+                        @else
+                            N/A <!-- Fallback if no DBA exists -->
+                        @endif
+                    </td>
+                    
+                    
+
                     <td>{{ $log->created_at->format('d-M-Y h:i A') }}</td>
                     <td>{{ ucfirst($log->action) }}</td>
                     <td>
@@ -109,13 +120,20 @@
                                         <div class="custom-card-header">Deleted Retailer</div>
                                         <div class="custom-card-body">
                                             @foreach($description as $key => $value)
-                                                @if($key != 'created_at' && $key != 'updated_at')
-                                                    <div class="mb-2">
-                                                        <strong>{{ ucfirst($key) }}:</strong>
+                                            @if($key != 'created_at' && $key != 'updated_at')
+                                                <div class="mb-2">
+                                                    <strong>{{ ucfirst($key) }}:</strong>
+                                                    @if(is_array($value))
+                                                        {{-- Handle array values, convert to a string or display in a readable format --}}
+                                                        {{ implode(', ', $value) }}
+                                                    @else
+                                                        {{-- If it's not an array, print it normally --}}
                                                         {{ $value }}
-                                                    </div>
-                                                @endif
-                                            @endforeach
+                                                    @endif
+                                                </div>
+                                            @endif
+                                        @endforeach
+                                        
                                             <div class="mb-2">
                                                 <strong>Deleted At:</strong>
                                                 {{ \Carbon\Carbon::parse($log->created_at)->format('d-M-Y h:i A') }}

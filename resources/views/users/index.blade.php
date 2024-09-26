@@ -26,7 +26,7 @@
                         <th>Phone</th>
                         <th>Role</th>
                         <th>User ID</th>
-                        <th>Actions</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>

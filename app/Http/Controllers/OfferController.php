@@ -1,40 +1,53 @@
 <?php
 
-// app/Http/Controllers/OfferController.php
-
 namespace App\Http\Controllers;
 
+use App\Models\Lp;
+use App\Models\Offer;
+use App\Models\Retailer;
 use Illuminate\Http\Request;
+use App\Exports\OffersExport;
+use App\Imports\OffersImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class OfferController extends Controller
 {
-    // Handle bulk upload of offers
-    public function bulkUpload(Request $request)
-    {
-        $request->validate([
-            'offerExcel' => 'required|mimes:xlsx,xls,csv',
-        ]);
-
-        // Logic to parse and process the Excel file goes here
-
-        return redirect()->back()->with('success', 'Bulk offers uploaded successfully.');
-    }
     public function create()
     {
-        return view('offers.create');
+        $lps = Lp::all(); // Fetch LPs
+        $retailers = Retailer::all(); // Fetch Retailers
+
+        return view('offers.create', compact('lps', 'retailers'));
     }
 
-    // Handle single offer creation
-    public function store(Request $request)
+
+
+    public function export()
     {
-        $request->validate([
-            'offerName' => 'required|string|max:255',
-            'offerDetails' => 'required|string',
-            'offerExpiry' => 'required|date',
-        ]);
-
-        // Logic to save single offer goes here
-
-        return redirect()->back()->with('success', 'Single offer added successfully.');
+        return Excel::download(new OffersExport, 'offers.xlsx');
     }
+
+
+
+    public function import(Request $request)
+    {
+        // Validate the uploaded file
+        $request->validate([
+            'offerExcel' => 'required|file|mimes:xlsx,xls,csv',
+        ]);
+    
+        // Import the offers using the OffersImport class
+        Excel::import(new OffersImport, $request->file('offerExcel'));
+    
+        // Redirect back with a success message
+        return redirect()->back()->with('toast_success', 'Offers imported successfully!');
+    }
+    
+
+
+
+
+
+    // Handle single offer creation with validation
+ 
 }

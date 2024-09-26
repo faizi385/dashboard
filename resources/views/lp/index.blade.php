@@ -14,7 +14,7 @@
         <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#addOfferModal">
             Add Offer
         </button>
-    </div>
+    </div>  
 
     @if(session('toast_success'))
         <div class="alert alert-success">{{ session('toast_success') }}</div>
@@ -53,6 +53,7 @@
 </div>
 
 <!-- Add Offer Modal -->
+<!-- Add Offer Modal -->
 <div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -64,7 +65,7 @@
                 <div class="d-flex justify-content-between">
                     <!-- Bulk Offer Upload Option -->
                     <div>
-                        <form action="{{ route('offers.bulkUpload') }}" method="POST" enctype="multipart/form-data">
+                        <form action="{{ route('offers.import') }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             <div class="mb-3">
                                 <label for="offerExcel" class="form-label">Upload Bulk Offers (Excel)</label>
@@ -74,6 +75,7 @@
                                 <i class="fas fa-upload"></i> Upload Excel
                             </button>
                         </form>
+                        
                     </div>
 
                     <!-- Single Offer Add Option -->
@@ -81,12 +83,16 @@
                         <a href="{{ route('offers.create') }}" class="btn btn-secondary">
                             <i class="fas fa-plus-circle"></i> Add Single Offer
                         </a>
+                        <a href="{{ route('offers.export') }}" class="btn btn-success">
+                            <i class="fas fa-file-export"></i> Export Offers
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
 
 @push('styles')
 <!-- DataTables CSS -->

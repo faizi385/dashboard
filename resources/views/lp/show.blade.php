@@ -6,6 +6,10 @@
         <h3>LP Details</h3>
         <div>
             <a href="{{ route('lp.index') }}" class="btn btn-secondary">Back to List</a>
+
+            <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#addOfferModal">
+                Add Offer
+            </button>
         </div>
     </div>
 
@@ -42,6 +46,41 @@
 
 </div>
 
+<!-- Add Offer Modal -->
+<div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addOfferModalLabel">Add Offers</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex justify-content-between">
+                    <!-- Bulk Offer Upload Option -->
+                    <div>
+                        <form action="{{ route('offers.bulkUpload') }}" method="POST" enctype="multipart/form-data">
+                            @csrf
+                            <div class="mb-3">
+                                <label for="offerExcel" class="form-label">Upload Bulk Offers (Excel)</label>
+                                <input type="file" class="form-control" id="offerExcel" name="offerExcel" accept=".xlsx, .xls, .csv" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-upload"></i> Upload Excel
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Single Offer Add Option -->
+                    <div>
+                        <a href="{{ route('offers.create') }}" class="btn btn-secondary">
+                            <i class="fas fa-plus-circle"></i> Add Single Offer
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <style>
     .container {
         margin-top: 20px;
