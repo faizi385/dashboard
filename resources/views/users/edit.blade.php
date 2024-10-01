@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="container">
+<div class="container p-2">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>{{ isset($user) ? 'Edit User' : 'Create User' }}</h1>
         <a href="{{ route('users.index') }}" class="btn btn-secondary">
@@ -22,7 +22,7 @@
                 <label for="first_name" class="form-label">
                     <i class="fas fa-user"></i> First Name
                 </label>
-                <input type="text" name="first_name" id="first_name" class="form-control @error('first_name') is-invalid @enderror" placeholder="Enter First Name" value="{{ old('first_name', $user->first_name ?? '') }}" required>
+                <input type="text" name="first_name" id="first_name" class="form-control @error('first_name') is-invalid @enderror" placeholder="Enter First Name" value="{{ old('first_name', $user->first_name ?? '') }}" >
                 @error('first_name')
                     <div class="invalid-feedback">
                         {{ $message }}
@@ -35,7 +35,7 @@
                 <label for="last_name" class="form-label">
                     <i class="fas fa-user"></i> Last Name
                 </label>
-                <input type="text" name="last_name" id="last_name" class="form-control @error('last_name') is-invalid @enderror" placeholder="Enter Last Name" value="{{ old('last_name', $user->last_name ?? '') }}" required>
+                <input type="text" name="last_name" id="last_name" class="form-control @error('last_name') is-invalid @enderror" placeholder="Enter Last Name" value="{{ old('last_name', $user->last_name ?? '') }}" >
                 @error('last_name')
                     <div class="invalid-feedback">
                         {{ $message }}
@@ -50,7 +50,7 @@
                 <label for="email" class="form-label">
                     <i class="fas fa-envelope"></i> Email
                 </label>
-                <input type="email" name="email" id="email" class="form-control @error('email') is-invalid @enderror" placeholder="Enter Email Address" value="{{ old('email', $user->email ?? '') }}" required>
+                <input type="email" name="email" id="email" class="form-control @error('email') is-invalid @enderror" placeholder="Enter Email Address" value="{{ old('email', $user->email ?? '') }}" >
                 @error('email')
                     <div class="invalid-feedback">
                         {{ $message }}
@@ -78,7 +78,7 @@
                 <label for="password" class="form-label">
                     <i class="fas fa-lock"></i> Password
                 </label>
-                <input type="password" name="password" id="password" class="form-control @error('password') is-invalid @enderror" placeholder="Enter Password" {{ !isset($user) ? 'required' : '' }}>
+                <input type="password" name="password" id="password" class="form-control @error('password') is-invalid @enderror" placeholder="Enter Password" {{ !isset($user) ? '' : '' }}>
                 @error('password')
                     <div class="invalid-feedback">
                         {{ $message }}
@@ -91,7 +91,7 @@
                 <label for="password_confirmation" class="form-label">
                     <i class="fas fa-lock"></i> Confirm Password
                 </label>
-                <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" placeholder="Confirm Password" {{ !isset($user) ? 'required' : '' }}>
+                <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" placeholder="Confirm Password" {{ !isset($user) ? '' : '' }}>
             </div>
         </div>
 
@@ -115,10 +115,10 @@
                 <label for="roles" class="form-label">
                     <i class="fas fa-user-tag"></i> Roles
                 </label>
-                <select name="roles[]" id="roles" class="form-select @error('roles') is-invalid @enderror" multiple required>
+                <select name="roles[]" id="roles" class="form-select @error('roles') is-invalid @enderror" >
                     @foreach($roles as $role)
                         <option value="{{ $role->id }}" {{ isset($user) && $user->roles->pluck('id')->contains($role->id) ? 'selected' : '' }}>
-                            {{ $role->name }}
+                            {{ $role->original_name }}
                         </option>
                     @endforeach
                 </select>
@@ -133,7 +133,7 @@
 
         <!-- Submit Button -->
         <button type="submit" class="btn btn-primary">
-            <i class="fas fa-save"></i> {{ isset($user) ? 'Update' : 'Create' }}
+            <i class="fas fa-save"></i> {{ isset($user) ? 'Update User' : 'Create' }}
         </button>
     </form>
 </div>

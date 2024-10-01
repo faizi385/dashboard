@@ -15,7 +15,7 @@
         <form action="{{ route('roles.store') }}" method="POST">
             @csrf
 
-            <!-- Make the input field half-screen width using Bootstrap grid -->
+            <!-- Role Name Input -->
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="name" class="form-label">
@@ -30,6 +30,7 @@
                 </div>
             </div>
 
+            <!-- Permissions Selection -->
             <div class="mb-4">
                 <label class="form-label">
                     <i class="fas fa-lock"></i> Assign Permissions
@@ -47,8 +48,8 @@
                     @endforeach
                 </div>
                 @error('permissions')
-                    <div class="invalid-feedback">
-                        {{ $message }}
+                    <div class="invalid-feedback d-block">
+                        {{ $message }} <!-- Show error message for permissions -->
                     </div>
                 @enderror
             </div>

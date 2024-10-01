@@ -30,7 +30,13 @@ class User extends Authenticatable
         'userable_type',
         'created_by', 
     ];
+    public function hasRole($role)
+    {
+        // Check based on the 'original_name' field instead of 'name'
+        return $this->roles()->where('original_name', $role)->exists();
+    }
 
+    
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -57,8 +63,11 @@ class User extends Authenticatable
     {
         return $this->hasOne(Retailer::class);
     }
-    public function lp()
-    {
-        return $this->hasOne(Lp::class); // Ensure this matches your actual relationship
-    }
+  // In User.php model
+public function lp()
+{
+    return $this->belongsTo(Lp::class, 'lp_id'); // Make sure 'lp_id' is the correct foreign key
+}
+
+    
 }

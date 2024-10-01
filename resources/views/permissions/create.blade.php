@@ -46,3 +46,20 @@
     </div> <!-- End of white background div -->
 </div>
 @endsection
+
+@section('scripts')
+    <!-- Toastr CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+    <!-- Toastr JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+    <script>
+        @if(session()->has('success'))
+            toastr.success("{{ session('success') }}");
+        @endif
+
+        @if(session()->has('error'))
+            toastr.error("{{ session('error') }}");
+        @endif
+    </script>
+@endsection

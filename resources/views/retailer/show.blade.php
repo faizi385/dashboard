@@ -24,13 +24,12 @@
         </div>
     </div>
 
-    <!-- Make sure to use $retailer->address instead of $retailer->addresses -->
     @if(optional($retailer->address)->count() > 0)
     @foreach($retailer->address as $index => $address)
     <div class="card mt-4">
         <div class="card-header">
             <h5 class="card-title">Address {{ $index + 1 }} Information</h5>
-            <a href="{{ route('retailer.address.edit', [$retailer->id, $address->id]) }}" class="btn btn-success btn-sm float-right">Edit Location</a>
+  
         </div>
         <div class="card-body">
             <h6 class="card-subtitle mb-2 text-muted">Address Details</h6>

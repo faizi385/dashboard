@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="container">
+<div class="container p-3">
     <div class="d-flex justify-content-between mb-4">
         <h3>Add Location</h3>
         <a href="{{ route('retailer.show', $retailer->id) }}" class="btn btn-secondary">Back to Details</a>

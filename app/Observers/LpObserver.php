@@ -1,6 +1,4 @@
 <?php
-
-
 namespace App\Observers;
 
 use App\Models\Lp;
@@ -20,46 +18,46 @@ class LpObserver
     }
 
     public function deleted(Lp $lp)
-    {
-        $this->log('deleted', $lp);
-    }
+{
+    // Only log the deletion; the actual deletion is handled by soft deletes.
+    $this->log('deleted', $lp);
+}
+
+    
 
     private function log($action, Lp $lp)
     {
-        // Check if the $lp object has 'dba' value
-        if (empty($lp->dba)) {
-            throw new \Exception("The DBA value is missing.");
-        }
-    
-        // Prepare description based on action (created, updated, deleted)
         $description = $this->prepareDescription($action, $lp);
-    
-        // Log the action
+
         LpLog::create([
-            'user_id' => Auth::id(), // Log authenticated user
-            'lp_id' => $lp->id,
+            'user_id' => Auth::id(), // Log the action user
+            'lp_id' => ($action === 'deleted') ? $lp->id : $lp->id, // Set lp_id as necessary
             'action' => $action,
             'description' => json_encode($description),
-            'dba' => $lp->dba, // Ensure 'dba' is included here
+            'dba' => $lp->dba, // Store the static LP DBA
         ]);
     }
-    
 
     private function prepareDescription($action, Lp $lp)
     {
         switch ($action) {
             case 'created':
-                return $lp->toArray(); // Log all attributes when created
+                return $lp->toArray();
 
             case 'updated':
-                // Log changes with old and new values
                 return [
                     'old' => $lp->getOriginal(),
                     'new' => $lp->getAttributes(),
                 ];
 
             case 'deleted':
-                return $lp->toArray(); // Log all attributes when deleted
+                // Include specific fields for the deletion log
+                return [
+                    'id' => $lp->id,
+                    'dba' => $lp->dba,
+                    'name' => $lp->name,
+                    // Add any other necessary fields here
+                ];
 
             default:
                 return [];

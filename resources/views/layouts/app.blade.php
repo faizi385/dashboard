@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 
 <!-- Toastr JS -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+{{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script> --}}
 
 <!-- SweetAlert2 CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
@@ -44,7 +44,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Other plugins -->
-    
+    <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
     @stack('styles')
     <style>
         /* Hide the menu by default */
@@ -103,9 +103,12 @@
     </li>
 </ul>
 
-        </nav><aside class="main-sidebar sidebar-dark-primary elevation-4">
+        </nav>
+        
+        
+        <aside class="main-sidebar sidebar-dark-primary elevation-4">
             <!-- Dynamically assign the dashboard route based on the user's role -->
-            <a style="text-decoration: none" href="{{ auth()->user()->hasRole('Super Admin') ? route('dashboard') : (auth()->user()->hasRole('Retailer') ? route('retailer.dashboard') : route('lp.dashboard')) }}" class="brand-link">
+            <a style="text-decoration: none" href="{{ auth()->user()->hasRole('Super Admin') ? route('dashboard') : (auth()->user()->hasRole('LP') ? route('lp.dashboard') : route('retailer.dashboard')) }}" class="brand-link">
                 <span class="brand-text font-weight-light">Novatore</span>
             </a>
         
@@ -126,7 +129,7 @@
                 <!-- Sidebar Menu -->
                 <nav class="mt-2">
                     <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-                        
+        
                         <!-- Manage Users Dropdown (Visible to both Super Admin and Retailers) -->
                         <li class="nav-item has-treeview {{ request()->is('users*') || request()->is('roles*') || request()->is('permissions*') ? 'menu-open' : '' }}">
                             <a href="#" class="nav-link {{ request()->is('users*') || request()->is('roles*') || request()->is('permissions*') ? 'active' : '' }}">
@@ -235,7 +238,28 @@
                         </li>
                         @endif
         
-                        <!-- LP Management (Visible to all roles) -->
+                        <!-- Offers Tab -->
+                        <li class="nav-item">
+                            <a href="{{ route('offers.index') }}" class="nav-link {{ Route::currentRouteName() == 'offers.index' ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-tag"></i>
+                                <p>Offers</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            @if(auth()->user()->hasRole('Super Admin'))
+                                <a href="{{ route('carveouts.index', ['lp_id' => 0]) }}" class="nav-link {{ Route::currentRouteName() == 'carveouts.index' ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-cut"></i>
+                                    <p>Carveouts</p>
+                                </a>
+                            @elseif(auth()->user()->lp)
+                                <a href="{{ route('carveouts.index', ['lp_id' => auth()->user()->lp->id]) }}" class="nav-link {{ Route::currentRouteName() == 'carveouts.index' ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-cut"></i>
+                                    <p>Carveouts</p>
+                                </a>
+                            @endif
+                        </li>
+                        
+                        
                         
                     </ul>
                 </nav>
@@ -298,11 +322,14 @@
     <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
     <!-- Latest jQuery -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <!-- Latest DataTables -->
 <script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
 
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
    
     <!-- Other plugins -->
     @stack('scripts')

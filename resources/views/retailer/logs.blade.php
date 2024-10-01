@@ -1,10 +1,15 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="container">
-    <h1>Retailer Logs</h1>
+<h1>Retailer Logs</h1>
 
-    <table id="example" class="table">
+<!-- Loader -->
+<div id="loader" class="loader-overlay">
+    <div class="loader"></div>
+</div>
+
+<div class="container bg-light">
+    <table id="example" class="table table-hover">
         <thead>
             <tr>
                 <th>Action User</th>
@@ -21,7 +26,18 @@
                 @endphp
                 <tr>
                     <td>{{ $log->user ? $log->user->first_name . ' ' . $log->user->last_name : 'System' }}</td>
-                    <td>{{ $log->retailer ? $log->retailer->dba : 'N/A' }}</td>
+                    <td>
+                        @if($log->retailer && $log->retailer->deleted_at === null)
+                            {{ $log->retailer->dba }} <!-- Dynamic retailer DBA if retailer exists and is not soft-deleted -->
+                        @elseif($log->retailer_dba)
+                            {{ $log->retailer_dba }} <!-- Static retailer DBA from logs if retailer is soft-deleted or fully deleted -->
+                        @else
+                            N/A <!-- Fallback if no DBA exists -->
+                        @endif
+                    </td>
+                    
+                    
+
                     <td>{{ $log->created_at->format('d-M-Y h:i A') }}</td>
                     <td>{{ ucfirst($log->action) }}</td>
                     <td>
@@ -47,7 +63,7 @@
                                             <div class="custom-card-body">
                                                 @foreach($description['old'] ?? [] as $key => $value)
                                                     @if(isset($description['new'][$key]) && $description['old'][$key] !== $description['new'][$key])
-                                                        @if($key != 'corporate_name' && $key != 'dba')
+                                                        @if($key != 'corporate_name' && $key != 'dba' && $key != 'created_at' && $key != 'updated_at')
                                                             <div class="mb-2">
                                                                 <strong>{{ ucfirst($key) }}:</strong>
                                                                 {{ $value }}
@@ -55,6 +71,10 @@
                                                         @endif
                                                     @endif
                                                 @endforeach
+                                                <div class="mb-2">
+                                                    <strong>Created At:</strong>
+                                                    {{ \Carbon\Carbon::parse($log->created_at)->format('d-M-Y h:i A') }}
+                                                </div>
                                             </div>
                                         </div>
                                         <div class="custom-card updated-card half-width-card">
@@ -62,12 +82,18 @@
                                             <div class="custom-card-body">
                                                 @foreach($description['new'] ?? [] as $key => $value)
                                                     @if(isset($description['old'][$key]) && $description['old'][$key] !== $description['new'][$key])
-                                                        <div class="mb-2">
-                                                            <strong>{{ ucfirst($key) }}:</strong>
-                                                            {{ $value }}
-                                                        </div>
+                                                        @if($key != 'created_at' && $key != 'updated_at')
+                                                            <div class="mb-2">
+                                                                <strong>{{ ucfirst($key) }}:</strong>
+                                                                {{ $value }}
+                                                            </div>
+                                                        @endif
                                                     @endif
                                                 @endforeach
+                                                <div class="mb-2">
+                                                    <strong>Updated At:</strong>
+                                                    {{ \Carbon\Carbon::parse($log->updated_at)->format('d-M-Y h:i A') }}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -76,11 +102,17 @@
                                         <div class="custom-card-header">Created Retailer</div>
                                         <div class="custom-card-body">
                                             @foreach($description as $key => $value)
-                                                <div class="mb-2">
-                                                    <strong>{{ ucfirst($key) }}:</strong>
-                                                    {{ $value }}
-                                                </div>
+                                                @if($key != 'created_at' && $key != 'updated_at')
+                                                    <div class="mb-2">
+                                                        <strong>{{ ucfirst($key) }}:</strong>
+                                                        {{ $value }}
+                                                    </div>
+                                                @endif
                                             @endforeach
+                                            <div class="mb-2">
+                                                <strong>Created At:</strong>
+                                                {{ \Carbon\Carbon::parse($log->created_at)->format('d-M-Y h:i A') }}
+                                            </div>
                                         </div>
                                     </div>
                                 @elseif($log->action == 'deleted')
@@ -88,11 +120,24 @@
                                         <div class="custom-card-header">Deleted Retailer</div>
                                         <div class="custom-card-body">
                                             @foreach($description as $key => $value)
+                                            @if($key != 'created_at' && $key != 'updated_at')
                                                 <div class="mb-2">
                                                     <strong>{{ ucfirst($key) }}:</strong>
-                                                    {{ $value }}
+                                                    @if(is_array($value))
+                                                        {{-- Handle array values, convert to a string or display in a readable format --}}
+                                                        {{ implode(', ', $value) }}
+                                                    @else
+                                                        {{-- If it's not an array, print it normally --}}
+                                                        {{ $value }}
+                                                    @endif
                                                 </div>
-                                            @endforeach
+                                            @endif
+                                        @endforeach
+                                        
+                                            <div class="mb-2">
+                                                <strong>Deleted At:</strong>
+                                                {{ \Carbon\Carbon::parse($log->created_at)->format('d-M-Y h:i A') }}
+                                            </div>
                                         </div>
                                     </div>
                                 @endif
@@ -113,79 +158,28 @@
 @push('styles')
 <!-- DataTables CSS -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css">
-<!-- Custom CSS -->
+
 <style>
-    .custom-card {
-        border-radius: 8px;
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        border: 1px solid #dee2e6;
-        margin-bottom: 1rem;
-    }
-
-    .custom-card-header {
-        background-color: #2c3e50;
-        color: white;
-        padding: 10px;
-        font-weight: bold;
-        text-align: center;
-    }
-
-    .custom-card-body {
-        padding: 10px;
-        background-color: #f9f9f9;
-    }
-
-    .btn-info {
-        background-color: #17a2b8;
-        border-color: #17a2b8;
-    }
-
-    .btn-info:hover {
-        background-color: #138496;
-        border-color: #117a8b;
-    }
-
-    .modal-dialog {
-        width: 90%; /* Adjust width as necessary */
-        max-width: 800px; /* Set a max-width */
-    }
-
-    .modal-content {
-        height: auto; /* Adjust height as necessary */
-    }
-
-    .modal-body {
-        max-height: 300px; /* Adjust height if needed */
-        overflow-y: auto;
-    }
-
-    .card-container {
-        display: flex;
-        gap: 1rem;
-    }
-
-    .custom-card.old-card,
-    .custom-card.updated-card {
-        flex: 1;
-    }
-
-    .half-width-card {
-        width: 100%;
-    }
-
-    .updated-card {
-        margin-right: 0;
-    }
+    /* Full-screen loader */
+ 
 </style>
 @endpush
 
 @push('scripts')
-<!-- jQuery and DataTables JS -->
+<!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- DataTables JS -->
 <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+
 <script>
     $(document).ready(function() {
-        $('#example').DataTable();
+        // Initialize DataTables
+        $('#example').DataTable({
+            "initComplete": function() {
+                // Hide the loader once the table is initialized
+                $('#loader').addClass('hidden');
+            }
+        });
     });
 </script>
 @endpush

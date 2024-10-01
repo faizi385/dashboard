@@ -4,6 +4,11 @@
 <div class="container">
     <h1>User Logs</h1>
 
+    <!-- Loader -->
+    <div id="loader" class="loader-overlay">
+        <div class="loader"></div>
+    </div>
+
     <table id="userLogsTable" class="table">
         <thead>
             <tr>
@@ -33,7 +38,7 @@
 
                 <!-- Modal -->
                 <div class="modal fade" id="userLogModal{{ $log->id }}" tabindex="-1" aria-labelledby="userLogModalLabel{{ $log->id }}" aria-hidden="true">
-                    <div class="modal-dialog"> <!-- Removed modal-sm class -->
+                    <div class="modal-dialog">
                         <div class="modal-content custom-modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title" id="userLogModalLabel{{ $log->id }}">Action Details</h5>
@@ -88,7 +93,12 @@
                                         <div class="custom-card-header">Created User</div>
                                         <div class="custom-card-body">
                                             @foreach($description as $key => $value)
-                                                @if($key !== 'role') <!-- Exclude the role field -->
+                                                @if($key === 'updated_at')
+                                                    <div class="mb-2">
+                                                        <strong>{{ ucfirst($key) }}:</strong>
+                                                        {{ \Carbon\Carbon::parse($value)->format('d-M-Y h:i A') }} <!-- Format updated_at -->
+                                                    </div>
+                                                @elseif($key !== 'role') <!-- Exclude the role field -->
                                                     <div class="mb-2">
                                                         <strong>{{ ucfirst($key) }}:</strong> 
                                                         @if(is_array($value))
@@ -132,46 +142,6 @@
 </div>
 @endsection
 
-@push('styles')
-<!-- DataTables CSS -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css">
-<!-- Custom CSS -->
-<style>
-    .custom-card {
-        border-radius: 8px;
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        border: 1px solid #dee2e6;
-        margin-bottom: 10px;
-    }
-    .custom-card-header {
-        background-color: #2c3e50;
-        color: white;
-        padding: 10px;
-        font-weight: bold;
-        text-align: center;
-    }
-    .custom-card-body {
-        padding: 10px;
-        background-color: #f9f9f9;
-    }
-    .modal-dialog {
-        width: 90%; /* Adjust width as necessary */
-        max-width: 800px; /* Set a max-width */
-    }
-    .custom-modal-content {
-        height: 400px; /* Adjust height as necessary */
-    }
-    .modal-body {
-        max-height: 300px; /* Adjust height if needed */
-        overflow-y: auto;
-    }
-    .btn-sm {
-        margin: 5px;
-        padding: 5px 10px;
-        font-size: 0.9rem;
-    }
-</style>
-@endpush
 
 @push('scripts')
 <!-- DataTables JS -->
@@ -179,11 +149,16 @@
 
 <script>
     $(document).ready(function() {
+        // Initialize DataTables
         $('#userLogsTable').DataTable({
             responsive: true,
             autoWidth: false,
             paging: true, // Enables pagination
             "order": [[2, "desc"]], // Sort by the 'Time' column in descending order
+            "initComplete": function() {
+                // Hide the loader once the table is initialized
+                $('#loader').addClass('hidden');
+            }
         });
     });
 </script>

@@ -25,68 +25,63 @@ class UserController extends Controller
         return view('users.index', compact('users'));
     }
 
-    public function create()
-    {
-        // Determine the roles based on the user's role
-        if (auth()->user()->hasRole('Super Admin')) {
-            // Super Admin can see only roles created by them
-            $roles = Role::where('created_by', auth()->id())->get(); 
-        } elseif (auth()->user()->hasRole('Retailer') || auth()->user()->hasRole('LP')) {
-            // Retailers and LPs can see only roles they created
-            $roles = Role::where('created_by', auth()->id())->get(); 
-        } else {
-            // Default to an empty collection for other roles, if needed
-            $roles = collect(); 
-        }
-    
-        $permissions = Permission::all();
-    
-        return view('users.create', compact('roles', 'permissions'));
+   public function create()
+{
+    // Fetch roles based on the user's role
+    $roles = Role::where('created_by', auth()->id())->get(['id', 'name', 'original_name']); // Include original_name for display
+
+    $permissions = Permission::all();
+
+    return view('users.create', compact('roles', 'permissions'));
+}
+
+public function store(Request $request)
+{
+    // Validate the incoming request
+    $request->validate([
+        'first_name' => 'required|string|max:255',
+        'last_name' => 'required|string|max:255',
+        'email' => 'required|string|email|max:255|unique:users',
+        'password' => 'required|string|min:8|confirmed',
+         'phone' => [
+            'required',
+            'regex:/^(\+?\d{1,3}[- ]?)?\(?\d{1,4}?\)?[- ]?\d{1,4}[- ]?\d{1,4}$/', // Adjust regex for international formats
+            'max:20', // Ensure the phone number does not exceed 20 characters
+        ],
+        'address' => 'nullable|string|max:255',
+        'roles' => 'required|array', // Make sure this is required if it must be filled
+        'permissions' => 'nullable|array',
+    ]);
+
+    // Create the user
+    $user = User::create([
+        'first_name' => $request->input('first_name'),
+        'last_name' => $request->input('last_name'),
+        'email' => $request->input('email'),
+        'password' => Hash::make($request->input('password')), // Hash the password
+        'phone' => $request->input('phone'),
+        'address' => $request->input('address'),
+        'created_by' => auth()->id(), // Log the user who created the account
+    ]);
+
+    // Assign roles if provided
+    if ($request->roles) {
+        $roles = Role::whereIn('original_name', $request->roles)->pluck('name')->toArray();
+        $user->assignRole($roles);
     }
-    
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            'phone' => 'required|string|max:20',
-            'address' => 'nullable|string|max:255',
-            'roles' => 'array',
-            'permissions' => 'array',
-            'userable_id' => 'nullable|integer', 
-            'userable_type' => 'nullable|string',
-        ]);
-
-        $user = User::create([
-            'first_name' => $request->input('first_name'),
-            'last_name' => $request->input('last_name'),
-            'email' => $request->input('email'),
-            'password' => Hash::make($request->input('password')),
-            'phone' => $request->input('phone'),
-            'address' => $request->input('address'),
-            'userable_id' => $request->input('userable_id'), 
-            'userable_type' => $request->input('userable_type'), 
-            'created_by' => auth()->id(), // Set the creator ID
-        ]);
-
-        // Assign roles
-        if ($request->roles) {
-            $roles = Role::whereIn('id', $request->roles)->where('created_by', auth()->id())->pluck('name')->toArray();
-            $user->assignRole($roles);
-        }
-
-        // Assign permissions
-        if ($request->permissions) {
-            $permissions = Permission::whereIn('id', $request->permissions)->pluck('name')->toArray();
-            $user->givePermissionTo($permissions);
-        }
-
-        return redirect()->route('users.index')
-            ->with('toast_success', 'User created successfully.');
+    // Assign permissions if provided
+    if ($request->permissions) {
+        $permissions = Permission::whereIn('id', $request->permissions)->pluck('name')->toArray();
+        $user->givePermissionTo($permissions);
     }
+
+    // Redirect back with success message
+    return redirect()->route('users.index')
+        ->with('toast_success', 'User created successfully.');
+}
+
+
 
     public function edit(User $user)
     {
@@ -107,7 +102,11 @@ class UserController extends Controller
             'last_name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:8|confirmed',
-            'phone' => 'nullable|string|max:20',
+            'phone' => [
+                'required',
+                'regex:/^(\+?\d{1,3}[- ]?)?\(?\d{1,4}?\)?[- ]?\d{1,4}[- ]?\d{1,4}$/', // Adjust regex for international formats
+                'max:20', // Ensure the phone number does not exceed 20 characters
+            ],
             'address' => 'nullable|string|max:255',
             'roles' => 'array',
             'permissions' => 'array',

@@ -12,6 +12,7 @@ class RetailerLog extends Model
     protected $fillable = [
         'user_id',
         'retailer_id',
+        'retailer_dba', // Add this line to allow mass assignment
         'action',
         'description',
     ];
@@ -24,6 +25,7 @@ class RetailerLog extends Model
 
     public function retailer()
     {
-        return $this->belongsTo(Retailer::class);
+        return $this->belongsTo(Retailer::class)->withTrashed();
     }
+    
 }
