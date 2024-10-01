@@ -37,43 +37,50 @@ class UserController extends Controller
 
 public function store(Request $request)
 {
+    // Validate the incoming request
     $request->validate([
         'first_name' => 'required|string|max:255',
         'last_name' => 'required|string|max:255',
         'email' => 'required|string|email|max:255|unique:users',
         'password' => 'required|string|min:8|confirmed',
-        'phone' => 'required|string|max:20',
+         'phone' => [
+            'required',
+            'regex:/^(\+?\d{1,3}[- ]?)?\(?\d{1,4}?\)?[- ]?\d{1,4}[- ]?\d{1,4}$/', // Adjust regex for international formats
+            'max:20', // Ensure the phone number does not exceed 20 characters
+        ],
         'address' => 'nullable|string|max:255',
-        'roles' => 'array',
-        'permissions' => 'array',
+        'roles' => 'required|array', // Make sure this is required if it must be filled
+        'permissions' => 'nullable|array',
     ]);
 
+    // Create the user
     $user = User::create([
         'first_name' => $request->input('first_name'),
         'last_name' => $request->input('last_name'),
         'email' => $request->input('email'),
-        'password' => Hash::make($request->input('password')),
+        'password' => Hash::make($request->input('password')), // Hash the password
         'phone' => $request->input('phone'),
         'address' => $request->input('address'),
-        'created_by' => auth()->id(),
+        'created_by' => auth()->id(), // Log the user who created the account
     ]);
 
-    // Assign roles
+    // Assign roles if provided
     if ($request->roles) {
         $roles = Role::whereIn('original_name', $request->roles)->pluck('name')->toArray();
         $user->assignRole($roles);
-        
     }
 
-    // Assign permissions
+    // Assign permissions if provided
     if ($request->permissions) {
         $permissions = Permission::whereIn('id', $request->permissions)->pluck('name')->toArray();
         $user->givePermissionTo($permissions);
     }
 
+    // Redirect back with success message
     return redirect()->route('users.index')
         ->with('toast_success', 'User created successfully.');
 }
+
 
 
     public function edit(User $user)
@@ -95,7 +102,11 @@ public function store(Request $request)
             'last_name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:8|confirmed',
-            'phone' => 'nullable|string|max:20',
+            'phone' => [
+                'required',
+                'regex:/^(\+?\d{1,3}[- ]?)?\(?\d{1,4}?\)?[- ]?\d{1,4}[- ]?\d{1,4}$/', // Adjust regex for international formats
+                'max:20', // Ensure the phone number does not exceed 20 characters
+            ],
             'address' => 'nullable|string|max:255',
             'roles' => 'array',
             'permissions' => 'array',

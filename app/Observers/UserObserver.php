@@ -59,7 +59,7 @@ class UserObserver
         Log::create([
             'action' => 'updated',
             'user_id' => $user->id,
-            'action_user_id' => $actionUser->id, // Store the action user's ID
+            // 'action_user_id' => $actionUser->id, // Store the action user's ID
             'ip_address' => request()->ip(),
             'description' => json_encode([
                 'old' => $original,

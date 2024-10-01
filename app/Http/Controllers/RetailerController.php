@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use App\Mail\RetailerFormMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Hash;
+use App\Models\Role;
 
 class RetailerController extends Controller
 {
@@ -53,6 +54,8 @@ class RetailerController extends Controller
 
         return view('retailer.complete_form', compact('retailer'));
     }
+    
+    
     public function submitForm(Request $request)
     {
         $validatedData = $request->validate([
@@ -72,20 +75,30 @@ class RetailerController extends Controller
             'addresses.*.contact_person_phone' => 'nullable|string|max:20',
         ]);
     
+        // Update the retailer
         $retailer = Retailer::findOrFail($request->retailer_id);
         $retailer->update($validatedData);
     
-        $user = User::firstOrCreate(
+        // Create or update the User record
+        $user = User::updateOrCreate(
             ['email' => $validatedData['email']],
             [
                 'first_name' => $validatedData['first_name'],
                 'last_name' => $validatedData['last_name'],
-                'password' => Hash::make($request->password),
+                'password' => Hash::make($validatedData['password']),
                 'phone' => $validatedData['phone'],
             ]
         );
     
-        $user->assignRole('Retailer');
+        // Fetch the role by original_name
+        $role = Role::where('original_name', 'Retailer')->first(); // Adjust 'Retailer' if necessary
+    
+        if ($role) {
+            // Assign role to the user
+            $user->assignRole($role->name);
+        } else {
+            return redirect()->back()->with('error', 'Role not found.');
+        }
     
         // Clear existing addresses and create new ones
         $retailer->address()->delete();
@@ -94,8 +107,10 @@ class RetailerController extends Controller
             $retailer->address()->create($addressData);
         }
     
+        // Redirect with success message
         return redirect()->route('login')->with('success', 'Retailer information completed successfully. Please log in.');
     }
+    
     
     public function edit($id)
     {

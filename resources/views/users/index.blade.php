@@ -25,7 +25,6 @@
                         <th>Email</th>
                         <th>Phone</th>
                         <th>Role</th>
-                        <th>User ID</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -36,7 +35,6 @@
                             <td>{{ $user->email }}</td>
                             <td>{{ $user->phone }}</td>
                             <td>{{ $user->roles->pluck('original_name')->implode(', ') }}</td>
-                            <td>{{ $user->id }}</td>
                             <td>
                                 <a href="{{ route('users.edit', $user) }}" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit User">Edit</a>
                                 <form action="{{ route('users.destroy', $user) }}" method="POST" class="d-inline delete-form">
@@ -52,7 +50,6 @@
         </div>
     </div>
 </div>
-
 
 @push('scripts')
 <script>

@@ -16,17 +16,14 @@
         </button>
     </div>  
 
-    @if(session('toast_success'))
-        <div class="alert alert-success">{{ session('toast_success') }}</div>
-    @endif
-
+  
     <table id="lpTable" class="table table-striped table-bordered mt-3">
         <thead>
             <tr>
                 <th>LP Name</th>
                 <th>DBA</th>
                 <th>Primary Contact Email</th>
-                <th class="text-center">Actions</th>
+                <th class="text-center">Action</th>
             </tr>
         </thead>
         <tbody>
@@ -36,14 +33,14 @@
                     <td>{{ $lp->dba }}</td>
                     <td>{{ $lp->primary_contact_email }}</td>
                     <td class="text-center">
-                        <a href="{{ route('lp.show', $lp->id) }}" class="btn btn-info btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="View LP">
+                        <a href="{{ route('lp.show', $lp->id) }}" class="btn btn-info btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="View ">
                             <i class="fas fa-eye"></i>
                         </a>
-                        <a href="{{ route('lp.edit', $lp) }}" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit LP">Edit</a>
+                        <a href="{{ route('lp.edit', $lp) }}" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit ">Edit</a>
                         <form action="{{ route('lp.destroy', $lp) }}" method="POST" class="d-inline delete-form">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete LP">Delete</button>
+                            <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete ">Delete</button>
                         </form>
                     </td>
                 </tr>
@@ -68,6 +65,15 @@
                         <form action="{{ route('offers.import') }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             <div class="mb-3">
+                                <label for="lpSelect" class="form-label">Select LP</label>
+                                <select class="form-select" id="lpSelect" name="lp_id" required>
+                                    <option value="" selected disabled>Select LP</option>
+                                    @foreach($lps as $lp)
+                                        <option value="{{ $lp->id }}">{{ $lp->name }} ({{ $lp->dba }})</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="mb-3">
                                 <label for="offerExcel" class="form-label">Upload Bulk Offers (Excel)</label>
                                 <input type="file" class="form-control" id="offerExcel" name="offerExcel" accept=".xlsx, .xls, .csv" required>
                             </div>
@@ -75,7 +81,6 @@
                                 <i class="fas fa-upload"></i> Upload Excel
                             </button>
                         </form>
-                        
                     </div>
 
                     <!-- Single Offer Add Option -->
@@ -83,9 +88,9 @@
                         <a href="{{ route('offers.create') }}" class="btn btn-secondary">
                             <i class="fas fa-plus-circle"></i> Add Single Offer
                         </a>
-                        <a href="{{ route('offers.export') }}" class="btn btn-success">
+                        {{-- <a href="{{ route('offers.export') }}" class="btn btn-success">
                             <i class="fas fa-file-export"></i> Export Offers
-                        </a>
+                        </a> --}}
                     </div>
                 </div>
             </div>

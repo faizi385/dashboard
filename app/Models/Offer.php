@@ -32,7 +32,8 @@ class Offer extends Model
         'product_link',
         'lp_id',
         'offer_date', 
-        'retailer_id',// Include this field in fillable
+        'retailer_id',
+        'province_slug',// Include this field in fillable
     ];
 
     // Define the relationship with the Lp model
@@ -40,4 +41,8 @@ class Offer extends Model
     {
         return $this->belongsTo(Lp::class);
     }
+    public function retailer() {
+        return $this->belongsTo(Retailer::class, 'retailer_id');
+    }
+    
 }

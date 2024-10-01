@@ -86,7 +86,7 @@
         <!-- Sidebar -->
         <aside class="main-sidebar sidebar-dark-primary elevation-4">
             <!-- Dynamically assign the dashboard route based on the user's role -->
-            <a style="text-decoration: none" href="{{ auth()->user()->hasRole('Super Admin') ? route('dashboard') : (auth()->user()->hasRole('Retailer') ? route('retailer.dashboard') : route('lp.dashboard')) }}" class="brand-link">
+            <a style="text-decoration: none" href="{{ auth()->user()->hasRole('Super Admin') ? route('dashboard') : (auth()->user()->hasRole('LP') ? route('lp.dashboard') : route('retailer.dashboard')) }}" class="brand-link">
                 <span class="brand-text font-weight-light">Novatore</span>
             </a>
         
@@ -107,7 +107,7 @@
                 <!-- Sidebar Menu -->
                 <nav class="mt-2">
                     <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-                        
+        
                         <!-- Manage Users Dropdown (Visible to both Super Admin and Retailers) -->
                         <li class="nav-item has-treeview {{ request()->is('users*') || request()->is('roles*') || request()->is('permissions*') ? 'menu-open' : '' }}">
                             <a href="#" class="nav-link {{ request()->is('users*') || request()->is('roles*') || request()->is('permissions*') ? 'active' : '' }}">
@@ -216,8 +216,16 @@
                         </li>
                         @endif
         
+                        <!-- Offers Tab -->
+                        <li class="nav-item">
+                            <a href="{{ route('offers.index') }}" class="nav-link {{ Route::currentRouteName() == 'offers.index' ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-tag"></i>
+                                <p>Offers</p>
+                            </a>
+                        </li>
+                        
                         <!-- LP Management (Visible to all roles) -->
-                       
+                        
                     </ul>
                 </nav>
             </div>

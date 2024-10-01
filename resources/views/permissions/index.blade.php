@@ -35,6 +35,28 @@
     </table>
 </div>
 
+@push('styles')
+<style>
+    /* Button Hover Effect */
+    .btn {
+        transition: background-color 0.3s, transform 0.2s;
+    }
+
+    .btn:hover {
+        transform: scale(1.05); /* Slightly increase size */
+        background-color: #0056b3; /* Darken the primary button color */
+    }
+
+    .btn-warning:hover {
+        background-color: #e0a800; /* Darken the warning button color */
+    }
+
+    .btn-danger:hover {
+        background-color: #c82333; /* Darken the danger button color */
+    }
+</style>
+@endpush
+
 @push('scripts')
 <!-- DataTables JS -->
 <script>
@@ -68,8 +90,8 @@
     });
 
     @if(session('success'))
-            toastr.success("{{ session('success') }}");
-        @endif
+        toastr.success("{{ session('success') }}");
+    @endif
 </script>
 @endpush
 @endsection

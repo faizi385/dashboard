@@ -7,32 +7,42 @@
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
             color: #343a40;
-            padding: 20px;
+            padding: 30px;
+            line-height: 1.6;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
         }
         .header {
             background-color: #007bff;
             color: white;
-            padding: 10px;
+            padding: 20px;
             text-align: center;
+            font-size: 24px;
+            font-weight: bold;
         }
         .content {
-            background-color: white;
-            border-radius: 5px;
-            padding: 20px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            font-size: 16px;
         }
         .btn-complete {
             display: inline-block;
-            padding: 10px 20px;
+            padding: 12px 25px;
             font-size: 16px;
             color: white;
             background-color: #28a745;
             border: none;
             border-radius: 5px;
             text-decoration: none;
+            margin-top: 20px;
             text-align: center;
         }
         .btn-complete:hover {
@@ -40,28 +50,40 @@
         }
         .footer {
             text-align: center;
-            margin-top: 20px;
-            font-size: 12px;
+            padding: 15px;
+            background-color: #f8f9fa;
             color: #6c757d;
+            font-size: 14px;
+        }
+        .footer a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Complete Your Retailer Information</h1>
-    </div>
+    <div class="email-container">
+        <div class="header">
+            Complete Your Retailer Information
+        </div>
 
-    <div class="content">
-        <p>Dear Retailer,</p>
-        <p>Please click the button below to complete your retailer information:</p>
-        
-        <a href="{{ $link }}" class="btn-complete">Complete Retailer Form</a>
+        <div class="content">
+            <p>Dear Retailer,</p>
+            <p>We hope this message finds you well. To help us keep your information up to date, please take a moment to complete your retailer profile by clicking the button below:</p>
+            
+            <a href="{{ $link }}" class="btn-complete">Complete Retailer Form</a>
 
-        <p>Thank you!</p>
-    </div>
+            <p>If you have any questions or require further assistance, feel free to contact us at any time.</p>
+            <p>Thank you for your prompt attention to this matter.</p>
+        </div>
 
-    <div class="footer">
-        <p>&copy; {{ date('Y') }} Your Company Name. All rights reserved.</p>
+        <div class="footer">
+            &copy; {{ date('Y') }} Your Company Name. All rights reserved.<br>
+            <a href="https://yourcompanywebsite.com">www.yourcompanywebsite.com</a>
+        </div>
     </div>
 </body>
 </html>

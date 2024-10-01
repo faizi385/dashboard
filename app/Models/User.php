@@ -63,8 +63,11 @@ class User extends Authenticatable
     {
         return $this->hasOne(Retailer::class);
     }
-    public function lp()
-    {
-        return $this->hasOne(Lp::class); // Ensure this matches your actual relationship
-    }
+  // In User.php model
+public function lp()
+{
+    return $this->belongsTo(Lp::class, 'lp_id'); // Make sure 'lp_id' is the correct foreign key
+}
+
+    
 }

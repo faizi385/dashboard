@@ -38,8 +38,9 @@ class RoleController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'permissions' => 'array',
+            'name' => 'required|regex:/^[a-zA-Z]+$/|max:255',
+            'permissions' => 'required|array|min:1', // Ensure at least one permission is selected
+            'permissions.*' => 'exists:permissions,id', // Ensure each permission ID exists in the database
         ]);
     
         // Concatenate the user ID with the role name
@@ -55,14 +56,12 @@ class RoleController extends Controller
         }
     
         // Create the new role with the concatenated name
-       // Example role creation (in your controller):
-$role = Role::create([
-    'name' => $request->input('name') . '_' . auth()->id(), // For unique naming
-    'original_name' => $request->input('name'), // Base role name
-    'created_by' => auth()->id(), // Track the creator
-]);
-
-        
+        $role = Role::create([
+            'name' => $roleName, // For unique naming
+            'original_name' => $request->input('name'), // Base role name
+            'created_by' => auth()->id(), // Track the creator
+        ]);
+    
         // Sync permissions if provided
         if ($request->has('permissions')) {
             $validPermissions = Permission::whereIn('id', $request->permissions)->pluck('id')->toArray();
@@ -72,7 +71,6 @@ $role = Role::create([
         return redirect()->route('roles.index')->with('toast_success', 'Role created successfully.');
     }
     
-
     public function edit(Role $role)
     {
         $permissions = Permission::all();

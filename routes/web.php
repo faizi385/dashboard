@@ -9,6 +9,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\LpLogController;
 use App\Http\Controllers\OfferController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\CarveoutController;
 use App\Http\Controllers\ProvinceController;
 use App\Http\Controllers\RetailerController;
 use App\Http\Controllers\ManageInfoController;
@@ -117,8 +118,10 @@ Route::get('/province-logs', [ProvinceLogController::class, 'index'])->name('pro
 Route::middleware(['auth', 'role:LP'])->group(function () {
     Route::get('/manage-info', [ManageInfoController::class, 'index'])->name('manage-info.index');
     Route::post('/manage-info', [ManageInfoController::class, 'update'])->name('manage-info.update');
+    
 });
 
+Route::get('/manage-info', [ManageInfoController::class, 'index'])->name('manage-info.index')->middleware('auth');
 
 Route::get('/offers/create', [OfferController::class, 'create'])->name('offers.create');
 Route::post('/offers/bulkUpload', [OfferController::class, 'bulkUpload'])->name('offers.bulkUpload');
@@ -128,8 +131,21 @@ Route::get('/offers/create', [OfferController::class, 'create'])->name('offers.c
 Route::post('/offers/store', [OfferController::class, 'store'])->name('offers.store');
 Route::get('/offers/export', [OfferController::class, 'export'])->name('offers.export');
 Route::post('offers/import', [OfferController::class, 'import'])->name('offers.import');
+Route::get('/offers', [OfferController::class, 'index'])->name('offers.index');
+Route::get('offers/{id}/edit', [OfferController::class, 'edit'])->name('offers.edit');
+Route::put('offers/{id}', [OfferController::class, 'update'])->name('offers.update');
+Route::delete('offers/{id}', [OfferController::class, 'destroy'])->name('offers.destroy');
+// Carveout Routes
+Route::get('/carveouts', [CarveoutController::class, 'index'])->name('carveouts.index');
+Route::get('/carveouts/create', [CarveoutController::class, 'create'])->name('carveouts.create');
+Route::post('/carveouts', [CarveoutController::class, 'store'])->name('carveouts.store');
+Route::get('/carveouts/{id}/edit', [CarveoutController::class, 'edit'])->name('carveouts.edit');
+Route::put('/carveouts/{id}', [CarveoutController::class, 'update'])->name('carveouts.update');
+Route::delete('/carveouts/{id}', [CarveoutController::class, 'destroy'])->name('carveouts.destroy');
+Route::get('/lps/{id}', [LpController::class, 'show'])->name('lps.show');
 
-
+Route::get('/carveouts', [CarveoutController::class, 'index'])->name('carveouts.index');
+Route::get('/carveouts/{lp_id}', [CarveoutController::class, 'index'])->name('carveouts.index');
 
 // Authentication routes
 require __DIR__.'/auth.php';
