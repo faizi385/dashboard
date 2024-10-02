@@ -52,14 +52,17 @@ class UserObserver
         
         $original = $user->getOriginal();
         $changes = $user->getChanges();
-
+    
         // Get the roles if they've been updated, or fallback to current roles
         $roles = $user->roles->pluck('name')->toArray() ?? [];
-
+    
+        // Exclude the password from changes
+        unset($changes['password']); // Remove the password field from changes
+    
         Log::create([
             'action' => 'updated',
             'user_id' => $user->id,
-            // 'action_user_id' => $actionUser->id, // Store the action user's ID
+            'action_user_id' => $actionUser ? $actionUser->id : null, // Store the action user's ID or null if not authenticated
             'ip_address' => request()->ip(),
             'description' => json_encode([
                 'old' => $original,
@@ -67,6 +70,7 @@ class UserObserver
             ]),
         ]);
     }
+    
 
     /**
      * Handle the User "deleted" event.

@@ -146,6 +146,11 @@ Route::get('/lps/{id}', [LpController::class, 'show'])->name('lps.show');
 
 Route::get('/carveouts', [CarveoutController::class, 'index'])->name('carveouts.index');
 Route::get('/carveouts/{lp_id}', [CarveoutController::class, 'index'])->name('carveouts.index');
+Route::get('/lp/carveouts', [CarveoutController::class, 'lpIndex'])->name('lp.carveouts.index')->middleware('role:LP');
+Route::get('/carveouts/{id}', [CarveoutController::class, 'show'])->name('carveouts.show');
+
+
+Route::get('/lp/products', [LpController::class, 'viewProducts'])->name('lp.products');
 
 // Authentication routes
 require __DIR__.'/auth.php';

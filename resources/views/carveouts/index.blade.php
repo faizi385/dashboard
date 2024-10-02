@@ -1,6 +1,9 @@
 @extends('layouts.admin')
 
 @section('content')
+<div id="loader" class="loader-overlay">
+    <div class="loader"></div>
+</div>
 <div class="container p-2">
     <div class="d-flex justify-content-between mb-4">
         <h3>Carveout List</h3>
@@ -51,18 +54,19 @@
                             <td>{{ \Carbon\Carbon::parse($carveout->date)->format('Y-m-d') }}</td>
                             <td>{{ $carveout->lp->dba ?? 'N/A' }}</td> <!-- Display LP's DBA -->
                             <td>
-                                <a href="{{ route('carveouts.edit', $carveout->id) }}" class="btn btn-sm btn-warning">Edit</a>
+                                <a href="{{ route('carveouts.edit', $carveout->id) }}" class="btn btn-sm btn-warning" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Carveout">Edit</a>
                                 <form action="{{ route('carveouts.destroy', $carveout->id) }}" method="POST" style="display:inline;" class="delete-form">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="button" class="btn btn-sm btn-danger delete-btn">Delete</button>
+                                    <button type="button" class="btn btn-sm btn-danger delete-btn" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete Carveout">Delete</button>
                                 </form>
                             </td>
-                            
                         </tr>
                         @endforeach
                     @else
-                      
+                       <tr>
+                          <td colspan="8" class="text-center">No carveouts found.</td>
+                       </tr>
                     @endif
                 </tbody>
             </table>
@@ -84,7 +88,7 @@
                     <input type="hidden" name="lp_id" value="{{ $lp_id }}"> <!-- Pass the LP ID here -->
 
                     <div class="mb-3">
-                        <label for="province" class="form-label">Province</label>
+                        <label for="province" class="form-label">Province <span class="text-danger">*</span></label>
                         <select class="form-control" id="province" name="province" required>
                             <option value="" disabled selected>Select Province</option>
                             <option value="Ontario">Ontario</option>
@@ -94,7 +98,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="retailer" class="form-label">Retailer</label>
+                        <label for="retailer" class="form-label">Retailer <span class="text-danger">*</span></label>
                         <select class="form-control" id="retailer" name="retailer" required>
                             <option value="" disabled selected>Select Retailer</option>
                             @foreach($retailers as $retailer)
@@ -134,6 +138,8 @@
 
 <script>
     $(document).ready(function() {
+
+        $("#loader").fadeOut("slow");
         $('#carveoutTable').DataTable({
             responsive: true,
             "scrollX": true, // Enable horizontal scrolling
@@ -141,30 +147,29 @@
                 "emptyTable": "No carveouts found." // Custom message for no data
             }
         });
-    });
 
-    document.addEventListener('DOMContentLoaded', function () {
-        // Select all delete buttons
-        const deleteButtons = document.querySelectorAll('.delete-btn');
+        // Initialize Bootstrap tooltips
+        $('[data-bs-toggle="tooltip"]').tooltip();
 
-        deleteButtons.forEach(button => {
-            button.addEventListener('click', function (event) {
-                event.preventDefault(); // Prevent form submission
-
-                // Show SweetAlert confirmation
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: "You won't be able to revert this!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Yes, delete it!'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // Submit the form if confirmed
-                        this.closest('form').submit();
-                    }
+        // Handle delete button click
+        document.addEventListener('DOMContentLoaded', function () {
+            const deleteButtons = document.querySelectorAll('.delete-btn');
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function (event) {
+                    event.preventDefault(); // Prevent form submission
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: "You won't be able to revert this!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Yes, delete it!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.closest('form').submit(); // Submit the form if confirmed
+                        }
+                    });
                 });
             });
         });

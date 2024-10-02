@@ -11,9 +11,9 @@
     <div class="d-flex justify-content-between mb-4">
         <h3>Offers List</h3>
         <div>
-            <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#addOfferModal">
+            {{-- <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#addOfferModal">
                 Add Offer
-            </button>
+            </button> --}}
         </div>
     </div>
 
@@ -22,9 +22,9 @@
             @if(isset($lp)) <!-- Check if $lp is set -->
             <div class="d-flex justify-content-between">
                 <h5 class="card-title">Offers for LP: {{ $lp->name }} ({{ $lp->dba }})</h5>
-                <button class="btn btn-info" onclick="window.location.href='{{ route('carveouts.index', ['lp_id' => $lp->id]) }}'">
+                {{-- <button class="btn btn-info" onclick="window.location.href='{{ route('carveouts.index', ['lp_id' => $lp->id]) }}'">
                     View Carveouts
-                </button>
+                </button> --}}
             </div>
             @else
                 <h5 class="card-title">Offers for All LPs</h5> <!-- Fallback when $lp is not available -->
@@ -143,6 +143,8 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
 <script>
     $(document).ready(function() {
+
+        $("#loader").fadeOut("slow");
         // Initialize tooltips
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
@@ -169,36 +171,6 @@
 </script>
 
 <style>
-    .loader-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(255, 255, 255, 0.7);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 9999; /* Ensure the loader is on top of other content */
-    }
-
-    .loader {
-        border: 8px solid #f3f3f3; /* Light gray */
-        border-top: 8px solid #3498db; /* Blue */
-        border-radius: 50%;
-        width: 60px;
-        height: 60px;
-        animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-
-    .hidden {
-        display: none;
-    }
 
     .container {
         margin-top: 20px;
@@ -240,3 +212,5 @@
     }
 </style>
 @endsection
+
+

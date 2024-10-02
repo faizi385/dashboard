@@ -16,7 +16,7 @@
                 <!-- LP -->
                 <div class="mb-3 col-md-6">
                     <label for="lp_id" class="form-label">LP</label>
-                    <select name="lp_id" id="lp_id" class="form-control @error('lp_id') is-invalid @enderror" required>
+                    <select name="lp_id" id="lp_id" class="form-control @error('lp_id') is-invalid @enderror" >
                         <option value="">Select LP</option>
                         @foreach($lps as $lp)
                             <option value="{{ $lp->id }}">{{ $lp->name }}</option>
@@ -32,7 +32,7 @@
                 <!-- Product Name -->
                 <div class="mb-3 col-md-6">
                     <label for="product_name" class="form-label">Product Name</label>
-                    <input type="text" name="product_name" id="product_name" class="form-control @error('product_name') is-invalid @enderror" required>
+                    <input type="text" name="product_name" id="product_name" class="form-control @error('product_name') is-invalid @enderror" >
                     @error('product_name')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -45,7 +45,7 @@
                 <!-- Provincial SKU -->
                 <div class="mb-3 col-md-6">
                     <label for="provincial_sku" class="form-label">Provincial SKU</label>
-                    <input type="text" name="provincial_sku" id="provincial_sku" class="form-control @error('provincial_sku') is-invalid @enderror" required>
+                    <input type="text" name="provincial_sku" id="provincial_sku" class="form-control @error('provincial_sku') is-invalid @enderror" >
                     @error('provincial_sku')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -56,7 +56,7 @@
                 <!-- GTIN -->
                 <div class="mb-3 col-md-6">
                     <label for="gtin" class="form-label">GTIN</label>
-                    <input type="text" name="gtin" id="gtin" class="form-control @error('gtin') is-invalid @enderror" required>
+                    <input type="text" name="gtin" id="gtin" class="form-control @error('gtin') is-invalid @enderror" >
                     @error('gtin')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -69,7 +69,7 @@
                 <!-- Province -->
                 <div class="mb-3 col-md-6">
                     <label for="province" class="form-label">Province</label>
-                    <input type="text" name="province" id="province" class="form-control @error('province') is-invalid @enderror" required>
+                    <input type="text" name="province" id="province" class="form-control @error('province') is-invalid @enderror" >
                     @error('province')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -80,7 +80,7 @@
                 <!-- Data Fee -->
                 <div class="mb-3 col-md-6">
                     <label for="general_data_fee" class="form-label">General Data Fee (%)</label>
-                    <input type="number" name="general_data_fee" id="general_data_fee" class="form-control @error('general_data_fee') is-invalid @enderror" required>
+                    <input type="number" name="general_data_fee" id="general_data_fee" class="form-control @error('general_data_fee') is-invalid @enderror" >
                     @error('general_data_fee')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -93,7 +93,7 @@
                 <!-- Unit Cost -->
                 <div class="mb-3 col-md-6">
                     <label for="unit_cost" class="form-label">Unit Cost (excl. HST)</label>
-                    <input type="number" name="unit_cost" id="unit_cost" class="form-control @error('unit_cost') is-invalid @enderror" required>
+                    <input type="number" name="unit_cost" id="unit_cost" class="form-control @error('unit_cost') is-invalid @enderror" >
                     @error('unit_cost')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -104,7 +104,7 @@
                 <!-- Category -->
                 <div class="mb-3 col-md-6">
                     <label for="category" class="form-label">Category</label>
-                    <input type="text" name="category" id="category" class="form-control @error('category') is-invalid @enderror" required>
+                    <input type="text" name="category" id="category" class="form-control @error('category') is-invalid @enderror" >
                     @error('category')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -117,7 +117,7 @@
                 <!-- Brand -->
                 <div class="mb-3 col-md-6">
                     <label for="brand" class="form-label">Brand</label>
-                    <input type="text" name="brand" id="brand" class="form-control @error('brand') is-invalid @enderror" required>
+                    <input type="text" name="brand" id="brand" class="form-control @error('brand') is-invalid @enderror" >
                     @error('brand')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -128,7 +128,7 @@
                 <!-- Case Quantity -->
                 <div class="mb-3 col-md-6">
                     <label for="case_quantity" class="form-label">Case Quantity (Units per case)</label>
-                    <input type="number" name="case_quantity" id="case_quantity" class="form-control @error('case_quantity') is-invalid @enderror" required>
+                    <input type="number" name="case_quantity" id="case_quantity" class="form-control @error('case_quantity') is-invalid @enderror" >
                     @error('case_quantity')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -141,7 +141,7 @@
                 <!-- Offer Start -->
                 <div class="mb-3 col-md-6">
                     <label for="offer_start" class="form-label">Offer Start</label>
-                    <input type="date" name="offer_start" id="offer_start" class="form-control @error('offer_start') is-invalid @enderror" required>
+                    <input type="date" name="offer_start" id="offer_start" class="form-control @error('offer_start') is-invalid @enderror" >
                     @error('offer_start')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -152,7 +152,7 @@
                 <!-- Offer End -->
                 <div class="mb-3 col-md-6">
                     <label for="offer_end" class="form-label">Offer End</label>
-                    <input type="date" name="offer_end" id="offer_end" class="form-control @error('offer_end') is-invalid @enderror" required>
+                    <input type="date" name="offer_end" id="offer_end" class="form-control @error('offer_end') is-invalid @enderror" >
                     @error('offer_end')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -165,7 +165,7 @@
                 <!-- Product Size -->
                 <div class="mb-3 col-md-6">
                     <label for="product_size" class="form-label">Product Size (g)</label>
-                    <input type="number" name="product_size" id="product_size" class="form-control @error('product_size') is-invalid @enderror" required>
+                    <input type="number" name="product_size" id="product_size" class="form-control @error('product_size') is-invalid @enderror" >
                     @error('product_size')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -176,7 +176,7 @@
                 <!-- THC Range -->
                 <div class="mb-3 col-md-6">
                     <label for="thc_range" class="form-label">THC % Range</label>
-                    <input type="text" name="thc_range" id="thc_range" class="form-control @error('thc_range') is-invalid @enderror" required>
+                    <input type="text" name="thc_range" id="thc_range" class="form-control @error('thc_range') is-invalid @enderror" >
                     @error('thc_range')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -189,7 +189,7 @@
                 <!-- CBD Range -->
                 <div class="mb-3 col-md-6">
                     <label for="cbd_range" class="form-label">CBD % Range</label>
-                    <input type="text" name="cbd_range" id="cbd_range" class="form-control @error('cbd_range') is-invalid @enderror" required>
+                    <input type="text" name="cbd_range" id="cbd_range" class="form-control @error('cbd_range') is-invalid @enderror" >
                     @error('cbd_range')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -200,7 +200,7 @@
                 <!-- Product Link -->
                 <div class="mb-3 col-md-6">
                     <label for="product_link" class="form-label">Link to Product and Brand Info</label>
-                    <input type="url" name="product_link" id="product_link" class="form-control @error('product_link') is-invalid @enderror" required>
+                    <input type="url" name="product_link" id="product_link" class="form-control @error('product_link') is-invalid @enderror" >
                     @error('product_link')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -213,7 +213,7 @@
                 <!-- Comment -->
                 <div class="mb-3 col-md-6">
                     <label for="comment" class="form-label">Comment</label>
-                    <textarea name="comment" id="comment" class="form-control @error('comment') is-invalid @enderror" required></textarea>
+                    <textarea name="comment" id="comment" class="form-control @error('comment') is-invalid @enderror" ></textarea>
                     @error('comment')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -224,7 +224,7 @@
                 <!-- Offer Date -->
                 <div class="mb-3 col-md-6">
                     <label for="offer_date" class="form-label">Offer Date</label>
-                    <input type="date" name="offer_date" id="offer_date" class="form-control @error('offer_date') is-invalid @enderror" required>
+                    <input type="date" name="offer_date" id="offer_date" class="form-control @error('offer_date') is-invalid @enderror" >
                     @error('offer_date')
                         <div class="invalid-feedback">
                             {{ $message }}

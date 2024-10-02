@@ -13,8 +13,8 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <div class="form-group">
-                        <label for="first_name"><i class="fas fa-user"></i> First Name</label>
-                        <input type="text" name="first_name" class="form-control @error('first_name') is-invalid @enderror" id="first_name" required>
+                        <label for="first_name"><i class="fas fa-user"></i> First Name <span class="text-danger">*</span></label>
+                        <input type="text" name="first_name" class="form-control @error('first_name') is-invalid @enderror" id="first_name" >
                         @error('first_name')
                             <div class="invalid-feedback">
                                 {{ $message }}
@@ -25,8 +25,8 @@
 
                 <div class="col-md-6 mb-3">
                     <div class="form-group">
-                        <label for="last_name"><i class="fas fa-user"></i> Last Name</label>
-                        <input type="text" name="last_name" class="form-control @error('last_name') is-invalid @enderror" id="last_name" required>
+                        <label for="last_name"><i class="fas fa-user"></i> Last Name <span class="text-danger">*</span></label>
+                        <input type="text" name="last_name" class="form-control @error('last_name') is-invalid @enderror" id="last_name" >
                         @error('last_name')
                             <div class="invalid-feedback">
                                 {{ $message }}
@@ -40,8 +40,8 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <div class="form-group">
-                        <label for="email"><i class="fas fa-envelope"></i> Email</label>
-                        <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" id="email" required>
+                        <label for="email"><i class="fas fa-envelope"></i> Email <span class="text-danger">*</span></label>
+                        <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" id="email" >
                         @error('email')
                             <div class="invalid-feedback">
                                 {{ $message }}
@@ -52,8 +52,8 @@
 
                 <div class="col-md-6 mb-3">
                     <div class="form-group">
-                        <label for="phone"><i class="fas fa-phone"></i> Phone Number</label>
-                        <input type="text" name="phone" class="form-control @error('phone') is-invalid @enderror" id="phone" required>
+                        <label for="phone"><i class="fas fa-phone"></i> Phone Number <span class="text-danger">*</span></label>
+                        <input type="text" name="phone" class="form-control @error('phone') is-invalid @enderror" id="phone" >
                         @error('phone')
                             <div class="invalid-feedback">
                                 {{ $message }}

@@ -127,7 +127,7 @@
 
 <script>
     $(document).ready(function() {
-        // Initialize DataTables
+        $("#loader").fadeOut("slow");
         $('#example').DataTable({
             "initComplete": function() {
                 // Hide the loader once the table is initialized

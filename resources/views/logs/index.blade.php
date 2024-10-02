@@ -149,7 +149,7 @@
 
 <script>
     $(document).ready(function() {
-        // Initialize DataTables
+        $("#loader").fadeOut("slow");
         $('#userLogsTable').DataTable({
             responsive: true,
             autoWidth: false,

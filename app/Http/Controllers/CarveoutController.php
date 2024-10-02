@@ -10,21 +10,48 @@ use App\Models\Retailer;
 class CarveoutController extends Controller
 {
     public function index($lp_id)
-{
-    // If lp_id is 0 (Super Admin), fetch all carveouts
-    if ($lp_id == 0) {
-        $carveouts = Carveout::with(['retailer', 'lp'])->get(); // Fetch all carveouts
-    } else {
-        $carveouts = Carveout::with(['retailer', 'lp'])->where('lp_id', $lp_id)->get(); // Fetch carveouts for the specified LP
-    }
-
-    $retailers = Retailer::all(); // Fetch all retailers
-    $lps = Lp::all(); // Fetch all LPs
-
-    return view('carveouts.index', compact('carveouts', 'retailers', 'lp_id', 'lps'));
-}
-
+    {
+        // Get the authenticated user's LP
+        $userLp = Lp::where('user_id', auth()->user()->id)->first();
     
+        // Check if the user is a Super Admin or an LP
+        if (auth()->user()->hasRole('Super Admin')) {
+            // Super Admin can see carveouts for the specified LP ID or all carveouts if lp_id is 0
+            $carveouts = Carveout::with(['retailer', 'lp'])
+                ->when($lp_id > 0, function ($query) use ($lp_id) {
+                    return $query->where('lp_id', $lp_id);
+                })
+                ->get();
+            
+            // Set the $lp variable for the view based on the selected lp_id
+            $lp = Lp::find($lp_id);
+        } else {
+            // For LP users: Fetch carveouts related to their LP ID
+            if ($userLp) {
+                $carveouts = Carveout::with(['retailer', 'lp'])
+                    ->where('lp_id', $userLp->id)
+                    ->get();
+                
+                // Set the $lp variable to the authenticated LP
+                $lp = $userLp; // Use the authenticated LP
+            } else {
+                // Handle case where no LP is associated with the user (optional)
+                $carveouts = collect(); // Return an empty collection
+                $lp = null; // No LP found
+            }
+        }
+    
+        // Fetch all retailers (optional based on view requirements)
+        $retailers = Retailer::all();
+    
+        // Fetch all LPs (optional based on view requirements)
+        $lps = Lp::all();
+    
+        return view('carveouts.index', compact('carveouts', 'retailers', 'lp_id', 'lps', 'lp')); // Pass $lp to the view
+    }
+    
+    
+
 
     public function create()
     {
