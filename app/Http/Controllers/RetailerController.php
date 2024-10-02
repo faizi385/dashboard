@@ -32,21 +32,31 @@ class RetailerController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:retailers,email', 
-            'phone' => 'nullable|string',
+            'first_name' => [
+                'required',
+                'string',
+                'max:255',
+                'regex:/^[a-zA-Z\s]+$/',  // Only allow letters and spaces
+            ],
+            'last_name' => [
+                'required',
+                'string',
+                'max:255',
+                'regex:/^[a-zA-Z\s]+$/',  // Only allow letters and spaces
+            ],
+            'email' => 'required|email|unique:retailers,email',
+            'phone' => 'required|string',
         ]);
-
+    
         $retailer = Retailer::create($validatedData);
         $token = base64_encode($retailer->id);
         $link = route('retailer.fillForm', ['token' => $token]);
-
+    
         Mail::to($validatedData['email'])->send(new RetailerFormMail($link));
-
+    
         return redirect()->route('retailer.create')->with('success', 'Retailer created and email sent!');
     }
-
+    
     public function showForm($token)
     {
         $retailerId = base64_decode($token);
@@ -55,62 +65,67 @@ class RetailerController extends Controller
         return view('retailer.complete_form', compact('retailer'));
     }
     
-    
     public function submitForm(Request $request)
-    {
-        $validatedData = $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:retailers,email,' . $request->retailer_id,
-            'phone' => 'nullable|string',
-            'corporate_name' => 'nullable|string',
-            'dba' => 'nullable|string',
-            'password' => 'required|confirmed|min:8',
-            'addresses.*.street_no' => 'nullable|string|max:50',
-            'addresses.*.street_name' => 'nullable|string|max:255',
-            'addresses.*.province' => 'nullable|string|max:255',
-            'addresses.*.city' => 'nullable|string|max:255',
-            'addresses.*.location' => 'nullable|string|max:255',
-            'addresses.*.contact_person_name' => 'nullable|string|max:255',
-            'addresses.*.contact_person_phone' => 'nullable|string|max:20',
-        ]);
-    
-        // Update the retailer
-        $retailer = Retailer::findOrFail($request->retailer_id);
-        $retailer->update($validatedData);
-    
-        // Create or update the User record
-        $user = User::updateOrCreate(
-            ['email' => $validatedData['email']],
-            [
-                'first_name' => $validatedData['first_name'],
-                'last_name' => $validatedData['last_name'],
-                'password' => Hash::make($validatedData['password']),
-                'phone' => $validatedData['phone'],
-            ]
-        );
-    
-        // Fetch the role by original_name
-        $role = Role::where('original_name', 'Retailer')->first(); // Adjust 'Retailer' if necessary
-    
-        if ($role) {
-            // Assign role to the user
-            $user->assignRole($role->name);
-        } else {
-            return redirect()->back()->with('error', 'Role not found.');
-        }
-    
-        // Clear existing addresses and create new ones
-        $retailer->address()->delete();
-    
-        foreach ($request->input('addresses', []) as $addressData) {
-            $retailer->address()->create($addressData);
-        }
-    
-        // Redirect with success message
-        return redirect()->route('login')->with('success', 'Retailer information completed successfully. Please log in.');
+{
+    // Validate the request data
+    $validatedData = $request->validate([
+        'first_name' => 'required|string|max:255',
+        'last_name' => 'required|string|max:255',
+        'email' => 'required|email|unique:retailers,email,' . $request->retailer_id,
+        'phone' => 'required|string',
+        'corporate_name' => 'nullable|string',
+        'dba' => 'required|string',
+        'password' => 'required|confirmed|min:8',
+        'addresses.*.street_no' => 'nullable|string|max:50',
+        'addresses.*.street_name' => 'nullable|string|max:255',
+        'addresses.*.province' => 'nullable|string|max:255',
+        'addresses.*.city' => 'nullable|string|max:255',
+        'addresses.*.location' => 'nullable|string|max:255',
+        'addresses.*.contact_person_name' => 'nullable|string|max:255',
+        'addresses.*.contact_person_phone' => 'nullable|string|max:20',
+    ]);
+
+    // Find the retailer based on the provided ID
+    $retailer = Retailer::findOrFail($request->retailer_id);
+
+    // Update retailer details with the validated data
+    $retailer->update([
+        'corporate_name' => $validatedData['corporate_name'],
+        'dba' => $validatedData['dba'],
+    ]);
+
+    // Create or update the User record for the retailer
+    $user = User::updateOrCreate(
+        ['email' => $validatedData['email']], // Unique identifier
+        [
+            'first_name' => $validatedData['first_name'],
+            'last_name' => $validatedData['last_name'],
+            'password' => Hash::make($validatedData['password']),
+            'phone' => $validatedData['phone'],
+        ]
+    );
+
+    // Fetch the role by original name (ensure the role exists)
+    $role = Role::where('original_name', 'Retailer')->first(); // Adjust 'Retailer' if necessary
+
+    if ($role) {
+        // Assign the role to the user
+        $user->assignRole($role->name);
+    } else {
+        return redirect()->back()->with('error', 'Role not found.');
     }
-    
+
+    // Clear existing addresses and create new ones
+    $retailer->address()->delete();
+
+    foreach ($request->input('addresses', []) as $addressData) {
+        $retailer->address()->create($addressData);
+    }
+
+    // Redirect to the login page with a success message
+    return redirect()->route('login')->with('success', 'Retailer information completed successfully. Please log in.');
+}
+
     
     public function edit($id)
     {

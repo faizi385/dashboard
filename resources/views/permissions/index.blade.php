@@ -1,6 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
+<div id="loader" class="loader-overlay">
+    <div class="loader"></div>
+</div>
 <div class="container">
     <h1>Permissions</h1>
     
@@ -61,7 +64,7 @@
 <!-- DataTables JS -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Initialize DataTables
+        $("#loader").fadeOut("slow");
         $('#permissionsTable').DataTable();
 
         // Initialize tooltips

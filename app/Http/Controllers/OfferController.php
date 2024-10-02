@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Lp;
 use App\Models\Offer;
+use App\Models\Product;
 use App\Models\Retailer;
 use Illuminate\Http\Request;
 use App\Exports\OffersExport;
@@ -117,15 +118,15 @@ public function destroy($id)
     {
         // Base validation rules for common fields
         $rules = [
-            'product_name' => 'required|string|max:255',
+            'product_name' => 'required|string|max:255|regex:/^[^\d]*$/', // Ensure no integers
             'provincial_sku' => 'required|string|max:255',
             'gtin' => 'required|string|max:255',
-            'province' => 'required|string|max:255',
+            'province' => 'required|string|max:255|regex:/^[^\d]*$/', // Ensure no integers
             'general_data_fee' => 'nullable|numeric|min:0',
             'exclusive_data_fee' => 'nullable|numeric|min:0', // Keep as nullable
             'unit_cost' => 'required|numeric',
-            'category' => 'required|string|max:255',
-            'brand' => 'required|string|max:255',
+            'category' => 'required|string|max:255|regex:/^[^\d]*$/', // Ensure no integers
+            'brand' => 'required|string|max:255|regex:/^[^\d]*$/', // Ensure no integers
             'case_quantity' => 'required|integer',
             'offer_start' => 'required|date',
             'offer_end' => 'required|date',
@@ -154,9 +155,11 @@ public function destroy($id)
         // Validate the request with conditional rules
         $validatedData = $request->validate($rules);
     
+        // Store the product in the products table
+        $this->storeProduct($validatedData);
+    
         // Handle retailer-specific exclusive offer (Second Checkbox)
         if ($request->has('makeExclusiveOfferCheckbox') && $request->makeExclusiveOfferCheckbox) {
-            // Use general data fee for retailer-specific exclusive offers
             foreach ($request->exclusive_retailer_ids as $retailerId) {
                 $exclusiveOfferData = $this->prepareOfferData($request, $retailerId, $request->general_data_fee);
                 Offer::create($exclusiveOfferData);
@@ -221,4 +224,31 @@ public function destroy($id)
             'retailer_id' => $retailerId, // Set retailer ID for exclusive offer, null for general offer
         ];
     }
+
+    private function storeProduct($data)
+{
+    // Check if the product exists in the products table
+    $existingProduct = \App\Models\Product::where('product_name', $data['product_name'])
+                    ->where('provincial_sku', $data['provincial_sku'])
+                    ->first();
+
+    // If product doesn't exist, create a new product
+    if (!$existingProduct) {
+        Product::create([
+            'product_name' => $data['product_name'],
+            'provincial_sku' => $data['provincial_sku'],
+            'gtin' => $data['gtin'],
+            'province' => $data['province'],
+            'category' => $data['category'],
+            'brand' => $data['brand'],
+            'lp_id' => $data['lp_id'],
+            'product_size' => $data['product_size'],
+            'thc_range' => $data['thc_range'],
+            'cbd_range' => $data['cbd_range'],
+            'comment' => $data['comment'],
+            'product_link' => $data['product_link'],
+        ]);
+    }
+}
+
 }

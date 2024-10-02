@@ -223,9 +223,24 @@
                                 <p>Offers</p>
                             </a>
                         </li>
-                        
-                        <!-- LP Management (Visible to all roles) -->
-                        
+        
+                        <!-- Carveouts Tab -->
+                        <li class="nav-item">
+                            <a href="{{ route('carveouts.index', ['lp_id' => auth()->user()->hasRole('Super Admin') ? 0 : auth()->user()->id]) }}" class="nav-link {{ request()->is('carveouts*') ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-cut"></i>
+                                <p>Carveouts</p>
+                            </a>
+                        </li>
+        
+                        <!-- Products Tab (Visible only to LPs) -->
+                        @if(auth()->user()->hasRole('LP'))
+                        <li class="nav-item">
+                            <a href="{{ route('lp.products') }}" class="nav-link {{ Route::currentRouteName() == 'lp.products' ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-box"></i>
+                                <p>Products</p>
+                            </a>
+                        </li>
+                        @endif
                     </ul>
                 </nav>
             </div>

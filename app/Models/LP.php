@@ -30,5 +30,10 @@ public function user()
     {
         return $this->belongsTo(User::class);
     }
+// In Lp.php
+public function carveouts()
+{
+    return $this->hasMany(Carveout::class);
+}
 
 }

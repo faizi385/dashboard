@@ -36,11 +36,11 @@
                             <td>{{ $user->phone }}</td>
                             <td>{{ $user->roles->pluck('original_name')->implode(', ') }}</td>
                             <td>
-                                <a href="{{ route('users.edit', $user) }}" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit User">Edit</a>
+                                <a href="{{ route('users.edit', $user) }}" class="btn btn-warning btn-sm btn-action" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit User">Edit</a>
                                 <form action="{{ route('users.destroy', $user) }}" method="POST" class="d-inline delete-form">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete User">Delete</button>
+                                    <button type="submit" class="btn btn-danger btn-sm btn-action" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete User">Delete</button>
                                 </form>
                             </td>
                         </tr>
@@ -51,14 +51,37 @@
     </div>
 </div>
 
+@push('styles')
+<style>
+    /* Custom styles for action buttons */
+    .btn {
+        transition: background-color 0.3s, transform 0.2s;
+    }
+
+    .btn:hover {
+        transform: scale(1.05); /* Slightly increase size */
+        background-color: #0056b3; /* Darken the primary button color */
+    }
+
+    .btn-warning:hover {
+        background-color: #e0a800; /* Darken the warning button color */
+    }
+
+    .btn-danger:hover {
+        background-color: #c82333; /* Darken the danger button color */
+    }
+
+</style>
+@endpush
+
 @push('scripts')
 <script>
     $(document).ready(function() {
-        // Initialize DataTables
+        $("#loader").fadeOut("slow");
         $('#example').DataTable({
             "initComplete": function() {
-                // Hide the loader once the table is initialized
-                $('#loader').addClass('hidden');
+           
+             
             }
         });
 

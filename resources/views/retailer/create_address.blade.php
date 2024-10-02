@@ -14,8 +14,11 @@
             <div class="card address-form">
                 <div class="card-header d-flex justify-content-between">
                     <h5 class="card-title">Address Information</h5>
-                    <button type="button" class="btn btn-danger btn-sm remove-address" style="display:none;">Remove</button>
+                    <button type="button" class="btn btn-danger btn-sm remove-address ml-auto" style="display:none;">
+                        <i class="fas fa-trash-alt mr-2"></i> Remove
+                    </button>
                 </div>
+                
                 <div class="card-body">
                     <!-- Form fields arranged with icons -->
                     <div class="form-row">

@@ -17,8 +17,8 @@
         <div class="card-body">
             <h6 class="card-subtitle mb-2 text-muted">General Information</h6>
             <p><strong>Retailer Name:</strong> {{ $retailer->first_name }} {{ $retailer->last_name }}</p>
-            <p><strong>Corporate Name:</strong> {{ $retailer->corporate_name ?? 'N/A' }}</p>
-            <p><strong>DBA:</strong> {{ $retailer->dba }}</p>
+            <p><strong>Corporate Name:</strong> {{ $retailer->corporate_name ?? '-' }}</p>
+            <p><strong>DBA:</strong> {{ $retailer->dba ?? '-' }}</p>
             <p><strong>Phone:</strong> {{ $retailer->phone }}</p>
             <p><strong>Email:</strong> {{ $retailer->email }}</p>
         </div>
@@ -44,7 +44,7 @@
     @endforeach
 @else
     <p class="text-muted mt-4">No address details available.</p>
-    <a href="{{ route('retailer.address.create', $retailer->id) }}" class="btn btn-success btn-sm">Add Location</a>
+   
 @endif
 
 </div>

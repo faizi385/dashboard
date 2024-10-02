@@ -107,9 +107,10 @@
                 <!-- Phone Number -->
                 <div class="col-md-4 mb-3">
                     <label for="phone" class="form-label"><i class="fas fa-phone"></i> Phone Number</label>
-                    <input type="text" class="form-control" name="phone" id="phone" value="{{ $retailer->phone }}" required>
-                    <div class="invalid-feedback">Please provide a valid phone number.</div>
+                    <input type="tel" class="form-control" name="phone" id="phone" value="{{ $retailer->phone }}" required pattern="^\+?\d{1,2}\s?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$">
+                    <div class="invalid-feedback">Please provide a valid phone number in the format +1 (952) 473-2014.</div>
                 </div>
+                
     
                 <!-- Corporate Name -->
                 <div class="col-md-4 mb-3">
@@ -128,13 +129,15 @@
                 <!-- Password -->
                 <div class="col-md-6 mb-3">
                     <label for="password" class="form-label"><i class="fas fa-lock"></i> Password</label>
-                    <input type="password" class="form-control" name="password" id="password">
+                    <input type="password" class="form-control" name="password" id="password" minlength="8" required>
+                    <div class="invalid-feedback">Password must be at least 8 characters long.</div>
                 </div>
     
                 <!-- Confirm Password -->
                 <div class="col-md-6 mb-3">
                     <label for="password_confirmation" class="form-label"><i class="fas fa-lock"></i> Confirm Password</label>
-                    <input type="password" class="form-control" name="password_confirmation" id="password_confirmation">
+                    <input type="password" class="form-control" name="password_confirmation" id="password_confirmation" minlength="8" required>
+                    <div class="invalid-feedback">Passwords do not match.</div>
                 </div>
             </div>
     
@@ -150,110 +153,130 @@
                     <div class="row mb-3">
                         <div class="col-md-4 mb-3">
                             <label for="street_no_0" class="form-label"><i class="fas fa-home"></i> Street No</label>
-                            <input type="text" class="form-control" name="addresses[0][street_no]" id="street_no_0">
+                            <input type="text" class="form-control" name="addresses[0][street_no]" id="street_no_0" required>
+                            <div class="invalid-feedback">Please provide a valid street number.</div>
                         </div>
             
                         <div class="col-md-4 mb-3">
                             <label for="street_name_0" class="form-label"><i class="fas fa-road"></i> Street Name</label>
-                            <input type="text" class="form-control" name="addresses[0][street_name]" id="street_name_0">
+                            <input type="text" class="form-control" name="addresses[0][street_name]" id="street_name_0" required>
+                            <div class="invalid-feedback">Please provide a valid street name.</div>
                         </div>
             
                         <div class="col-md-4 mb-3">
                             <label for="location_0" class="form-label"><i class="fas fa-map-marker-alt"></i> Location</label>
-                            <input type="text" class="form-control" name="addresses[0][location]" id="location_0">
+                            <input type="text" class="form-control" name="addresses[0][location]" id="location_0" required>
+                            <div class="invalid-feedback">Please provide a valid location.</div>
                         </div>
                     </div>
             
                     <div class="row mb-3">
                         <div class="col-md-4 mb-3">
                             <label for="province_0" class="form-label"><i class="fas fa-globe"></i> Province</label>
-                            <input type="text" class="form-control" name="addresses[0][province]" id="province_0">
+                            <input type="text" class="form-control" name="addresses[0][province]" id="province_0" required>
+                            <div class="invalid-feedback">Please provide a valid province.</div>
                         </div>
             
                         <div class="col-md-4 mb-3">
                             <label for="city_0" class="form-label"><i class="fas fa-city"></i> City</label>
-                            <input type="text" class="form-control" name="addresses[0][city]" id="city_0">
+                            <input type="text" class="form-control" name="addresses[0][city]" id="city_0" required>
+                            <div class="invalid-feedback">Please provide a valid city.</div>
                         </div>
             
                         <div class="col-md-4 mb-3">
-                            <label for="contact_person_name_0" class="form-label"><i class="fas fa-user-tie"></i> Contact Person Name</label>
-                            <input type="text" class="form-control" name="addresses[0][contact_person_name]" id="contact_person_name_0">
-                        </div>
-                    </div>
-            
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="contact_person_phone_0" class="form-label"><i class="fas fa-phone"></i> Contact Person Phone</label>
-                            <input type="text" class="form-control" name="addresses[0][contact_person_phone]" id="contact_person_phone_0">
+                            <label for="postal_code_0" class="form-label"><i class="fas fa-envelope"></i> Postal Code</label>
+                            <input type="text" class="form-control" name="addresses[0][postal_code]" id="postal_code_0" required pattern="^\d{5}(-\d{4})?$">
+                            <div class="invalid-feedback">Please provide a valid postal code (5 digits).</div>
                         </div>
                     </div>
                 </div>
             </div>
     
-            <button type="button" class="btn btn-secondary mb-4" id="add-address-btn">
-                <i class="fas fa-plus"></i> Add Address
-            </button>
+            <button type="button" class="btn btn-secondary" onclick="addAddress()">Add Address</button>
+
+            <hr>
     
-            <div class="d-flex justify-content-end">
-                <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Submit</button>
-            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
         </form>
     </div>
 
-    <!-- Bootstrap JS, Popper.js, and jQuery -->
+    <!-- Bootstrap JS and dependencies -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
-    <!-- Script for dynamically adding and removing address fields -->
     <script>
-        let addressCount = 1;
-        document.getElementById('add-address-btn').addEventListener('click', function() {
-            const addressFields = document.getElementById('address-fields');
-            const newAddress = document.createElement('div');
-            newAddress.className = 'address-field mb-4';
-            newAddress.innerHTML = `
-                <button type="button" class="remove-address-btn" onclick="removeAddress(this)">
-                    <i class="fas fa-trash-alt"></i> Remove
-                </button>
-                <div class="row mb-3">
-                    <div class="col-md-4 mb-3">
-                        <label for="street_no_${addressCount}" class="form-label"><i class="fas fa-home"></i> Street No</label>
-                        <input type="text" class="form-control" name="addresses[${addressCount}][street_no]" id="street_no_${addressCount}">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label for="street_name_${addressCount}" class="form-label"><i class="fas fa-road"></i> Street Name</label>
-                        <input type="text" class="form-control" name="addresses[${addressCount}][street_name]" id="street_name_${addressCount}">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label for="location_${addressCount}" class="form-label"><i class="fas fa-map-marker-alt"></i> Location</label>
-                        <input type="text" class="form-control" name="addresses[${addressCount}][location]" id="location_${addressCount}">
-                    </div>
-                </div>
-                <div class="row mb-3">
-                    <div class="col-md-4 mb-3">
-                        <label for="province_${addressCount}" class="form-label"><i class="fas fa-globe"></i> Province</label>
-                        <input type="text" class="form-control" name="addresses[${addressCount}][province]" id="province_${addressCount}">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label for="city_${addressCount}" class="form-label"><i class="fas fa-city"></i> City</label>
-                        <input type="text" class="form-control" name="addresses[${addressCount}][city]" id="city_${addressCount}">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label for="contact_person_name_${addressCount}" class="form-label"><i class="fas fa-user-tie"></i> Contact Person Name</label>
-                        <input type="text" class="form-control" name="addresses[${addressCount}][contact_person_name]" id="contact_person_name_${addressCount}">
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label for="contact_person_phone_${addressCount}" class="form-label"><i class="fas fa-phone"></i> Contact Person Phone</label>
-                        <input type="text" class="form-control" name="addresses[${addressCount}][contact_person_phone]" id="contact_person_phone_${addressCount}">
-                    </div>
-                </div>`;
-            addressFields.appendChild(newAddress);
-            addressCount++;
-        });
+        // Form validation
+        (function () {
+            'use strict';
+            window.addEventListener('load', function () {
+                var forms = document.getElementsByClassName('needs-validation');
+                Array.prototype.filter.call(forms, function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (form.checkValidity() === false) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+            }, false);
+        })();
 
+        // Add address field
+        let addressCount = 1;
+        function addAddress() {
+            const addressTemplate = `
+                <div class="address-field mb-4">
+                    <button type="button" class="remove-address-btn" onclick="removeAddress(this)">
+                        <i class="fas fa-trash-alt"></i> Remove
+                    </button>
+                    <div class="row mb-3">
+                        <div class="col-md-4 mb-3">
+                            <label for="street_no_${addressCount}" class="form-label"><i class="fas fa-home"></i> Street No</label>
+                            <input type="text" class="form-control" name="addresses[${addressCount}][street_no]" id="street_no_${addressCount}" required>
+                            <div class="invalid-feedback">Please provide a valid street number.</div>
+                        </div>
+            
+                        <div class="col-md-4 mb-3">
+                            <label for="street_name_${addressCount}" class="form-label"><i class="fas fa-road"></i> Street Name</label>
+                            <input type="text" class="form-control" name="addresses[${addressCount}][street_name]" id="street_name_${addressCount}" required>
+                            <div class="invalid-feedback">Please provide a valid street name.</div>
+                        </div>
+            
+                        <div class="col-md-4 mb-3">
+                            <label for="location_${addressCount}" class="form-label"><i class="fas fa-map-marker-alt"></i> Location</label>
+                            <input type="text" class="form-control" name="addresses[${addressCount}][location]" id="location_${addressCount}" required>
+                            <div class="invalid-feedback">Please provide a valid location.</div>
+                        </div>
+                    </div>
+            
+                    <div class="row mb-3">
+                        <div class="col-md-4 mb-3">
+                            <label for="province_${addressCount}" class="form-label"><i class="fas fa-globe"></i> Province</label>
+                            <input type="text" class="form-control" name="addresses[${addressCount}][province]" id="province_${addressCount}" required>
+                            <div class="invalid-feedback">Please provide a valid province.</div>
+                        </div>
+            
+                        <div class="col-md-4 mb-3">
+                            <label for="city_${addressCount}" class="form-label"><i class="fas fa-city"></i> City</label>
+                            <input type="text" class="form-control" name="addresses[${addressCount}][city]" id="city_${addressCount}" required>
+                            <div class="invalid-feedback">Please provide a valid city.</div>
+                        </div>
+            
+                        <div class="col-md-4 mb-3">
+                            <label for="postal_code_${addressCount}" class="form-label"><i class="fas fa-envelope"></i> Postal Code</label>
+                            <input type="text" class="form-control" name="addresses[${addressCount}][postal_code]" id="postal_code_${addressCount}" required pattern="^\\d{5}(-\\d{4})?$">
+                            <div class="invalid-feedback">Please provide a valid postal code (5 digits).</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('address-fields').insertAdjacentHTML('beforeend', addressTemplate);
+            addressCount++;
+        }
+
+        // Remove address field
         function removeAddress(button) {
             button.parentElement.remove();
         }

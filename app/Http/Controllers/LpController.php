@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 use App\Models\Lp;
 use App\Models\Role;
 use App\Models\User;
+use App\Models\Offer;
+use App\Models\Product;
 use App\Mail\LpFormMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -41,7 +43,7 @@ class LpController extends Controller
             'name' => ['required', 'string', 'max:255', 'regex:/^[^\d]+$/'], // Disallow numeric characters
             'dba' => 'required|string|max:255',
             'primary_contact_email' => 'required|string|email|max:255|unique:users,email',
-            'primary_contact_phone' => 'required|string|max:20',
+            'primary_contact_phone' => 'required|string|max:15',
             'primary_contact_position' => ['required', 'string', 'max:255', 'regex:/^[^\d]+$/'], // Disallow numeric characters
             'password' => 'nullable|string|min:8',
         ]);
@@ -137,7 +139,30 @@ class LpController extends Controller
         return redirect()->route('login')->with('success', 'Your account has been created. Please log in to continue.');
     }
     
-    
+    public function viewProducts()
+{
+    // Get the currently authenticated user
+    $user = auth()->user();
+
+    // Check if the user is an LP
+    if ($user->hasRole('LP')) {
+        // Get the LP ID associated with the logged-in user
+        $lp = Lp::where('user_id', $user->id)->first();
+
+        if ($lp) {
+            // Fetch products uploaded by this LP
+            $products = Product::where('lp_id', $lp->id)->get();
+        } else {
+            $products = collect(); // Empty collection if no LP found
+        }
+    } else {
+        // Super admin: Fetch all products for all LPs
+        $products = Product::all();
+    }
+
+    return view('lp.products', compact('products'));
+}
+
 
     public function edit(Lp $lp)
     {

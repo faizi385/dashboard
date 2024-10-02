@@ -25,14 +25,19 @@ class ProvinceController extends Controller
             'slug' => 'required|string|max:255|unique:provinces',
             'timezone_1' => 'string|max:255',
             'timezone_2' => 'string|max:255',
-            'tax_value' => 'required|numeric',
+            'tax_value' => [
+                'required',
+                'numeric',
+                'regex:/^\d{1,2}(\.\d{1,2})?$/', // Two digits before the decimal and up to two digits after
+            ],
             'status' => 'required|boolean',
         ]);
-
+    
         Province::create($request->all());
-
+    
         return redirect()->route('provinces.index')->with('toast_success', 'Province created successfully.');
     }
+    
 
     public function edit(Province $province)
     {

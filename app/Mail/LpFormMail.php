@@ -24,6 +24,7 @@ class LpFormMail extends Mailable
         $link = route('lp.completeForm', $this->lp->id); // Generates a link to the form
         
         return $this->view('emails.lp_form')
+        ->subject('LP Information Form')
             ->with([
                 'name' => $this->lp->name,
                 'link' => $link,

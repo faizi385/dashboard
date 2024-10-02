@@ -74,7 +74,7 @@
             <p>Dear Retailer,</p>
             <p>We hope this message finds you well. To help us keep your information up to date, please take a moment to complete your retailer profile by clicking the button below:</p>
             
-            <a href="{{ $link }}" class="btn-complete">Complete Retailer Form</a>
+            <a href="{{ $link }}" class="btn-complete">Complete Your Details</a>
 
             <p>If you have any questions or require further assistance, feel free to contact us at any time.</p>
             <p>Thank you for your prompt attention to this matter.</p>

@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="container">
+<div class="container p-3">
     <div class="d-flex justify-content-between mb-4">
         <h3>Edit Retailer</h3>
         <a href="{{ route('retailer.index') }}" class="btn btn-secondary">Back to List</a>
@@ -109,4 +109,26 @@
         </div>
     </form>
 </div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet"/>
+
+<script>
+    @if (session('success'))
+        toastr.success("{{ session('success') }}");
+    @endif
+
+    @if (session('error'))
+        toastr.error("{{ session('error') }}");
+    @endif
+
+    @if (session('info'))
+        toastr.info("{{ session('info') }}");
+    @endif
+
+    @if (session('warning'))
+        toastr.warning("{{ session('warning') }}");
+    @endif
+</script>
 @endsection

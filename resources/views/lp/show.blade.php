@@ -14,6 +14,10 @@
             <a href="{{ route('offers.index', ['lp_id' => $lp->id]) }}" class="btn btn-primary">
                 View Offers
             </a>
+
+            <button class="btn btn-info" onclick="window.location.href='{{ route('carveouts.index', ['lp_id' => $lp->id]) }}'">
+                View Carveouts
+            </button>
         </div>
     </div>
 
