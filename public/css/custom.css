@@ -241,3 +241,140 @@ table.dataTable tbody td, table.dataTable thead th {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+
+
+
+
+
+.brand-link{
+    font-family: Tahoma, sans-serif;/*  font */
+         font-size: 20px; /* Font size */
+         font-weight: 400; /* Normal weight */
+         line-height: 24px; /* Line height */
+         text-align: left; /* Text alignment */
+
+
+ }
+ .nav-sidebar .nav-link {
+     font-family: Tahoma, sans-serif;
+         font-size: 16px; /* Font size */
+         font-weight: 400; /* Normal weight */
+         line-height: 24px; /* Line height */
+         text-align: left; /* Text alignment */
+ }
+ .nav-sidebar .nav-link.active {
+     background-color: #B8AC92 !important;
+     color: #fff !important;
+ }
+
+ /* Optional: Change hover color */
+ .nav-sidebar .nav-link:hover {
+     background-color: #B8AC92 !important; /* Darker shade on hover */
+ }
+
+
+ .dataTables_wrapper .dataTables_paginate .paginate_button,
+ .dataTables_wrapper .dataTables_filter label,
+ .dataTables_wrapper .dataTables_info,
+ .dataTables_wrapper .dataTables_length {
+     font-family: 'Ivy Mode' !important; /* Apply font family */
+     font-size: 16px !important; /* Adjust font size if needed */
+     color: white; /* Text color */
+ }
+ 
+ /* Pagination button styles */
+ .dataTables_wrapper .dataTables_paginate .paginate_button {
+     background-color: white; /* Background color for pagination buttons */
+     color: white; /* White text color */
+     border: none; /* Remove border */
+     margin: 2px; /* Add some spacing */
+     padding: 5px 10px; /* Adjust padding for the buttons */
+     border-radius: 4px; /* Optional: Add border radius for rounded buttons */
+ }
+ 
+ /* Pagination button on hover */
+ .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+     background-color: white; /* Darker background on hover */
+     color: white; /* Ensure the text remains white */
+ }
+ 
+ /* Active pagination button */
+ .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+     background-color: white; /* Background for the active page button */
+     color: black !important; /* White text for active page */
+     font-weight: bold; /* Optional: Make text bold for the active button */
+     border: none; /* Remove border */
+ }
+ .dataTables_wrapper .dataTables_paginate .paginate_button.disabled{
+    color: #fff !important;
+ }
+
+ /* Search field styles */
+.dataTables_wrapper .dataTables_filter input {
+    background-color: white; /* White background for search input */
+    color: black; /* Text color for input */
+    border: 1px solid #ccc; /* Light gray border */
+    border-radius: 4px; /* Optional: Rounded corners */
+    padding: 5px 10px; /* Padding for better spacing */
+    font-family: 'Ivy Mode' !important; /* Ensure consistent font family */
+    font-size: 16px !important; /* Font size */
+}
+
+/* Optional: Hover effect for the search input */
+.dataTables_wrapper .dataTables_filter input:hover {
+    border-color: #999; /* Darker border on hover */
+}
+
+/* Optional: Focus effect for the search input */
+.dataTables_wrapper .dataTables_filter input:focus {
+    border-color: #3085d6; /* Blue border on focus */
+    box-shadow: 0 0 5px rgba(48, 133, 214, 0.5); /* Light blue shadow on focus */
+    outline: none; /* Remove outline */
+}
+.table.dataTable tbody tr:nth-child(odd){
+    background-color:#e5ddd8; 
+   }
+
+   .dataTables_wrapper .dataTables_length select{
+ 
+   }
+
+   .table thead th {
+    font-family: Tahoma, sans-serif;/*  font */
+font-weight: 700 !important; /* Bold weight for headers */
+line-height: 24px !important;
+text-align: left !important;
+}
+
+
+.icon-action {
+    display: inline-block;
+    margin: 0 5px; /* Space between icons */
+    font-size: 18px; /* Size of the icons */
+    color: inherit; /* Inherits the color for specific icons */
+    transition: transform 0.2s ease-in-out; /* Smooth hover effect */
+    cursor: pointer; /* Change to pointer on hover */
+}
+
+.icon-action:hover {
+    transform: scale(1.2); /* Slightly enlarge icon on hover */
+    color: #007bff; /* Optional: Change color on hover */
+}
+
+.icon-action i {
+    vertical-align: middle; /* Ensures the icons are vertically aligned */
+}
+h2, h3, h4, h5, h6, p, th, td {
+    font-family: Tahoma, sans-serif;
+  
+}
+
+.btn-primary {
+    background-color:  #B8AC92;
+    border-color: #B8AC92;
+    font-family: 'Tahoma, sans-serif'!important;
+    font-size: 16px !important;
+    font-weight: 400 !important;
+
+}

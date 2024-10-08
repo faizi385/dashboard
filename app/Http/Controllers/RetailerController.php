@@ -16,7 +16,7 @@ class RetailerController extends Controller
     public function index()
     {
         $retailers = Retailer::with('address')->get(); // Fetch all retailers with addresses
-        return view('retailer.index', compact('retailers'));
+        return view(' super_admin.retailer.index', compact('retailers'));
     }
 
     public function dashboard()
@@ -26,7 +26,7 @@ class RetailerController extends Controller
 
     public function create()
     {
-        return view('retailer.create'); 
+        return view('super_admin.retailer.create'); 
     }
 
     public function store(Request $request)
@@ -45,7 +45,7 @@ class RetailerController extends Controller
                 'regex:/^[a-zA-Z\s]+$/',  // Only allow letters and spaces
             ],
             'email' => 'required|email|unique:retailers,email',
-            'phone' => 'required|string',
+            'phone' => 'required|string|max:20',
         ]);
     
         $retailer = Retailer::create($validatedData);
@@ -62,7 +62,7 @@ class RetailerController extends Controller
         $retailerId = base64_decode($token);
         $retailer = Retailer::findOrFail($retailerId);
 
-        return view('retailer.complete_form', compact('retailer'));
+        return view('super_admin.retailer.complete_form', compact('retailer'));
     }
     
     public function submitForm(Request $request)
@@ -130,7 +130,7 @@ class RetailerController extends Controller
     public function edit($id)
     {
         $retailer = Retailer::with('address')->findOrFail($id);
-        return view('retailer.edit', compact('retailer'));
+        return view('super_admin.retailer.edit', compact('retailer'));
     }
     
 
@@ -179,13 +179,13 @@ class RetailerController extends Controller
     public function show($id)
     {
         $retailer = Retailer::with('address')->findOrFail($id);
-        return view('retailer.show', compact('retailer'));
+        return view('super_admin.retailer.show', compact('retailer'));
     }
 
     public function createAddress($id)
     {
         $retailer = Retailer::findOrFail($id);
-        return view('retailer.create_address', compact('retailer'));
+        return view('super_admin.retailer.create_address', compact('retailer'));
     }
 
     public function editAddress($id)

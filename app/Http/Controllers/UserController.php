@@ -22,7 +22,7 @@ class UserController extends Controller
             $users = User::with('roles')->get();
         }
 
-        return view('users.index', compact('users'));
+        return view('super_admin.users.index', compact('users'));
     }
 
    public function create()
@@ -32,15 +32,15 @@ class UserController extends Controller
 
     $permissions = Permission::all();
 
-    return view('users.create', compact('roles', 'permissions'));
+    return view('super_admin.users.create', compact('roles', 'permissions'));
 }
 
 public function store(Request $request)
 {
     // Validate the incoming request
     $request->validate([
-        'first_name' => 'required|string|max:255',
-        'last_name' => 'required|string|max:255',
+        'first_name' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'], // Only alphabets and spaces allowed
+        'last_name' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'],  // Only alphabets and spaces allowed
         'email' => 'required|string|email|max:255|unique:users',
         'password' => 'required|string|min:8|confirmed',
          'phone' => [
@@ -92,7 +92,7 @@ public function store(Request $request)
 
         $permissions = Permission::all();
         
-        return view('users.edit', compact('user', 'roles', 'permissions'));
+        return view('super_admin.users.edit', compact('user', 'roles', 'permissions'));
     }
 
     public function update(Request $request, User $user)

@@ -8,6 +8,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Ivy+Mode:wght@400&display=swap" rel="stylesheet">
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
@@ -27,24 +28,8 @@
     <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
     @stack('styles')
     <style>
-        /* Hide the menu by default */
-        .nav-treeview {
-            display: none;
-        }
-        
-        /* Show the menu when the checkbox is checked */
-        .nav-item input:checked ~ .nav-treeview {
-            display: block;
-        }
-        
-        /* Optional: Adjust the dropdown arrow */
-        .nav-link .right.fas.fa-angle-down {
-            transition: transform 0.3s;
-        }
-        
-        .nav-item input:checked ~ .nav-link .right.fas.fa-angle-down {
-            transform: rotate(180deg);
-        }
+   
+
     </style>
 </head>
 <body class="hold-transition sidebar-mini">
@@ -85,14 +70,11 @@
 
         <!-- Sidebar -->
         <aside class="main-sidebar sidebar-dark-primary elevation-4">
-            <!-- Dynamically assign the dashboard route based on the user's role -->
             <a style="text-decoration: none" href="{{ auth()->user()->hasRole('Super Admin') ? route('dashboard') : (auth()->user()->hasRole('LP') ? route('lp.dashboard') : route('retailer.dashboard')) }}" class="brand-link">
                 <span class="brand-text font-weight-light">Novatore</span>
             </a>
         
-            <!-- Sidebar content -->
             <div class="sidebar">
-                <!-- SidebarSearch Form -->
                 <div class="form-inline mt-3">
                     <div class="input-group" data-widget="sidebar-search">
                         <input class="form-control form-control-sidebar" type="search" placeholder="Search" aria-label="Search">
@@ -104,7 +86,6 @@
                     </div>
                 </div>
         
-                <!-- Sidebar Menu -->
                 <nav class="mt-2">
                     <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
         
@@ -153,8 +134,8 @@
                         </li>
         
                         <!-- Logs Dropdown (Visible only to Super Admin) -->
-                        <li class="nav-item has-treeview {{ request()->is('logs*') || request()->is('province-logs*') || request()->is('retailer-logs*') || request()->is('lp-logs*') ? 'menu-open' : '' }}">
-                            <a href="#" class="nav-link {{ request()->is('logs*') || request()->is('province-logs*') || request()->is('retailer-logs*') || request()->is('lp-logs*') ? 'active' : '' }}">
+                        <li class="nav-item has-treeview {{ request()->is('logs*') || request()->is('province-logs*') || request()->is('retailer-logs*') || request()->is('lp-logs*') || request()->is('offer-logs*') || request()->is('carveout-logs*') ? 'menu-open' : '' }}">
+                            <a href="#" class="nav-link {{ request()->is('logs*') || request()->is('province-logs*') || request()->is('retailer-logs*') || request()->is('lp-logs*') || request()->is('offer-logs*') || request()->is('carveout-logs*') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-book"></i>
                                 <p>Logs
                                     <i class="right fas fa-angle-left"></i>
@@ -185,8 +166,22 @@
                                         <p>LP Logs</p>
                                     </a>
                                 </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('offer.logs.index') }}" class="nav-link {{ Route::currentRouteName() == 'offer.logs.index' ? 'active' : '' }}">
+                                        <i class="nav-icon"></i>
+                                        <p>Offers Logs</p>
+                                    </a>
+                                </li>
+                                <!-- Add Carveout Logs here -->
+                                <li class="nav-item">
+                                    <a href="{{ route('carveout.logs.index') }}" class="nav-link {{ Route::currentRouteName() == 'carveout.logs.index' ? 'active' : '' }}">
+                                        <i class="nav-icon"></i>
+                                        <p>Carveout Logs</p>
+                                    </a>
+                                </li>
                             </ul>
                         </li>
+                        
         
                         <!-- Retailer Management (Visible only to Super Admin) -->
                         <li class="nav-item">
@@ -196,7 +191,8 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ route('lp.management') }}" class="nav-link {{ request()->is('lp/management*') ? 'active' : '' }}">
+                            <a href="{{ route('lp.management') }}" 
+                               class="nav-link {{ (request()->is('lp/management*') || Route::currentRouteName() == 'lp.management' || Route::currentRouteName() == 'lp.show') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-building"></i>
                                 <p>
                                     LP Management
@@ -204,6 +200,9 @@
                                 </p>
                             </a>
                         </li>
+                        
+                        
+                        
                         @endif
         
                         <!-- Manage Info (Visible only to LPs) -->
@@ -216,21 +215,36 @@
                         </li>
                         @endif
         
-                        <!-- Offers Tab -->
-                        <li class="nav-item">
-                            <a href="{{ route('offers.index') }}" class="nav-link {{ Route::currentRouteName() == 'offers.index' ? 'active' : '' }}">
-                                <i class="nav-icon fas fa-tag"></i>
-                                <p>Offers</p>
-                            </a>
-                        </li>
+                        <!-- Offers Tab (Visible to Super Admin and LPs) -->
+                      
+                    
+                    <!-- Offers Tab (Visible to Super Admin and LPs) -->
+                    @if(auth()->user()->hasRole('Super Admin') || auth()->user()->hasRole('LP'))
+                    <li class="nav-item">
+                        <a href="{{ route('offers.index') }}"
+                           class="nav-link {{ (Route::currentRouteName() == 'offers.index' && !request()->get('from_lp_show')) ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-tag"></i>
+                            <p>Offers</p>
+                        </a>
+                    </li>
+                    @endif
+                    
+                        
+                        
+                    
+                    
+                    
+                    
         
-                        <!-- Carveouts Tab -->
+                        <!-- Carveouts Tab (Visible to Super Admin and LPs) -->
+                        @if(auth()->user()->hasRole('Super Admin') || auth()->user()->hasRole('LP'))
                         <li class="nav-item">
                             <a href="{{ route('carveouts.index', ['lp_id' => auth()->user()->hasRole('Super Admin') ? 0 : auth()->user()->id]) }}" class="nav-link {{ request()->is('carveouts*') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-cut"></i>
                                 <p>Carveouts</p>
                             </a>
                         </li>
+                        @endif
         
                         <!-- Products Tab (Visible only to LPs) -->
                         @if(auth()->user()->hasRole('LP'))
@@ -250,12 +264,13 @@
 
         
         <!-- Content Wrapper -->
-        <div class="content-wrapper">
-            <div class="content-header">
+        <div style="background-color: #54595F" class="content-wrapper">
+            <div style="background-color: #54595F" class="content-header">
                 <div class="container-fluid">
+     
                 </div>
             </div>
-            <div class="content">
+            <div style="background-color: #54595F" class="content">
                 <div class="container-fluid">
                     @yield('content')
                 </div>
@@ -264,7 +279,7 @@
 
         <!-- Footer -->
         <footer class="main-footer">
-            <strong>&copy; {{ date('Y') }} <a href="#">Your Company</a>.</strong> All rights reserved.
+            <strong>&copy; {{ date('Y') }} <a href="#">Novatore Solutions</a>.</strong> All rights reserved.
         </footer>
     </div>
 

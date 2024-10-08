@@ -16,25 +16,31 @@ class LpController extends Controller
 {
     public function dashboard()
     {
-        return view('lp.dashboard'); // LP dashboard view
+        return view('super_admin.lp.dashboard'); // LP dashboard view
     }
     
     public function index()
     {
+        // Clear the session variable when loading the offers index
+        session()->forget('viewing_offers_from_lp_show');
+    
         $lps = Lp::all();
-        return view('lp.index', compact('lps'));
+        return view('super_admin.lp.index', compact('lps'));
     }
-
+    
     public function show($id)
     {
-        $lps = Lp::all();
         $lp = Lp::with('address')->findOrFail($id);
-        return view('lp.show', compact('lp',"lps"));
+    
+        // Set a session variable to indicate that the user is viewing offers from LP show
+        session(['viewing_offers_from_lp_show' => true]);
+    
+        return view('super_admin.lp.show', compact('lp'));
     }
-
+    
     public function create()
     {
-        return view('lp.create');
+        return view('super_admin.lp.create');
     }
 
     public function store(Request $request)
@@ -43,17 +49,23 @@ class LpController extends Controller
             'name' => ['required', 'string', 'max:255', 'regex:/^[^\d]+$/'], // Disallow numeric characters
             'dba' => 'required|string|max:255',
             'primary_contact_email' => 'required|string|email|max:255|unique:users,email',
-            'primary_contact_phone' => 'required|string|max:15',
+            'primary_contact_phone' => 'required|string|max:20',
             'primary_contact_position' => ['required', 'string', 'max:255', 'regex:/^[^\d]+$/'], // Disallow numeric characters
             'password' => 'nullable|string|min:8',
         ]);
     
+        // Split the name into first and last name
+        $nameParts = explode(' ', $validatedData['name'], 2);
+        $firstName = $nameParts[0]; // First part
+        $lastName = isset($nameParts[1]) ? $nameParts[1] : ''; // Second part (if exists)
+    
         // Create User for the LP
         $user = User::create([
-            'name' => $validatedData['name'],
+            'first_name' => $firstName,
+            'last_name' => $lastName,
             'email' => $validatedData['primary_contact_email'],
             'phone' => $validatedData['primary_contact_phone'],
-            'password' => Hash::make($validatedData['password'] ?? 'defaultPassword'), 
+            'password' => Hash::make($validatedData['password'] ?? 'defaultPassword'),
         ]);
     
         // Create LP record and associate with the newly created user
@@ -69,10 +81,11 @@ class LpController extends Controller
     }
     
     
+    
     public function completeForm($id)
     {
         $lp = Lp::findOrFail($id);
-        return view('lp.complete_form', compact('lp'));
+        return view('super_admin.lp.complete_form', compact('lp'));
     }
 
     public function submitCompleteForm(Request $request)
@@ -139,34 +152,11 @@ class LpController extends Controller
         return redirect()->route('login')->with('success', 'Your account has been created. Please log in to continue.');
     }
     
-    public function viewProducts()
-{
-    // Get the currently authenticated user
-    $user = auth()->user();
-
-    // Check if the user is an LP
-    if ($user->hasRole('LP')) {
-        // Get the LP ID associated with the logged-in user
-        $lp = Lp::where('user_id', $user->id)->first();
-
-        if ($lp) {
-            // Fetch products uploaded by this LP
-            $products = Product::where('lp_id', $lp->id)->get();
-        } else {
-            $products = collect(); // Empty collection if no LP found
-        }
-    } else {
-        // Super admin: Fetch all products for all LPs
-        $products = Product::all();
-    }
-
-    return view('lp.products', compact('products'));
-}
-
+ 
 
     public function edit(Lp $lp)
     {
-        return view('lp.edit', compact('lp'));
+        return view('super_admin.lp.edit', compact('lp'));
     }
 
     public function update(Request $request, Lp $lp)

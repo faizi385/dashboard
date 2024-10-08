@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Imports;
 
 use App\Models\Offer;
@@ -9,11 +10,13 @@ use Carbon\Carbon;
 class OffersImport implements ToModel, WithHeadingRow
 {
     protected $lpId;
+    protected $source; // Add a property to store the source
 
-    // Constructor to accept the LP ID
-    public function __construct($lpId)
+    // Constructor to accept the LP ID and source
+    public function __construct($lpId, $source)
     {
         $this->lpId = $lpId;
+        $this->source = $source; // Initialize the source
     }
 
     /**
@@ -24,7 +27,7 @@ class OffersImport implements ToModel, WithHeadingRow
     public function model(array $row)
     {
         // Handle both 'GTIN (unit)' and 'gtin' headers
-        $gtin = (int)$row['gtin_unit'] ?? (int)$row['gtin'] ?? null;
+        $gtin = (int)($row['gtin_unit'] ?? $row['gtin'] ?? null);
 
         // Handle both 'product' and 'product_name' headers
         $productName = $row['product'] ?? $row['product_name'] ?? null;
@@ -72,6 +75,7 @@ class OffersImport implements ToModel, WithHeadingRow
             'lp_id' => $this->lpId, // Use the lpId passed to the constructor
             'offer_date' => $this->parseDate($row['offer_date'] ?? null),
             'retailer_id' => $row['retailer_id'] ?? null,
+            'source' => $this->source, // Save the source to the offer
         ]);
     }
 
@@ -84,7 +88,7 @@ class OffersImport implements ToModel, WithHeadingRow
             'ON' => 'Ontario',
             'AB' => 'Alberta',
             'BC' => 'British Columbia',
-            'SK' => 'shinchin',
+            'SK' => 'Saskatchewan',
         ];
 
         return $provinces[$slug] ?? null;

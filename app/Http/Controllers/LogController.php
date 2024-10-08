@@ -9,7 +9,7 @@ class LogController extends Controller
     public function index()
     {
         $logs = Log::with('actionUser', 'user')->orderBy('created_at', 'desc')->get();
-        return view('logs.index', compact('logs'));
+        return view('super_admin.users.logs.index', compact('logs'));
     }
     
     public function show($id)

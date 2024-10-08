@@ -12,7 +12,7 @@ class LpLogController extends Controller
     public function index()
     {
         $lpLogs = LpLog::with('user','lp')->orderBy('created_at', 'desc')->get();
-        return view('lp.logs.index', compact('lpLogs'));
+        return view('super_admin.lp.logs.index', compact('lpLogs'));
     }
     // App\Http\Controllers\LpController.php
 

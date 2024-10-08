@@ -14,7 +14,7 @@ class ProvinceLogController extends Controller
         $provinceLogs = ProvinceLog::with('user', 'province')->orderBy('created_at', 'desc')->paginate(10);
 
        
-        return view('province_logs.index', compact('provinceLogs'));
+        return view('super_admin.provinces.province_logs.index', compact('provinceLogs'));
     }
 
 
