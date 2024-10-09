@@ -2,8 +2,13 @@
 
 @section('content')
 <div class="container">
-    <h1>Edit LP</h1>
-
+   
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="text-white">Edit LP</h1>
+        <a href="{{ route('lp.index') }}" class="btn btn-primary">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
     <form action="{{ route('lp.update', $lp) }}" method="POST">
         @csrf
         @method('PUT')

@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container p-2">
-    <h3>Edit Carveout</h3>
+    <h3 class="text-white">Edit Carveout</h3>
 
     <div class="card">
         <div class="card-header">

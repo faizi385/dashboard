@@ -9,7 +9,7 @@
 
 <div class="container p-2">
     <div class="d-flex justify-content-between mb-4">
-        <h3>Products Family</h3>
+        <h3 class="text-white">Products Family</h3>
         <div>
             {{-- Add any additional buttons if needed --}}
         </div>
@@ -47,14 +47,22 @@
                         </td>
                         <td>{{ $product->category }}</td>
                         <td>{{ $product->brand }}</td>
-                        <td>
-                            <a href="{{ route('products.edit', $product->id) }}" class="btn btn-sm btn-warning" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Product">Edit</a>
+                        <td class="text-center">
+                            <!-- Edit Icon -->
+                            <a href="{{ route('products.edit', $product->id) }}" class="icon-action" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Product">
+                                <i class="fas fa-edit" style="color: black;"></i> <!-- Yellow edit icon -->
+                            </a>
+                            
+                            <!-- Delete Icon -->
                             <form action="{{ route('products.destroy', $product->id) }}" method="POST" class="delete-form" style="display:inline;">
                                 @csrf
                                 @method('DELETE')
-                                <button type="button" class="btn btn-sm btn-danger delete-btn" data-id="{{ $product->id }}" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete Product">Delete</button>
+                                <button type="button" class="btn btn-link p-0 delete-btn" data-id="{{ $product->id }}" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete Product">
+                                    <i class="fas fa-trash" style="color: black;"></i> <!-- Red trash icon -->
+                                </button>
                             </form>
                         </td>
+                        
                     </tr>
                     @empty
                     <!-- Handle case when no products are available -->
@@ -130,8 +138,8 @@
     }
 
     .card-header {
-        background-color: #2c3e50;
-        color: white;
+        background-color: white;
+        color: black;
         padding: 10px;
         font-weight: bold;
         text-align: center;

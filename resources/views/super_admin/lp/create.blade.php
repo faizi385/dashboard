@@ -2,8 +2,13 @@
 
 @section('content')
 <div class="container py-2 ">
-    <h1 class="text-white my-4">Create LP</h1>
 
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="text-white my-4">Create LP</h1>
+        <a href="{{ route('lp.index') }}" class="btn btn-primary">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
     <div class="bg-white p-4 rounded shadow-sm mb-4">
         <form id="createLpForm" action="{{ route('lp.store') }}" method="POST">
             @csrf

@@ -3,12 +3,14 @@
 @section('content')
 <div class="container p-2">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>{{ isset($user) ? 'Edit User' : 'Create User' }}</h1>
-        <a href="{{ route('users.index') }}" class="btn btn-secondary">
+        <h1 class="text-white">{{ isset($user) ? 'Edit User' : 'Create User' }}</h1>
+        <a href="{{ route('users.index') }}" class="btn btn-primary">
             <i class="fas fa-arrow-left"></i> Back
         </a>
         
     </div>
+<div class="bg-white p-4 rounded shadow-sm mb-4">
+
 
     <form action="{{ isset($user) ? route('users.update', $user->id) : route('users.store') }}" method="POST">
         @csrf
@@ -136,5 +138,6 @@
             <i class="fas fa-save"></i> {{ isset($user) ? 'Update User' : 'Create' }}
         </button>
     </form>
+</div>
 </div>
 @endsection

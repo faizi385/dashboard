@@ -3,8 +3,8 @@
 @section('content')
 <div class="container p-3">
     <div class="d-flex justify-content-between mb-4">
-        <h3>Edit Retailer</h3>
-        <a href="{{ route('retailer.index') }}" class="btn btn-secondary">Back to List</a>
+        <h3 class="text-white">Edit Retailer</h3>
+        <a href="{{ route('retailer.index') }}" class="btn btn-primary"><i class="fas fa-arrow-left"></i> Back </a>
     </div>
 
     <form action="{{ route('retailer.update', $retailer->id) }}" method="POST">

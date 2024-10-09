@@ -3,10 +3,10 @@
 @section('content')
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>
+        <h1 class="text-white">
             <i class="fas fa-key"></i> Edit Permission
         </h1>
-        <a href="{{ url()->previous() }}" class="btn btn-secondary">
+        <a href="{{ url()->previous() }}" class="btn btn-primary">
             <i class="fas fa-arrow-left"></i> Back
         </a>
     </div>

@@ -36,9 +36,9 @@
 
                     <td>{{ $log->created_at->format('Y-m-d H:i:s') }}</td>
                     <td>{{ ucfirst($log->action) }}</td>
-                    <td>
-                        <button class="btn btn-info btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#offerLogModal{{ $log->id }}">
-                            <i class="fas fa-eye"></i>
+                    <td class="text-center">
+                        <button class="btn btn-link p-0" type="button" data-bs-toggle="modal" data-bs-target="#offerLogModal{{ $log->id }}">
+                            <i style="color: black" class="fas fa-eye"></i>
                         </button>
                     </td>
                 </tr>
@@ -141,7 +141,7 @@
                                 @endif
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
                             </div>
                         </div>
                     </div>

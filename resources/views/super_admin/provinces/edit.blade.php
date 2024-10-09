@@ -3,14 +3,15 @@
 @section('content')
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>
+        <h1 class="text-white">
             <i class="fas fa-map-marker-alt"></i> Edit Province
         </h1>
-        <a href="{{ route('provinces.index') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Back to List
+        <a href="{{ route('provinces.index') }}" class="btn btn-primary">
+            <i class="fas fa-arrow-left"></i> Back 
         </a>
     </div>
 
+    <div class="bg-white p-4 rounded shadow-sm mb-4">
     <form action="{{ route('provinces.update', $province) }}" method="POST">
         @csrf
         @method('PUT')
@@ -106,5 +107,6 @@
             <i class="fas fa-save"></i> Update Province
         </button>
     </form>
+    </div>
 </div>
 @endsection

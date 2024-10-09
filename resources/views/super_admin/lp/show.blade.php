@@ -5,7 +5,7 @@
     <div class="d-flex justify-content-between mb-4">
         <h3 class="text-white">LP Details</h3>
         <div>
-            <a href="{{ route('lp.index') }}" class="btn btn-primary ">Back to List</a>
+            <a href="{{ route('lp.index') }}" class="btn btn-primary ">Back </a>
             
             <button class="btn btn-primary " data-bs-toggle="modal" data-bs-target="#addOfferModal">
                 Add Offer
@@ -91,7 +91,7 @@
 
                     <!-- Single Offer Add Option -->
                     <div>
-                        <a href="{{ route('offers.create', ['lp_id' => $lp->id]) }}" class="btn btn-secondary">
+                        <a href="{{ route('offers.create', ['lp_id' => $lp->id]) }}" class="btn btn-primary">
                             <i class="fas fa-plus-circle"></i> Add Single Offer
                         </a>
                     </div>

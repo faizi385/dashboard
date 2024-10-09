@@ -34,7 +34,7 @@
                     <td class="text-center">
                         <button class="btn btn-link p-0" type="button" data-bs-toggle="modal" data-bs-target="#carveoutLogModal{{ $log->id }}">
                             <i style="color: black"  class="fas fa-eye"></i>
-                        </button>
+                        </button>   
                     </td>
                 </tr>
 
@@ -137,7 +137,7 @@
                 @endif
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>

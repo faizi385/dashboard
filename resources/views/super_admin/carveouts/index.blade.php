@@ -6,9 +6,9 @@
 </div>
 <div class="container p-2">
     <div class="d-flex justify-content-between mb-4">
-        <h3>Carveout List</h3>
+        <h3 class="text-white">Carveout List</h3>
         <div>
-            <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#addCarveoutModal">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCarveoutModal">
                 Add Carveout
             </button>
         </div>
@@ -73,9 +73,9 @@
                         </tr>
                         @endforeach
                     @else
-                       <tr>
+                       {{-- <tr>
                           <td colspan="8" class="text-center">No carveouts found.</td>
-                       </tr>
+                       </tr> --}}
                     @endif
                 </tbody>
             </table>
@@ -132,7 +132,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
                     <button type="submit" class="btn btn-primary">Add Carveout</button>
                 </div>
             </form>
@@ -205,8 +205,8 @@ $(document).ready(function() {
     }
 
     .card-header {
-        background-color: #2c3e50;
-        color: white;
+        background-color: white;
+        color: black;
         padding: 10px;
         font-weight: bold;
         text-align: center;
@@ -217,7 +217,20 @@ $(document).ready(function() {
         background-color: #f9f9f9;
     }
 
-  
- 
+    .table th, .table td {
+        vertical-align: middle;
+        white-space: nowrap; /* Prevent wrapping */
+        overflow: hidden;    /* Hide overflow */
+        text-overflow: ellipsis; /* Add ellipsis for overflow */
+    }
+
+    .table th {
+        font-size: 0.85rem; /* Adjust header font size to be smaller */
+        padding: 0.75rem; /* Optional: Adjust padding to reduce height */
+    }
+
+    .mb-4 {
+        margin-bottom: 1.5rem;
+    }
 </style>
 @endsection

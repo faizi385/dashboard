@@ -2,8 +2,13 @@
 
 @section('content')
 <div class="container mt-4">
-    <h1><i class="fas fa-user-plus"></i> Create Retailer</h1>
-
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="text-white"><i class="fas fa-user-plus"></i> Create Retailer</h1>
+        <a href="{{ route('retailer.index') }}" class="btn btn-primary">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
     <div class="bg-white p-4 rounded shadow-sm mb-4"> <!-- Added white background -->
         <!-- Form without card -->
         <form action="{{ route('retailers.store') }}" method="POST" id="retailerForm">

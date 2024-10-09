@@ -6,10 +6,10 @@
     <div class="loader"></div>
 </div>
 
-<div class="container">
+<div class="container p-2">
     <div class="d-flex justify-content-between mb-4">
         <h3 class="text-white">Retailer Management</h3>
-        <a href="{{ route('retailer.create') }}" class="btn btn-success">Create Retailer</a>
+        <a href="{{ route('retailer.create') }}" class="btn btn-primary">Create Retailer</a>
     </div>
 
     <table id="retailersTable" class="table table-striped">

@@ -19,7 +19,7 @@ class ProductController extends Controller
     public function edit($id)
     {
         $product = Product::findOrFail($id); // Fetch the product by ID
-        return view('lp.edit_product', compact('product')); // Return the edit view with product data
+        return view('super_admin.lp.edit_product', compact('product')); // Return the edit view with product data
     }
 
     public function destroy($id)

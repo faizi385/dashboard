@@ -9,10 +9,10 @@
 
 <div class="container p-2">
     <div class="d-flex justify-content-between mb-4">
-        <h3>Offers List</h3>
+        <h3 class="text-white">Offers List</h3>
         <div>
             @if(isset($lp)) <!-- Check if $lp is set -->
-                <a href="{{ url()->previous() }}" class="btn btn-secondary">
+                <a href="{{ url()->previous() }}" class="btn btn-primary">
                     <i class="fas fa-arrow-left"></i> Back
                 </a>
             @endif
@@ -166,8 +166,8 @@
     }
 
     .card-header {
-        background-color: #2c3e50;
-        color: white;
+        background-color: white;
+        color: black;
         padding: 10px;
         font-weight: bold;
         text-align: center;

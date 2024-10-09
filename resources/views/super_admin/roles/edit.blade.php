@@ -1,16 +1,16 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="container">
+<div class="container p-2">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>
+        <h1 class="text-white">
             <i class="fas fa-user-tag"></i> Edit Role
         </h1>
-        <a href="{{ route('roles.index') }}" class="btn btn-secondary">
+        <a href="{{ route('roles.index') }}" class="btn btn-primary">
             <i class="fas fa-arrow-left"></i> Back
         </a>
     </div>
-
+<div class="bg-white p-4 rounded shadow-sm mb-4">
     <form action="{{ route('roles.update', $role) }}" method="POST">
         @csrf
         @method('PUT')
@@ -55,5 +55,7 @@
             <i class="fas fa-save"></i> Update Role
         </button>
     </form>
+
+</div>
 </div>
 @endsection

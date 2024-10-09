@@ -4,7 +4,7 @@
 <div class="container p-2">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="text-white"><i class="fas fa-plus-circle text-white"></i> Add Single Offer</h1>
-        <a href="{{ url()->previous() }}" class="btn btn-secondary">
+        <a href="{{ url()->previous() }}" class="btn btn-primary">
             <i class="fas fa-arrow-left"></i> Back
         </a>
     </div>
@@ -316,7 +316,7 @@
 </div>
 
             <!-- Submit Button -->
-            <button type="submit" class="btn btn-success">Add Offer</button>
+            <button type="submit" class="btn btn-primary">Add Offer</button>
         </form>
     </div>
 </div>
@@ -332,34 +332,27 @@
         });
     });
 
-    // Function to update the end date to one month after the start date
-    function updateEndDate() {
-        const startDate = document.getElementById('offer_start').value;
-        const endDateInput = document.getElementById('offer_end');
+    // Function to toggle between checkboxes and disable the other checkbox when one is checked
+    function toggleCheckbox(checkboxId, otherCheckboxId, fieldsId) {
+        const checkbox = document.getElementById(checkboxId);
+        const otherCheckbox = document.getElementById(otherCheckboxId);
+        const fields = document.getElementById(fieldsId);
 
-        if (startDate) {
-            const start = new Date(startDate);
-            start.setMonth(start.getMonth() + 1); // Add one month
-            const year = start.getFullYear();
-            const month = String(start.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
-            const day = String(start.getDate()).padStart(2, '0');
-            endDateInput.value = `${year}-${month}-${day}`; // Set the end date value
-        } else {
-            endDateInput.value = ''; // Clear end date if start date is empty
-        }
+        // Toggle the fields for the selected checkbox
+        fields.style.display = checkbox.checked ? 'block' : 'none';
+
+        // If the current checkbox is checked, disable the other checkbox
+        otherCheckbox.disabled = checkbox.checked;
     }
 
-    // Toggle 'Add An Exclusive Offer' Fields
+    // Add event listeners for both checkboxes
     document.getElementById('addExclusiveOfferCheckbox').addEventListener('change', function () {
-        var addExclusiveFields = document.getElementById('addExclusiveOfferFields');
-        addExclusiveFields.style.display = this.checked ? 'block' : 'none';
+        toggleCheckbox('addExclusiveOfferCheckbox', 'makeExclusiveOfferCheckbox', 'addExclusiveOfferFields');
     });
 
-    // Toggle 'Make It an Exclusive Offer' Fields
-    function toggleExclusiveFields() {
-        const checkbox = document.getElementById('makeExclusiveOfferCheckbox');
-        const exclusiveFields = document.getElementById('makeExclusiveOfferFields');
-        exclusiveFields.style.display = checkbox.checked ? 'block' : 'none';
-    }
+    document.getElementById('makeExclusiveOfferCheckbox').addEventListener('change', function () {
+        toggleCheckbox('makeExclusiveOfferCheckbox', 'addExclusiveOfferCheckbox', 'makeExclusiveOfferFields');
+    });
 </script>
+
 @endsection

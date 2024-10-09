@@ -9,7 +9,7 @@
 
 <div class="container p-2">
     <div class="d-flex justify-content-between mb-4">
-        <h3>Product Variations</h3>
+        <h3 class="text-white">Product Variations</h3>
     </div>
 
     <div class="card">
@@ -87,8 +87,8 @@
     }
 
     .card-header {
-        background-color: #2c3e50;
-        color: white;
+        background-color: white;
+        color: black;
         padding: 10px;
         font-weight: bold;
         text-align: center;

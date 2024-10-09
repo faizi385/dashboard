@@ -1,12 +1,12 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="container">
+<div class="container p-2">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>
+        <h1 class="text-white">
             <i class="fas fa-user-tag"></i> Create Role
         </h1>
-        <a href="{{ route('roles.index') }}" class="btn btn-secondary">
+        <a href="{{ route('roles.index') }}" class="btn btn-primary">
             <i class="fas fa-arrow-left"></i> Back
         </a>
     </div>

@@ -24,8 +24,8 @@ class CarveoutObserver
             'description' => json_encode([
                 'new' => [
                     'province' => $carveout->province,
-                    'retailer_dba' => $retailerDba,
-                    'lp_dba' => $lpDba,
+                    'Retailer Dba' => $retailerDba,
+                    'LP Dba' => $lpDba,
                     'location' => $carveout->location,
                     'sku' => $carveout->sku,
                     'date' => Carbon::parse($carveout->date)->format('Y-m-d H:i:s'),
@@ -51,11 +51,11 @@ class CarveoutObserver
         foreach ($oldValues as $key => $oldValue) {
             if (array_key_exists($key, $newValues) && $oldValue !== $newValues[$key]) {
                 if ($key === 'retailer_id') {
-                    $description['old']['retailer_dba'] = Retailer::find($oldValue)->dba ?? 'N/A';
-                    $description['new']['retailer_dba'] = Retailer::find($newValues[$key])->dba ?? 'N/A';
+                    $description['old']['Retailer Dba'] = Retailer::find($oldValue)->dba ?? 'N/A';
+                    $description['new']['Retailer Dba'] = Retailer::find($newValues[$key])->dba ?? 'N/A';
                 } elseif ($key === 'lp_id') {
-                    $description['old']['lp_dba'] = Lp::find($oldValue)->dba ?? 'N/A';
-                    $description['new']['lp_dba'] = Lp::find($newValues[$key])->dba ?? 'N/A';
+                    $description['old']['LP Dba'] = Lp::find($oldValue)->dba ?? 'N/A';
+                    $description['new']['LP Dba'] = Lp::find($newValues[$key])->dba ?? 'N/A';
                 } else {
                     $description['old'][$key] = $oldValue;
                     $description['new'][$key] = $newValues[$key];
@@ -85,8 +85,8 @@ class CarveoutObserver
             'description' => json_encode([
                 'old' => [
                     'province' => $carveout->province,
-                    'retailer_dba' => $retailerDba,
-                    'lp_dba' => $lpDba,
+                    'Retailer Dba' => $retailerDba,
+                    'LP Dba' => $lpDba,
                     'location' => $carveout->location,
                     'sku' => $carveout->sku,
                     'date' => Carbon::parse($carveout->date)->format('Y-m-d H:i:s'),

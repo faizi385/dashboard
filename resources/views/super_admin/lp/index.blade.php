@@ -96,7 +96,7 @@
 
                     <!-- Single Offer Add Option -->
                     <div>
-                        <a href="{{ route('offers.create') }}" class="btn btn-secondary">
+                        <a href="{{ route('offers.create') }}" class="btn btn-primary">
                             <i class="fas fa-plus-circle"></i> Add Single Offer
                         </a>
                     </div>

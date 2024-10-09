@@ -334,18 +334,10 @@ table.dataTable tbody td, table.dataTable thead th {
 }
 .table.dataTable tbody tr:nth-child(odd){
     background-color:#e5ddd8; 
+    
    }
 
-   .dataTables_wrapper .dataTables_length select{
- 
-   }
-
-   .table thead th {
-    font-family: Tahoma, sans-serif;/*  font */
-font-weight: 700 !important; /* Bold weight for headers */
-line-height: 24px !important;
-text-align: left !important;
-}
+   
 
 
 .icon-action {
@@ -365,10 +357,7 @@ text-align: left !important;
 .icon-action i {
     vertical-align: middle; /* Ensures the icons are vertically aligned */
 }
-h2, h3, h4, h5, h6, p, th, td {
-    font-family: Tahoma, sans-serif;
-  
-}
+
 
 .btn-primary {
     background-color:  #B8AC92;
@@ -377,4 +366,8 @@ h2, h3, h4, h5, h6, p, th, td {
     font-size: 16px !important;
     font-weight: 400 !important;
 
+}
+.btn-primary:hover {
+    background-color: black; /* Change background color on hover */
+    border-color: black; /* Change border color on hover */
 }

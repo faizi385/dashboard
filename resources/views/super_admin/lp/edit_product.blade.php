@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container">
-    <h3>Edit Product</h3>
+    <h3 class="text-white">Edit Product</h3>
     <form action="{{ route('products.update', $product->id) }}" method="POST">
         @csrf
         @method('PUT') <!-- Use PUT for update requests -->

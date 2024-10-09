@@ -3,8 +3,8 @@
 @section('content')
 <div class="container p-3">
     <div class="d-flex justify-content-between mb-4">
-        <h3>Add Location</h3>
-        <a href="{{ route('retailer.show', $retailer->id) }}" class="btn btn-secondary">Back to Details</a>
+        <h3 class="text-white">Add Location</h3>
+        <a href="{{ route('retailer.show', $retailer->id) }}" class="btn btn-primary"> <i class="fas fa-arrow-left"></i> Back</a>
     </div>
 
     <!-- Updated form for creating a new address -->
@@ -81,7 +81,7 @@
         </div>
 
         <button type="button" id="add-address" class="btn btn-primary mt-3"><i class="fas fa-plus"></i> Add Another Address</button>
-        <button type="submit" class="btn btn-success mt-3"><i class="fas fa-save"></i> Save Locations</button>
+        <button type="submit" class="btn btn-primary mt-3"><i class="fas fa-save"></i> Save Locations</button>
     </form>
 
     <script>

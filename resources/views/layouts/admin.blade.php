@@ -247,7 +247,7 @@
                         @endif
         
                         <!-- Products Tab (Visible only to LPs) -->
-                        @if(auth()->user()->hasRole('LP'))
+                        @if(auth()->user()->hasRole('Super Admin') || auth()->user()->hasRole('LP'))
                         <li class="nav-item">
                             <a href="{{ route('lp.products') }}" class="nav-link {{ Route::currentRouteName() == 'lp.products' ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-box"></i>

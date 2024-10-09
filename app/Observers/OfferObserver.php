@@ -2,7 +2,7 @@
 namespace App\Observers;
 
 use App\Models\Offer;
-use App\Models\OfferLog; 
+use App\Models\OfferLog;
 use Illuminate\Support\Facades\Auth;
 
 class OfferObserver
@@ -30,6 +30,29 @@ class OfferObserver
         // Fetch the LP DBA if available
         $lpDba = $offer->lp ? $offer->lp->dba : 'N/A';
 
+        // Map database field names to readable labels
+        $fieldsMap = [
+            'product_name' => 'Product Name',
+            'provincial_sku' => 'Provincial SKU',
+            'gtin' => 'GTIN',
+            'province' => 'Province',
+            'general_data_fee' => 'General Data Fee',
+            'exclusive_data_fee' => 'Exclusive Data Fee',
+            'unit_cost' => 'Unit Cost',
+            'category' => 'Category',
+            'brand' => 'Brand',
+            'case_quantity' => 'Case Quantity',
+            'offer_start' => 'Offer Start',
+            'offer_end' => 'Offer End',
+            'product_size' => 'Product Size',
+            'thc_range' => 'THC Range',
+            'cbd_range' => 'CBD Range',
+            'lp_dba' => 'LP DBA',
+            'offer_date' => 'Offer Date',
+            'product_link' => 'Product Link',
+            'comment' => 'Comment',
+        ];
+
         if ($action === 'updated') {
             // Get the old values before the update
             $oldValues = $offer->getOriginal();
@@ -43,57 +66,18 @@ class OfferObserver
 
             foreach ($oldValues as $key => $value) {
                 if (isset($newValues[$key]) && $value !== $newValues[$key]) {
-                    // Store only the fields that changed
-                    $description['old'][$key] = $value;
-                    $description['new'][$key] = $newValues[$key];
+                    // Map the field names to their labels
+                    $label = $fieldsMap[$key] ?? $key;
+                    $description['old'][$label] = $value;
+                    $description['new'][$label] = $newValues[$key];
                 }
             }
         } elseif ($action === 'created') {
             // For created offers, just log the new values
-            $description['new'] = [
-                'product_name' => $offer->product_name,
-                'provincial_sku' => $offer->provincial_sku,
-                'gtin' => $offer->gtin,
-                'province' => $offer->province,
-                'general_data_fee' => $offer->general_data_fee,
-                'exclusive_data_fee' => $offer->exclusive_data_fee,
-                'unit_cost' => $offer->unit_cost,
-                'category' => $offer->category,
-                'brand' => $offer->brand,
-                'case_quantity' => $offer->case_quantity,
-                'offer_start' => $offer->offer_start,
-                'offer_end' => $offer->offer_end,
-                'product_size' => $offer->product_size,
-                'thc_range' => $offer->thc_range,
-                'cbd_range' => $offer->cbd_range,
-                'lp_dba' => $lpDba, // Use lp_dba instead of lp_id
-                'offer_date' => $offer->offer_date,
-                'product_link' => $offer->product_link,
-                'comment' => $offer->comment,
-            ];
+            $description['new'] = $this->mapFields($offer, $fieldsMap);
         } elseif ($action === 'deleted') {
             // Log the old values when an offer is deleted
-            $description['old'] = [
-                'product_name' => $offer->product_name,
-                'provincial_sku' => $offer->provincial_sku,
-                'gtin' => $offer->gtin,
-                'province' => $offer->province,
-                'general_data_fee' => $offer->general_data_fee,
-                'exclusive_data_fee' => $offer->exclusive_data_fee,
-                'unit_cost' => $offer->unit_cost,
-                'category' => $offer->category,
-                'brand' => $offer->brand,
-                'case_quantity' => $offer->case_quantity,
-                'offer_start' => $offer->offer_start,
-                'offer_end' => $offer->offer_end,
-                'product_size' => $offer->product_size,
-                'thc_range' => $offer->thc_range,
-                'cbd_range' => $offer->cbd_range,
-                'lp_dba' => $lpDba, // Use lp_dba instead of lp_id
-                'offer_date' => $offer->offer_date,
-                'product_link' => $offer->product_link,
-                'comment' => $offer->comment,
-            ];
+            $description['old'] = $this->mapFields($offer, $fieldsMap);
         }
 
         // Create the log entry
@@ -103,5 +87,31 @@ class OfferObserver
             'action' => $action,
             'description' => json_encode($description), // Store details as JSON
         ]);
+    }
+
+    protected function mapFields(Offer $offer, array $fieldsMap)
+    {
+        // Map the offer fields to human-readable labels
+        return [
+            'Product Name' => $offer->product_name,
+            'Provincial SKU' => $offer->provincial_sku,
+            'GTIN' => $offer->gtin,
+            'Province' => $offer->province,
+            'General Data Fee' => $offer->general_data_fee,
+            'Exclusive Data Fee' => $offer->exclusive_data_fee,
+            'Unit Cost' => $offer->unit_cost,
+            'Category' => $offer->category,
+            'Brand' => $offer->brand,
+            'Case Quantity' => $offer->case_quantity,
+            'Offer Start' => $offer->offer_start,
+            'Offer End' => $offer->offer_end,
+            'Product Size' => $offer->product_size,
+            'THC Range' => $offer->thc_range,
+            'CBD Range' => $offer->cbd_range,
+            'LP DBA' => $offer->lp ? $offer->lp->dba : 'N/A',
+            'Offer Date' => $offer->offer_date,
+            'Product Link' => $offer->product_link,
+            'Comment' => $offer->comment,
+        ];
     }
 }

@@ -65,7 +65,7 @@
     .btn-primary {
         background-color:  #B8AC92;
         border-color: #B8AC92;
-        font-family: 'Ivy Mode'!important;
+        font-family: 'T'!important;
         font-size: 16px !important;
         font-weight: 400 !important;
         line-height: 24px !important;
@@ -73,13 +73,7 @@
     }
 
     /* Apply custom typography styles to all text elements in the content area */
-    h2, h3, h4, h5, h6, p, th, td {
-        font-family: Tahoma, sans-serif;
-        font-size: 16px !important;
-        font-weight: 400 !important;
-        line-height: 24px !important;
-        text-align: left !important;
-    }
+ 
 
     /* Optional: Apply to table header and data */
     /* table thead th, table tbody td {

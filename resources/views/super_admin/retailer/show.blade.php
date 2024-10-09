@@ -3,9 +3,9 @@
 @section('content')
 <div class="container">
     <div class="d-flex justify-content-between mb-4">
-        <h3>Retailer Details</h3>
+        <h3 class="text-white">Retailer Details</h3>
         <div>
-            <a href="{{ route('retailer.index') }}" class="btn btn-secondary">Back to List</a>
+            <a href="{{ route('retailer.index') }}" class="btn btn-primary">  <i class="fas fa-arrow-left"></i> Back </a>
             <a href="{{ route('retailer.address.create', $retailer->id) }}" class="btn btn-primary">Add Location</a>
         </div>
     </div>
