@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -32,6 +32,7 @@
         .content {
             padding: 30px;
             font-size: 16px;
+            text-align: center; /* Center the button */
         }
         .btn-complete {
             display: inline-block;
@@ -43,7 +44,6 @@
             border-radius: 5px;
             text-decoration: none;
             margin-top: 20px;
-            text-align: center;
         }
         .btn-complete:hover {
             background-color: #218838;

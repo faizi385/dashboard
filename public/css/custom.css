@@ -360,14 +360,27 @@ table.dataTable tbody td, table.dataTable thead th {
 
 
 .btn-primary {
-    background-color:  #B8AC92;
+    background-color: #B8AC92;
     border-color: #B8AC92;
-    font-family: 'Tahoma, sans-serif'!important;
+    font-family: 'Tahoma, sans-serif' !important;
     font-size: 16px !important;
     font-weight: 400 !important;
-
+    outline: none; /* Remove default outline */
 }
+
 .btn-primary:hover {
     background-color: black; /* Change background color on hover */
     border-color: black; /* Change border color on hover */
+}
+
+.btn-primary:focus {
+    background-color: #B8AC92; /* Keep the same color as default */
+    border-color: #B8AC92; /* Keep the same border color */
+    box-shadow: none; /* Remove the default focus shadow */
+}
+
+.btn-primary:active {
+    background-color: #B8AC92; /* Match the default background color */
+    border-color: #B8AC92; /* Match the default border color */
+    box-shadow: none; /* Remove box shadow when button is pressed */
 }

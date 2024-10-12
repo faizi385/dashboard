@@ -7,6 +7,10 @@
         <div>
             <a href="{{ route('retailer.index') }}" class="btn btn-primary">  <i class="fas fa-arrow-left"></i> Back </a>
             <a href="{{ route('retailer.address.create', $retailer->id) }}" class="btn btn-primary">Add Location</a>
+            <a href="{{ route('retailers.reports.create', $retailer->id) }}" class="btn btn-primary">
+                Add Report
+            </a>
+            
         </div>
     </div>
 
@@ -61,8 +65,8 @@
     }
 
     .card-header {
-        background-color: #2c3e50;
-        color: white;
+        background-color: white;
+        color: black;
         padding: 10px;
         font-weight: bold;
         text-align: center;

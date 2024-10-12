@@ -21,4 +21,9 @@ class RetailerAddress extends Model
     {
         return $this->belongsTo(Retailer::class);
     }
+
+    public function getFullAddressAttribute()
+    {
+        return "{$this->street_no} {$this->street_name}, {$this->city}, {$this->province}, {$this->location}";
+    }
 }

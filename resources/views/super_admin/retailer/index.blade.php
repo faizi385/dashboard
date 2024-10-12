@@ -62,43 +62,43 @@
 
 
 <script>
-    $(document).ready(function() {
-        $("#loader").fadeOut("slow");
-        $('#retailersTable').DataTable({
-            "initComplete": function() {
-                // Hide the loader once the table is initialized
-             
+  $(document).ready(function() {
+    $("#loader").fadeOut("slow");
+    $('#retailersTable').DataTable({
+        "initComplete": function() {
+            // Hide the loader once the table is initialized
+        }
+    });
+
+    // Initialize tooltips
+    $('[data-bs-toggle="tooltip"]').tooltip();
+
+    // Initialize delete confirmation with event delegation
+    $('#retailersTable').on('submit', '.delete-form', function(e) {
+        e.preventDefault();
+        
+        const form = this; // Reference to the form that triggered the event
+        
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, Delete It!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit(); // Submit the form if confirmed
             }
         });
-
-        // Initialize tooltips
-        $('[data-bs-toggle="tooltip"]').tooltip();
-
-        // Initialize delete confirmation
-        document.querySelectorAll('.delete-form').forEach(form => {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: "You won't be able to revert this!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Yes, Delete It!'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        form.submit(); // Submit the form if confirmed
-                    }
-                });
-            });
-        });
-
-        // Display Toastr messages if available
-        @if(session('success'))
-            toastr.success("{{ session('success') }}");
-        @endif
     });
+
+    // Display Toastr messages if available
+    @if(session('success'))
+        toastr.success("{{ session('success') }}");
+    @endif
+});
+
 </script>
 @endpush

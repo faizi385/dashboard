@@ -262,23 +262,36 @@
                         <!-- Carveouts Tab (Visible to Super Admin and LPs) -->
                         @if(auth()->user()->hasRole('Super Admin') || auth()->user()->hasRole('LP'))
                         <li class="nav-item">
-                            <a href="{{ route('carveouts.index', ['lp_id' => auth()->user()->hasRole('Super Admin') ? 0 : auth()->user()->id]) }}" class="nav-link {{ request()->is('carveouts*') ? 'active' : '' }}">
+                            <a href="{{ route('carveouts.index', ['lp_id' => auth()->user()->hasRole('Super Admin') ? 0 : auth()->user()->id, 'from' => 'sidebar']) }}" 
+                               class="nav-link {{ request()->has('from') && request('from') === 'sidebar' ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-cut"></i>
                                 <p>Carveouts</p>
                             </a>
                         </li>
+                        
                         @endif
         
                         <!-- Products Tab (Visible only to LPs) -->
                         @if(auth()->user()->hasRole('Super Admin') || auth()->user()->hasRole('LP'))
                         <li class="nav-item">
-                            <a href="{{ route('lp.products', ['lp_id' => auth()->user()->id]) }}" 
-                               class="nav-link {{ Route::currentRouteName() == 'lp.products' ? 'active' : '' }}">
+                            <a href="{{ route('lp.products', ['lp_id' => auth()->user()->id, 'from_sidebar' => true]) }}" 
+                               class="nav-link {{ request()->get('from_sidebar') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-box"></i>
                                 <p>Products</p>
                             </a>
                         </li>
                     @endif
+                    
+                    {{-- <li class="nav-item">
+                        <a class="nav-link" href="{{ route('retailers.reports.create') }}">
+                            <i class="fa fa-file-upload"></i>
+                            <span>Upload Report</span>
+                        </a>
+                    </li> --}}
+                    
+                    
+                    
+                    
                     
                     </ul>
                 </nav>

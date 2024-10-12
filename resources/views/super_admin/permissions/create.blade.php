@@ -17,9 +17,9 @@
 
             <div class="mb-3 col-md-6">
                 <label for="name" class="form-label">
-                    <i class="fas fa-lock"></i> Permission Name
+                    <i class="fas fa-lock"></i> Permission Name <span class="text-danger">*</span>
                 </label>
-                <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" placeholder="Enter permission name" value="{{ old('name') }}" required>
+                <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" placeholder="Enter permission name" value="{{ old('name') }}" oninput="removeValidation(this)">
                 @error('name')
                     <div class="invalid-feedback">
                         {{ $message }}
@@ -29,9 +29,9 @@
 
             <div class="mb-3 col-md-6">
                 <label for="description" class="form-label">
-                    <i class="fas fa-info-circle"></i> Description
-                </label>
-                <input type="text" name="description" id="description" class="form-control @error('description') is-invalid @enderror" placeholder="Enter permission description" value="{{ old('description') }}" required>
+                    <i class="fas fa-info-circle"></i> Description <span class="text-danger">*</span>
+                </label> 
+                <input type="text" name="description" id="description" class="form-control @error('description') is-invalid @enderror" placeholder="Enter permission description" value="{{ old('description') }}" oninput="removeValidation(this)">
                 @error('description')
                     <div class="invalid-feedback">
                         {{ $message }}
@@ -47,19 +47,28 @@
 </div>
 @endsection
 
-@section('scripts')
-    <!-- Toastr CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
-    <!-- Toastr JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+@push('scripts')
+<!-- Toastr CSS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+<!-- Toastr JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
-    <script>
-        @if(session()->has('success'))
-            toastr.success("{{ session('success') }}");
-        @endif
+<script>
+    @if(session()->has('success'))
+        toastr.success("{{ session('success') }}");
+    @endif
 
-        @if(session()->has('error'))
-            toastr.error("{{ session('error') }}");
-        @endif
-    </script>
-@endsection
+    @if(session()->has('error'))
+        toastr.error("{{ session('error') }}");
+    @endif
+
+    // JavaScript function to remove validation error messages dynamically
+    function removeValidation(element) {
+        element.classList.remove('is-invalid');
+        let errorFeedback = element.nextElementSibling;
+        if (errorFeedback && errorFeedback.classList.contains('invalid-feedback')) {
+            errorFeedback.style.display = 'none';
+        }
+    }
+</script>
+@endpush

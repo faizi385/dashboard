@@ -10,13 +10,17 @@
 <div class="container p-2">
     <div class="d-flex justify-content-between mb-4">
         <h3 class="text-white">Offers List</h3>
-        <div>
+        <button class="btn btn-primary " data-bs-toggle="modal" data-bs-target="#addOfferModal">
+            Add Offer
+        </button>
+        {{-- <div>
             @if(isset($lp)) <!-- Check if $lp is set -->
                 <a href="{{ url()->previous() }}" class="btn btn-primary">
                     <i class="fas fa-arrow-left"></i> Back
                 </a>
             @endif
-        </div>
+        </div> --}}
+
     </div>
 
     <div class="card">
@@ -64,12 +68,19 @@
                         <td>{{ $offer->data_fee }}</td>
                         <td>{{ $offer->unit_cost }}</td>
                         <td>
-                            @if($offer->retailer_id) <!-- Check if retailer_id exists -->
+                            @if($offer->retailer) <!-- Check if retailer relationship exists -->
                                 {{ $offer->retailer->first_name . ' ' . $offer->retailer->last_name }} <!-- Concatenate first and last name -->
                             @else
                                 ALL
                             @endif
                         </td>
+                        {{-- <td>
+                            @if($offer->retailer_id) <!-- Check if retailer_id exists -->
+                                {{ $offer->retailer->first_name . ' ' . $offer->retailer->last_name }} <!-- Concatenate first and last name -->
+                            @else
+                                ALL
+                            @endif
+                        </td> --}}
                         
                         <td class="text-center">
                             <!-- Edit Offer Icon -->
@@ -99,6 +110,46 @@
     </div>
 </div>
 
+<!-- Add Offer Modal -->
+<div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Offers to {{ $lp->name ?? null }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex justify-content-between">
+                    <!-- Bulk Offer Upload Option -->
+                    <div>
+                        <form action="{{ route('offers.import') }}" method="POST" enctype="multipart/form-data">
+                            @csrf
+                            <!-- Hidden LP ID -->
+                            <input type="hidden" name="lp_id" value="{{ $lp->id ?? null}}">
+                            <!-- Display LP Name -->
+                            <p><strong>LP:</strong> {{ $lp->name ?? null }} ({{ $lp->dba ?? null }})</p>
+
+                            <div class="mb-3">
+                                <label for="offerExcel" class="form-label">Upload Bulk Offers (Excel)</label>
+                                <input type="file" class="form-control" id="offerExcel" name="offerExcel" accept=".xlsx, .xls, .csv" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-upload"></i> Upload Excel
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Single Offer Add Option -->
+                    <div>
+                        <a href="{{ route('offers.create', ['lp_id' => $lp->id ?? null]) }}" class="btn btn-primary">
+                            <i class="fas fa-plus-circle"></i> Add Single Offer
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <!-- Include DataTables and SweetAlert -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

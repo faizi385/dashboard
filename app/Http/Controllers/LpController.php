@@ -48,7 +48,13 @@ class LpController extends Controller
         $validatedData = $request->validate([
             'name' => ['required', 'string', 'max:255', 'regex:/^[^\d]+$/'], // Disallow numeric characters
             'dba' => 'required|string|max:255',
-            'primary_contact_email' => 'required|string|email|max:255|unique:users,email',
+           'primary_contact_email' =>   [
+            'required',
+            'email',
+            'unique:users,email',
+            'regex:/^[\w\.-]+@[\w\.-]+\.\w{2,4}$/'  // Example regex for standard email formats
+        ],
+         
             'primary_contact_phone' => 'required|string|max:20',
             'primary_contact_position' => ['required', 'string', 'max:255', 'regex:/^[^\d]+$/'], // Disallow numeric characters
             'password' => 'nullable|string|min:8',

@@ -28,7 +28,6 @@ class RoleController extends Controller
         return view('super_admin.roles.index', compact('roles'));
     }
     
-
     public function create()
     {
         $permissions = Permission::all();
@@ -82,7 +81,13 @@ class RoleController extends Controller
     public function update(Request $request, Role $role)
     {
         $request->validate([
-            'name' => 'required|unique:roles,name,' . $role->id . ',id,created_by,' . auth()->id(),
+            'name' => [
+                'required', 
+                'string', 
+                'max:255', 
+                'regex:/^[a-zA-Z\s]+$/', // Ensure no numeric values
+                'unique:roles,name,' . $role->id . ',id,created_by,' . auth()->id(),
+            ],
             'permissions' => 'array', 
         ]);
 

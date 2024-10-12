@@ -8,6 +8,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\LpLogController;
 use App\Http\Controllers\OfferController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CarveoutController;
@@ -175,6 +176,11 @@ Route::get('/products/{id}/edit', [ProductController::class, 'edit'])->name('pro
 Route::delete('/products/{id}', [ProductController::class, 'destroy'])->name('products.destroy');
 Route::put('/products/{id}', [ProductController::class, 'update'])->name('products.update');
 Route::get('/products/variations/{lp_id}/{gtin}', [ProductController::class, 'showVariations'])->name('products.variations');
+
+
+Route::get('/retailers/{retailer}/reports/create', [ReportController::class, 'create'])->name('retailers.reports.create');
+Route::post('/retailers/{retailer}/reports', [ReportController::class, 'store'])->name('retailers.reports.store');
+Route::post('retailers/{retailer}/reports/import', [ReportController::class, 'import'])->name('retailers.reports.import');
 
 
 

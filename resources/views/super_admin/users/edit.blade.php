@@ -22,7 +22,7 @@
             <!-- First Name Field -->
             <div class="col-md-6 mb-3">
                 <label for="first_name" class="form-label">
-                    <i class="fas fa-user"></i> First Name
+                    <i class="fas fa-user"></i> First Name <span class="text-danger">*</span>
                 </label>
                 <input type="text" name="first_name" id="first_name" class="form-control @error('first_name') is-invalid @enderror" placeholder="Enter First Name" value="{{ old('first_name', $user->first_name ?? '') }}" >
                 @error('first_name')
@@ -35,7 +35,7 @@
             <!-- Last Name Field -->
             <div class="col-md-6 mb-3">
                 <label for="last_name" class="form-label">
-                    <i class="fas fa-user"></i> Last Name
+                    <i class="fas fa-user"></i> Last Name <span class="text-danger">*</span>
                 </label>
                 <input type="text" name="last_name" id="last_name" class="form-control @error('last_name') is-invalid @enderror" placeholder="Enter Last Name" value="{{ old('last_name', $user->last_name ?? '') }}" >
                 @error('last_name')
@@ -50,7 +50,7 @@
             <!-- Email Field -->
             <div class="col-md-6 mb-3">
                 <label for="email" class="form-label">
-                    <i class="fas fa-envelope"></i> Email
+                    <i class="fas fa-envelope"></i> Email <span class="text-danger">*</span>
                 </label>
                 <input type="email" name="email" id="email" class="form-control @error('email') is-invalid @enderror" placeholder="Enter Email Address" value="{{ old('email', $user->email ?? '') }}" >
                 @error('email')
@@ -63,7 +63,7 @@
             <!-- Phone Number Field -->
             <div class="col-md-6 mb-3">
                 <label for="phone" class="form-label">
-                    <i class="fas fa-phone"></i> Phone Number
+                    <i class="fas fa-phone"></i> Phone Number <span class="text-danger">*</span>
                 </label>
                 <input type="text" name="phone" id="phone" class="form-control @error('phone') is-invalid @enderror" placeholder="Enter Phone Number" value="{{ old('phone', $user->phone ?? '') }}">
                 @error('phone')
@@ -78,7 +78,7 @@
             <!-- Password Field -->
             <div class="col-md-6 mb-3">
                 <label for="password" class="form-label">
-                    <i class="fas fa-lock"></i> Password
+                    <i class="fas fa-lock"></i> Password <span class="text-danger">*</span>
                 </label>
                 <input type="password" name="password" id="password" class="form-control @error('password') is-invalid @enderror" placeholder="Enter Password" {{ !isset($user) ? '' : '' }}>
                 @error('password')
@@ -91,7 +91,7 @@
             <!-- Password Confirmation Field -->
             <div class="col-md-6 mb-3">
                 <label for="password_confirmation" class="form-label">
-                    <i class="fas fa-lock"></i> Confirm Password
+                    <i class="fas fa-lock"></i> Confirm Password <span class="text-danger">*</span>
                 </label>
                 <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" placeholder="Confirm Password" {{ !isset($user) ? '' : '' }}>
             </div>
@@ -115,7 +115,7 @@
             <!-- Roles Field -->
             <div class="col-md-6 mb-3">
                 <label for="roles" class="form-label">
-                    <i class="fas fa-user-tag"></i> Roles
+                    <i class="fas fa-user-tag"></i> Roles <span class="text-danger">*</span>
                 </label>
                 <select name="roles[]" id="roles" class="form-select @error('roles') is-invalid @enderror" >
                     @foreach($roles as $role)

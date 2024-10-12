@@ -117,7 +117,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="location" class="form-label">Location</label>
+                        <label for="location" class="form-label">Location <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="location" name="location" required>
                     </div>
 

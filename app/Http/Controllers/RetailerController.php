@@ -21,8 +21,15 @@ class RetailerController extends Controller
 
     public function dashboard()
     {
-        return view('retailer.dashboard');
+        $retailer = auth()->user()->retailer; // Fetch the retailer linked to the logged-in user
+    
+        if (!$retailer) {
+            return redirect()->route('home')->with('error', 'No associated retailer found.');
+        }
+    
+        return view('super_admin.retailer.dashboard', compact('retailer'));
     }
+    
 
     public function create()
     {
@@ -30,32 +37,53 @@ class RetailerController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $validatedData = $request->validate([
-            'first_name' => [
-                'required',
-                'string',
-                'max:255',
-                'regex:/^[a-zA-Z\s]+$/',  // Only allow letters and spaces
-            ],
-            'last_name' => [
-                'required',
-                'string',
-                'max:255',
-                'regex:/^[a-zA-Z\s]+$/',  // Only allow letters and spaces
-            ],
-            'email' => 'required|email|unique:retailers,email',
-            'phone' => 'required|string|max:20',
-        ]);
+{
+    // Validate the request
+    $validatedData = $request->validate([
+        'first_name' => [
+            'required',
+            'string',
+            'max:255',
+            'regex:/^[a-zA-Z\s]+$/',  // Only allow letters and spaces
+        ],
+        'last_name' => [
+            'required',
+            'string',
+            'max:255',
+            'regex:/^[a-zA-Z\s]+$/',  // Only allow letters and spaces
+        ],
+        'email' => [
+            'required',
+            'email',
+            'unique:retailers,email',
+            'regex:/^[\w\.-]+@[\w\.-]+\.\w{2,4}$/'  // Example regex for standard email formats
+        ],
+        'phone' => [
+            'required',
+            'string',
+            'max:20',
+            'regex:/^\+?\d{1,3}\s*\(?\d{3}?\)?\s*\d{3}[-\s]?\d{4}$/'  // Accepts formats like +1 (425) 274-9782
+        ],
+    ]);
+
+    // Add user_id to the validated data
+    $validatedData['user_id'] = auth()->id();  // Add the authenticated user's ID
+
+    // Create the retailer
+    $retailer = Retailer::create($validatedData);
+
+    // Generate a token and the link
+    $token = base64_encode($retailer->id);
+    $link = route('retailer.fillForm', ['token' => $token]);
+
+    // Send an email with the link
+    Mail::to($validatedData['email'])->send(new RetailerFormMail($link));
+
+    // Redirect back with a success message
+    return redirect()->route('retailer.create')->with('success', 'Retailer created and email sent!');
+}
+
     
-        $retailer = Retailer::create($validatedData);
-        $token = base64_encode($retailer->id);
-        $link = route('retailer.fillForm', ['token' => $token]);
-    
-        Mail::to($validatedData['email'])->send(new RetailerFormMail($link));
-    
-        return redirect()->route('retailer.create')->with('success', 'Retailer created and email sent!');
-    }
     
     public function showForm($token)
     {
@@ -212,9 +240,9 @@ class RetailerController extends Controller
 
         return redirect()->route('retailer.show', $id)->with('success', 'Address updated successfully.');
     }
-
     public function storeAddress(Request $request, $id)
     {
+        // Validate the request with custom error messages
         $request->validate([
             'addresses.*.street_no' => 'required|string|max:50',
             'addresses.*.street_name' => 'required|string|max:255',
@@ -223,16 +251,28 @@ class RetailerController extends Controller
             'addresses.*.location' => 'required|string|max:255',
             'addresses.*.contact_person_name' => 'nullable|string|max:255',
             'addresses.*.contact_person_phone' => 'nullable|string|max:20',
+        ], [
+            'addresses.*.street_no.required' => 'Street No is required.',
+            'addresses.*.street_name.required' => 'Street Name is required.',
+            'addresses.*.province.required' => 'Province is required.',
+            'addresses.*.city.required' => 'City is required.',
+            'addresses.*.location.required' => 'Location is required.',
+            'addresses.*.contact_person_name.max' => 'Contact Person Name cannot exceed 255 characters.',
+            'addresses.*.contact_person_phone.max' => 'Contact Person Phone cannot exceed 20 characters.',
         ]);
     
+        // Find the retailer or fail
         $retailer = Retailer::findOrFail($id);
     
+        // Loop through the addresses and create them
         foreach ($request->addresses as $addressData) {
             $retailer->address()->create($addressData);
         }
     
+        // Redirect back with a success message
         return redirect()->route('retailer.show', $id)->with('success', 'Addresses added successfully.');
     }
+    
     
 
 }

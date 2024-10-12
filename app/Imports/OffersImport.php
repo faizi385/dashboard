@@ -26,6 +26,8 @@ class OffersImport implements ToModel, WithHeadingRow
      */
     public function model(array $row)
     {
+
+    dd($row);
         // Handle both 'GTIN (unit)' and 'gtin' headers
         $gtin = (int)($row['gtin_unit'] ?? $row['gtin'] ?? null);
 
@@ -49,7 +51,7 @@ class OffersImport implements ToModel, WithHeadingRow
         $caseQuantity = $caseQuantity ?? 1;
 
         // Handle 'Product Size' header
-        $productSize = $row['Product Size (g)'] ?? $row['product_size'] ?? null;
+        $productSize = $row['Product Size (g)'] ?? $row['product_size_g'] ?? null;
 
         // Handle province and province_slug
         $provinceSlug = $row['province'] ?? null; // Get the province abbreviation from the row
@@ -70,6 +72,8 @@ class OffersImport implements ToModel, WithHeadingRow
             'product_size' => $productSize,
             'thc_range' => $row['thc_range'] ?? null,
             'cbd_range' => $row['cbd_range'] ?? null,
+            // 'offer_start'=> $row['offer_start'],
+            // 'offer_end'=> $row['offer_end'],
             'comment' => $row['comment'] ?? null,
             'product_link' => $row['product_link'] ?? null,
             'lp_id' => $this->lpId, // Use the lpId passed to the constructor

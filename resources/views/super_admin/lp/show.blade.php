@@ -17,13 +17,15 @@
              </a>
              
              
-            <button class="btn btn-primary " onclick="window.location.href='{{ route('carveouts.index', ['lp_id' => $lp->id]) }}'">
+             <button class="btn btn-primary" onclick="window.location.href='{{ route('carveouts.index', ['lp_id' => $lp->id]) }}'">
                 View Carveouts
             </button>
 
-            <a href="{{ route('lp.products.by.id', ['lp_id' => $lp->id]) }}" class="btn btn-primary ">
-                View Products
-            </a>
+
+           <button class="btn btn-primary" onclick="window.location.href='{{ route('lp.products', ['lp_id' => $lp->id]) }}'">
+    View Products
+</button>
+
         </div>
     </div>
 
@@ -119,8 +121,8 @@
     }
 
     .card-header {
-        background-color: #2c3e50;
-        color: white;
+        background-color: white;
+        color: black;
         padding: 10px;
         font-weight: bold;
         text-align: center;

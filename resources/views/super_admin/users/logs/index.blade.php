@@ -26,7 +26,7 @@
                 @endphp
                 <tr>
                     <td>{{ $log->actionUser ? ucfirst($log->actionUser->first_name) . ' ' . ucfirst($log->actionUser->last_name) : 'System' }}</td>
-                    <td>{{ $log->user ? ucfirst($log->user->first_name) . ' ' . ucfirst($log->user->last_name) : 'N/A' }}</td>
+                    <td>{{ $log->user ? ucfirst($log->user->first_name) . ' ' . ucfirst($log->user->last_name) : '-' }}</td>
                     <td>{{ $log->created_at->format('Y-m-d H:i:s') }}</td>
                     <td>{{ ucfirst($log->action) }}</td>
                     <td class="text-center">
