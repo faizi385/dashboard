@@ -16,7 +16,7 @@ class Retailer extends Model
         'corporate_name',
         'dba',
         'user_id',
-        // Address fields are not included here
+       'status',
     ];
     public function user()
     {

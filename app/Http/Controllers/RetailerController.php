@@ -37,52 +37,53 @@ class RetailerController extends Controller
     }
 
     public function store(Request $request)
-{
-    // Validate the request
-    $validatedData = $request->validate([
-        'first_name' => [
-            'required',
-            'string',
-            'max:255',
-            'regex:/^[a-zA-Z\s]+$/',  // Only allow letters and spaces
-        ],
-        'last_name' => [
-            'required',
-            'string',
-            'max:255',
-            'regex:/^[a-zA-Z\s]+$/',  // Only allow letters and spaces
-        ],
-        'email' => [
-            'required',
-            'email',
-            'unique:retailers,email',
-            'regex:/^[\w\.-]+@[\w\.-]+\.\w{2,4}$/'  // Example regex for standard email formats
-        ],
-        'phone' => [
-            'required',
-            'string',
-            'max:20',
-            'regex:/^\+?\d{1,3}\s*\(?\d{3}?\)?\s*\d{3}[-\s]?\d{4}$/'  // Accepts formats like +1 (425) 274-9782
-        ],
-    ]);
-
-    // Add user_id to the validated data
-    $validatedData['user_id'] = auth()->id();  // Add the authenticated user's ID
-
-    // Create the retailer
-    $retailer = Retailer::create($validatedData);
-
-    // Generate a token and the link
-    $token = base64_encode($retailer->id);
-    $link = route('retailer.fillForm', ['token' => $token]);
-
-    // Send an email with the link
-    Mail::to($validatedData['email'])->send(new RetailerFormMail($link));
-
-    // Redirect back with a success message
-    return redirect()->route('retailer.create')->with('success', 'Retailer created and email sent!');
-}
-
+    {
+        // Validate the request
+        $validatedData = $request->validate([
+            'first_name' => [
+                'required',
+                'string',
+                'max:255',
+                'regex:/^[a-zA-Z\s]+$/',  // Only allow letters and spaces
+            ],
+            'last_name' => [
+                'required',
+                'string',
+                'max:255',
+                'regex:/^[a-zA-Z\s]+$/',  // Only allow letters and spaces
+            ],
+            'email' => [
+                'required',
+                'email',
+                'unique:retailers,email',
+                'regex:/^[\w\.-]+@[\w\.-]+\.\w{2,4}$/'  // Example regex for standard email formats
+            ],
+            'phone' => [
+                'required',
+                'string',
+                'max:20',
+                'regex:/^\+?\d{1,3}\s*\(?\d{3}?\)?\s*\d{3}[-\s]?\d{4}$/'  // Accepts formats like +1 (425) 274-9782
+            ],
+        ]);
+    
+        // Add user_id and status to the validated data
+        $validatedData['user_id'] = auth()->id();  // Add the authenticated user's ID
+        $validatedData['status'] = 'requested'; // Set initial status
+    
+        // Create the retailer
+        $retailer = Retailer::create($validatedData);
+    
+        // Generate a token and the link
+        $token = base64_encode($retailer->id);
+        $link = route('retailer.fillForm', ['token' => $token]);
+    
+        // Send an email with the link
+        Mail::to($validatedData['email'])->send(new RetailerFormMail($link));
+    
+        // Redirect back with a success message
+        return redirect()->route('retailer.create')->with('success', 'Retailer created and email sent!');
+    }
+    
     
     
     public function showForm($token)
@@ -120,6 +121,7 @@ class RetailerController extends Controller
     $retailer->update([
         'corporate_name' => $validatedData['corporate_name'],
         'dba' => $validatedData['dba'],
+        'status' => 'approved', // Change status to 'approved'
     ]);
 
     // Create or update the User record for the retailer
@@ -182,7 +184,7 @@ class RetailerController extends Controller
 
         $retailer = Retailer::findOrFail($id);
         $retailer->update($request->only([
-            'first_name', 'last_name', 'corporate_name', 'dba', 'phone', 'email'
+            'first_name', 'last_name', 'corporate_name', 'dba', 'phone', 'email','status'
         ]));
 
         $retailer->address()->updateOrCreate(
