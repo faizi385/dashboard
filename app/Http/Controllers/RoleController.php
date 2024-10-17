@@ -38,7 +38,7 @@ class RoleController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'],
-            'permissions' => 'required|array|min:1', // Ensure at least one permission is selected
+            'permissions' => 'nullable|array|min:1', // Ensure at least one permission is selected
             'permissions.*' => 'exists:permissions,id', // Ensure each permission ID exists in the database
         ]);
     

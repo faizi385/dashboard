@@ -72,9 +72,9 @@
                 <button type="submit" class="btn btn-primary btn-sm">
                     <i class="fas fa-paper-plane"></i> Create Retailer
                 </button>
-                <button type="button" class="btn btn-primary btn-sm" id="clearFormButton">
+                {{-- <button type="button" class="btn btn-primary btn-sm" id="clearFormButton">
                     <i class="fas fa-eraser"></i> Clear
-                </button>
+                </button> --}}
             </div>
         </form>
     </div>

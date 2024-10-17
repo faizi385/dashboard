@@ -58,51 +58,7 @@
     </div>
 </div>
 
-@push('styles')
-<style>
-    /* Custom styles for action buttons */
-   
-    .btn-primary {
-        background-color:  #B8AC92;
-        border-color: #B8AC92;
-        font-family: 'T'!important;
-        font-size: 16px !important;
-        font-weight: 400 !important;
-        line-height: 24px !important;
-        text-align: left !important;
-    }
 
-    /* Apply custom typography styles to all text elements in the content area */
- 
-
-    /* Optional: Apply to table header and data */
-    /* table thead th, table tbody td {
-        font-family: 'Ivy Mode' !important;
-        font-size: 16px !important;
-        font-weight: 400 !important;
-        line-height: 24px !important;
-        text-align: left !important;
-    } */
-   
- 
-
-
-    #text {
-        font-family: 'Ivy Mode';
-        font-size: 38.44px;
-        font-weight: 600;
-        line-height: 48px;
-        text-align: left;
-    }
-
-    /* Center alignment for action buttons */
-    .text-center {
-        display: flex;
-        justify-content: center; /* Center the icons horizontally */
-        align-items: center; /* Center the icons vertically */
-    }
-</style>
-@endpush
 
 @push('scripts')
 <script>

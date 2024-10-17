@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Log;
 class GreenLineReportImport implements ToModel, WithHeadingRow
 {
     protected $location;
+    protected $errors = []; 
+    protected $hasCheckedHeaders = false; 
+    protected $requiredHeaders = ['sku', 'name', 'barcode', 'brand', 'compliance_category', 'opening', 'sold', 'purchased', 'closing', 'average_price', 'average_cost'];
 
     public function __construct($location)
     {
@@ -18,15 +21,23 @@ class GreenLineReportImport implements ToModel, WithHeadingRow
 
     public function model(array $row)
     {
-        // List of required headers
-        $requiredHeaders = ['sku', 'name', 'barcode', 'brand', 'compliance_category', 'opening', 'sold', 'purchased', 'closing', 'average_price', 'average_cost'];
+        // Check if required headers are missing only once
+        if (!$this->hasCheckedHeaders) {
+            $missingHeaders = array_diff($this->requiredHeaders, array_keys($row));
+            if (!empty($missingHeaders)) {
+                // Remove underscores from missing headers
+                $formattedHeaders = array_map(function ($header) {
+                    return str_replace('_', ' ', $header); // Replace underscores with spaces
+                }, $missingHeaders);
 
-        // Check if required headers are missing
-        $missingHeaders = array_diff($requiredHeaders, array_keys($row));
-        if (!empty($missingHeaders)) {
-            // Log an error or throw an exception
-            Log::error('Missing headers: ' . implode(', ', $missingHeaders));
-            return null; // Stop processing this row
+                // Log an error and store the message
+                Log::error('Missing headers: ' . implode(', ', $formattedHeaders));
+                $this->errors[] = 'Missing headers: ' . implode(', ', $formattedHeaders);
+                $this->hasCheckedHeaders = true; // Set the flag to prevent further checks
+
+                // Throw an exception to stop the import process
+                throw new \Exception('Import failed. ' . implode(', ', $this->errors));
+            }
         }
 
         // Fetch the report ID based on the location
@@ -49,10 +60,14 @@ class GreenLineReportImport implements ToModel, WithHeadingRow
         ]);
     }
 
-    // Helper function to convert string to decimal
+    public function getErrors()
+    {
+        return $this->errors; 
+    }
+
     private function convertToDecimal($value)
     {
-        // Remove dollar signs and convert to float
+        
         return floatval(str_replace('$', '', $value));
     }
 }

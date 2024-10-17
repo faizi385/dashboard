@@ -76,14 +76,14 @@
                 <div class="form-row">
                     <div class="col-md-6 mb-3">
                         <label for="data_fee" class="form-label">
-                            <i class="fas fa-percent"></i> Data Fee (%)
+                            <i class="fas fa-percent"></i> Data Fee 
                         </label>
                         <input type="number" class="form-control" id="data_fee" name="data_fee" value="{{ old('data_fee', $offer->data_fee) }}" required>
                     </div>
 
                     <div class="col-md-6 mb-3">
                         <label for="unit_cost" class="form-label">
-                            <i class="fas fa-dollar-sign"></i> Cost ($)
+                            <i class="fas fa-dollar-sign"></i> Cost 
                         </label>
                         <input type="number" class="form-control" id="unit_cost" name="unit_cost" value="{{ old('unit_cost', $offer->unit_cost) }}" required>
                     </div>

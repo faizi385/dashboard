@@ -173,9 +173,15 @@
                     <div class="row mb-3">
                         <div class="col-md-4 mb-3">
                             <label for="province_0" class="form-label"><i class="fas fa-globe"></i> Province</label>
-                            <input type="text" class="form-control" name="addresses[0][province]" id="province_0" required>
+                            <select class="form-control" name="addresses[0][province]" id="province_0" required>
+                                <option value="">Select a province</option>
+                                @foreach($provinces as $province)
+                                    <option value="{{ $province->id }}">{{ $province->name }}</option>
+                                @endforeach
+                            </select>
                             <div class="invalid-feedback">Please provide a valid province.</div>
                         </div>
+                        
             
                         <div class="col-md-4 mb-3">
                             <label for="city_0" class="form-label"><i class="fas fa-city"></i> City</label>
@@ -252,11 +258,17 @@
                     </div>
             
                     <div class="row mb-3">
-                        <div class="col-md-4 mb-3">
-                            <label for="province_${addressCount}" class="form-label"><i class="fas fa-globe"></i> Province</label>
-                            <input type="text" class="form-control" name="addresses[${addressCount}][province]" id="province_${addressCount}" required>
-                            <div class="invalid-feedback">Please provide a valid province.</div>
-                        </div>
+                      <div class="col-md-4 mb-3">
+    <label for="province_${addressCount}" class="form-label"><i class="fas fa-globe"></i> Province</label>
+    <select class="form-control" name="addresses[${addressCount}][province]" id="province_${addressCount}" required>
+        <option value="">Select a province</option>
+        @foreach($provinces as $province)
+            <option value="{{ $province->id }}">{{ $province->name }}</option>
+        @endforeach
+    </select>
+    <div class="invalid-feedback">Please provide a valid province.</div>
+</div>
+
             
                         <div class="col-md-4 mb-3">
                             <label for="city_${addressCount}" class="form-label"><i class="fas fa-city"></i> City</label>

@@ -51,64 +51,13 @@
 
 @push('styles')
 <style>
-    /* Custom styles for action buttons */
-    .btn {
-        transition: background-color 0.3s, transform 0.2s;
-    }
-
-    .btn-primary {
-        background-color:  #B8AC92;
-        border-color: #B8AC92;
-        font-family: 'Ivy Mode'!important;
-        font-size: 16px !important;
-        font-weight: 400 !important;
-        line-height: 24px !important;
-        text-align: left !important;
-    }
-    
-    /* Centered icons with equal size */
-   
-    /* Hover effects for icons */
-
-
-
-    /* h2, h3, h4, h5, h6, p, th, td {
-        font-family: 'Outfit' !important;
-        font-size: 16px !important;
-        font-weight: 400 !important;
-        line-height: 24px !important;
-        text-align: left !important;
-    }
-
- 
-    table thead th, table tbody td {
-        font-family: 'Outfit' !important;
-        font-size: 16px !important;
-        font-weight: 400 !important;
-        line-height: 24px !important;
-        text-align: left !important;
-    } */
-
-    /* Styling for DataTables pagination, search, etc. */
-    #text {
-        font-family: 'Outfit';
-        font-size: 38.44px;
-        font-weight: 600;
-        line-height: 48px;
-        text-align: left;
+     .table>:not(:last-child)>:last-child>* {
+        width: 10%;
     }
 </style>
 @endpush
 
 @push('scripts')
-<!-- jQuery -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<!-- DataTables JS -->
-<script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
-<!-- Toastr JS -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-<!-- Bootstrap Bundle JS (for tooltips) -->
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
 
 <script>
     $(document).ready(function() {

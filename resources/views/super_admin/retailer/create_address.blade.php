@@ -1,12 +1,10 @@
 @extends('layouts.admin')
-
 @section('content')
 <div class="container p-3">
     <div class="d-flex justify-content-between mb-4">
         <h3 class="text-white">Add Location</h3>
         <a href="{{ route('retailer.show', $retailer->id) }}" class="btn btn-primary"> <i class="fas fa-arrow-left"></i> Back</a>
     </div>
-
     <!-- Updated form for creating a new address -->
    <form action="{{ route('retailer.address.store', $retailer->id) }}" method="POST">
     @csrf
@@ -18,7 +16,6 @@
                     <i class="fas fa-trash-alt mr-2"></i> Remove
                 </button>
             </div>
-            
             <div class="card-body">
                 <!-- Form fields arranged with icons -->
                 <div class="form-row">
@@ -40,18 +37,17 @@
                 <div class="form-row">
                     <div class="col-md-6 form-group">
                         <label for="province"><i class="fas fa-map-marker-alt"></i> Province <span class="text-danger">*</span></label>
-                        <select class="form-control" name="addresses[0][province]">
+                        <select class="form-control" name="addresses[0][province]" required>
                             <option value="" disabled selected>Select a province</option>
-                            <option value="Alberta">Alberta</option>
-                            <option value="British Columbia">British Columbia</option>
-                            <option value="Ontario">Ontario</option>
-                            <option value="Manitoba">Manitoba</option>
-                            <option value="Saskatchewan">Saskatchewan</option>
+                            @foreach($provinces as $province)
+                                <option value="{{ $province->id }}">{{ $province->name }}</option>
+                            @endforeach
                         </select>
                         @error('addresses.0.province')
                             <div class="text-danger">{{ $message }}</div>
                         @enderror
                     </div>
+                    
                     <div class="col-md-6 form-group">
                         <label for="city-dropdown"><i class="fas fa-city"></i> City <span class="text-danger">*</span></label>
                         <select class="form-control city-dropdown" name="addresses[0][city]">
@@ -103,15 +99,11 @@
             </div>
         </div>
     </div>
-
     <button type="button" id="add-address" class="btn btn-primary mt-3"><i class="fas fa-plus"></i> Add Another Address</button>
     <button type="submit" class="btn btn-primary mt-3"><i class="fas fa-save"></i> Save Locations</button>
 </form>
-
-
     <script>
         let addressCount = 1;
-
         // Add new address form functionality
         document.getElementById('add-address').addEventListener('click', function() {
             let newAddressForm = document.querySelector('.address-form').cloneNode(true);
@@ -122,17 +114,13 @@
                     input.style.display = 'none'; // Hide custom city input in cloned form
                 }
             });
-
             // Display the remove button on new forms
             newAddressForm.querySelector('.remove-address').style.display = 'inline-block';
-            
             document.getElementById('address-forms').appendChild(newAddressForm);
             addressCount++;
-
             // Apply city toggle functionality for new form
             handleCityDropdown(newAddressForm);
         });
-
         // Handle city dropdown toggle
         function handleCityDropdown(form) {
             form.querySelector('.city-dropdown').addEventListener('change', function() {
@@ -143,10 +131,8 @@
                 }
             });
         }
-
         // Apply city dropdown toggle for the initial form
         document.querySelectorAll('.address-form').forEach(handleCityDropdown);
-
         // Remove address form functionality
         document.addEventListener('click', function(event) {
             if (event.target.classList.contains('remove-address')) {

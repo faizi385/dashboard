@@ -49,8 +49,8 @@
                             <td>{{ $carveout->retailer->dba ?? 'N/A' }}</td> <!-- Display retailer's DBA -->
                             <td>{{ $carveout->address ?? '-'}}</td>
                             <td>{{ $carveout->carveout ?? '-' }}</td>
-                            <td>{{ $carveout->location }}</td>
-                            <td>{{ $carveout->sku }}</td>
+                            <td>{{ $carveout->location  }}</td>
+                            <td>{{ $carveout->sku ?? '-' }}</td>
                             <td>{{ \Carbon\Carbon::parse($carveout->date)->format('Y-m-d') }}</td>
                             <td>{{ $carveout->lp->dba ?? 'N/A' }}</td> <!-- Display LP's DBA -->
                             <td class="text-center">
@@ -97,12 +97,12 @@
                     <input type="hidden" name="lp_id" value="{{ $lp_id }}"> <!-- Pass the LP ID here -->
 
                     <div class="mb-3">
-                        <label for="province" class="form-label">Province <span class="text-danger">*</span></label>
-                        <select class="form-control" id="province" name="province" required>
+                        <label for="province" class="form-label">Province</label>
+                        <select class="form-control" id="province" name="province">
                             <option value="" disabled selected>Select Province</option>
-                            <option value="Ontario">Ontario</option>
-                            <option value="Alberta">Alberta</option>
-                            <option value="British Columbia">British Columbia</option>
+                            @foreach($provinces as $province)
+                                <option value="{{ $province->name }}">{{ $province->name }}</option>
+                            @endforeach
                         </select>
                     </div>
 
@@ -118,12 +118,14 @@
 
                     <div class="mb-3">
                         <label for="location" class="form-label">Location <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="location" name="location" required>
+                        <select class="form-control" id="location" name="location" required>
+                            <option value="" disabled selected>Select Location</option>
+                        </select>
                     </div>
 
                     <div class="mb-3">
                         <label for="sku" class="form-label">SKU</label>
-                        <input type="text" class="form-control" id="sku" name="sku" required>
+                        <input type="text" class="form-control" id="sku" name="sku">
                     </div>
 
                     <div class="mb-3">
@@ -139,7 +141,6 @@
         </div>
     </div>
 </div>
-
 <!-- Include DataTables -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -190,7 +191,35 @@ $(document).ready(function() {
         toastr.error("{{ $errors->first() }}");
     @endif
 });
+document.addEventListener('DOMContentLoaded', function () {
+        const retailerSelect = document.getElementById('retailer');
+        const locationSelect = document.getElementById('location');
 
+        retailerSelect.addEventListener('change', function () {
+            const retailerId = this.value;
+
+            // Clear existing options
+            locationSelect.innerHTML = '<option value="" disabled selected>Select Location</option>';
+
+            if (retailerId) {
+                fetch(`/retailers/${retailerId}/addresses`) // Update this URL according to your routes
+                    .then(response => response.json())
+                    .then(data => {
+                        data.forEach(address => {
+                            // Format the address as desired
+                            const formattedAddress = `${address.street_no} ${address.street_name} ${address.province} ${address.city} ${address.location}`;
+
+                            const option = document.createElement('option');
+                            option.value = address.id; // Assuming the address has an ID
+                            option.textContent = formattedAddress; // Set the formatted address as the option text
+                            option.style.color = "black"; // Set the text color to black
+                            locationSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => console.error('Error fetching addresses:', error));
+            }
+        });
+    });
 </script>
 
 <style>
@@ -198,24 +227,7 @@ $(document).ready(function() {
         margin-top: 20px;
     }
 
-    .card {
-        border: 1px solid #dee2e6;
-        border-radius: 8px;
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .card-header {
-        background-color: white;
-        color: black;
-        padding: 10px;
-        font-weight: bold;
-        text-align: center;
-    }
-
-    .card-body {
-        padding: 15px;
-        background-color: #f9f9f9;
-    }
+  
 
     .table th, .table td {
         vertical-align: middle;

@@ -104,7 +104,7 @@
 
             <!-- Action Buttons -->
             <div class="d-flex justify-content-between mt-4">
-                <button type="button" class="btn btn-outline-secondary">Back</button>
+                {{-- <button type="button" class="btn btn-outline-primary">Back</button> --}}
                 <button type="submit" class="btn btn-primary">Upload</button>
             </div>
         </form>
@@ -143,43 +143,16 @@
             uploadBox.querySelector('p').textContent = fileName;
         });
     });
+    // @if(session('success'))
+    //         toastr.success("{{ session('success') }}");
+    //     @endif
+
+        // Show error message
+        @if(session('error'))
+            toastr.error("{{ session('error') }}");
+        @endif
 </script>
 
 <!-- Custom CSS for styling the upload area -->
-<style>
-   .upload-container {
-        text-align: center;
-        margin-bottom: 20px;
-    }
-    .file-upload-box {
-        border: 2px dashed #b3b3b3;
-        border-radius: 5px;
-        padding: 40px;
-        position: relative;
-        cursor: pointer;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-end; /* Aligns text to the bottom */
-        height: 150px; /* Ensures equal height for all boxes */
-    }
-    .upload-text {
-        margin: 0;
-        text-align: center;
-    }
-    .upload-icon {
-        font-size: 30px;
-        color: #b3b3b3;
-        text-align: center;
-        margin-bottom: 10px; /* Adds some space between the icon and text */
-    }
-    .file-upload-input {
-        opacity: 0;
-        width: 100%;
-        height: 100%;
-        position: absolute;
-        top: 0;
-        left: 0;
-        cursor: pointer;
-    }
-</style>
+
 @endsection

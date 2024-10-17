@@ -33,7 +33,7 @@
             <!-- Permissions Selection -->
             <div class="mb-4">
                 <label class="form-label">
-                    <i class="fas fa-lock"></i> Assign Permissions <span class="text-danger">*</span>
+                    <i class="fas fa-lock"></i> Assign Permissions 
                 </label>
                 <div class="row">
                     @foreach($permissions as $permission)

@@ -10,7 +10,6 @@
             <a href="{{ route('retailers.reports.create', $retailer->id) }}" class="btn btn-primary">
                 Add Report
             </a>
-            
         </div>
     </div>
 
@@ -33,7 +32,6 @@
     <div class="card mt-4">
         <div class="card-header">
             <h5 class="card-title">Address {{ $index + 1 }} Information</h5>
-  
         </div>
         <div class="card-body">
             <h6 class="card-subtitle mb-2 text-muted">Address Details</h6>
@@ -46,11 +44,9 @@
         </div>
     </div>
     @endforeach
-@else
-    <p class="text-muted mt-4">No address details available.</p>
-   
-@endif
-
+    @else
+        <p class="text-muted mt-4">No address details available.</p>
+    @endif
 </div>
 
 <style>
@@ -85,4 +81,21 @@
         padding-bottom: 100px; /* Adjust this value based on footer height */
     }
 </style>
+
+{{-- <script>
+    $(document).ready(function() {
+        @if (session('success'))
+            toastr.success("{{ session('success') }}");
+        @endif
+
+        @if (session('error'))
+            toastr.error("{{ session('error') }}");
+        @endif
+        
+        // Display specific Greenline errors
+        @if (session('greenline_error'))
+            toastr.error("{{ session('greenline_error') }}");
+        @endif
+    });
+</script> --}}
 @endsection

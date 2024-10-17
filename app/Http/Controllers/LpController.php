@@ -43,18 +43,17 @@ class LpController extends Controller
         return view('super_admin.lp.create');
     }
 
-    public function store(Request $request)
+    public function store(Request $request) 
     {
         $validatedData = $request->validate([
             'name' => ['required', 'string', 'max:255', 'regex:/^[^\d]+$/'], // Disallow numeric characters
             'dba' => 'required|string|max:255',
-           'primary_contact_email' =>   [
-            'required',
-            'email',
-            'unique:users,email',
-            'regex:/^[\w\.-]+@[\w\.-]+\.\w{2,4}$/'  // Example regex for standard email formats
-        ],
-         
+            'primary_contact_email' => [
+                'required',
+                'email',
+                'unique:users,email',
+                'regex:/^[\w\.-]+@[\w\.-]+\.\w{2,4}$/'  // Example regex for standard email formats
+            ],
             'primary_contact_phone' => 'required|string|max:20',
             'primary_contact_position' => ['required', 'string', 'max:255', 'regex:/^[^\d]+$/'], // Disallow numeric characters
             'password' => 'nullable|string|min:8',
@@ -74,10 +73,13 @@ class LpController extends Controller
             'password' => Hash::make($validatedData['password'] ?? 'defaultPassword'),
         ]);
     
-        // Create LP record and associate with the newly created user
+        // Create LP record with status set to 'requested' and associate with the newly created user
         $lp = Lp::create(array_merge(
             $validatedData,
-            ['user_id' => $user->id]
+            [
+                'user_id' => $user->id,
+                'status' => 'requested' // Set the status to 'requested'
+            ]
         ));
     
         // Send email notification
@@ -133,7 +135,7 @@ class LpController extends Controller
             return redirect()->back()->with('error', 'Role not found.');
         }
     
-        // Update LP details with the correct user_id
+        // Update LP details with the correct user_id and status set to 'approved'
         $lp->update([
             'name' => $validatedData['name'],
             'dba' => $validatedData['dba'],
@@ -141,6 +143,7 @@ class LpController extends Controller
             'primary_contact_phone' => $validatedData['primary_contact_phone'],
             'primary_contact_position' => $validatedData['primary_contact_position'],
             'user_id' => $user->id,  // Set the user_id to the newly created/updated user
+            'status' => 'approved' // Set the status to 'approved'
         ]);
     
         // Create or update the address

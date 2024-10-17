@@ -20,9 +20,9 @@
             <!-- Name Field -->
             <div class="col-md-6 mb-3">
                 <label for="name" class="form-label">
-                    <i class="fas fa-signature"></i> Name
+                    <i class="fas fa-signature"></i> Name <span class="text-danger">*</span>
                 </label>
-                <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name', $province->name) }}" placeholder="Enter Province Name" required>
+                <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name', $province->name) }}" placeholder="Enter Province Name" >
                 @error('name')
                     <div class="invalid-feedback">
                         {{ $message }}
@@ -33,9 +33,9 @@
             <!-- Slug Field -->
             <div class="col-md-6 mb-3">
                 <label for="slug" class="form-label">
-                    <i class="fas fa-tag"></i> Slug
+                    <i class="fas fa-tag"></i> Slug <span class="text-danger">*</span>
                 </label>
-                <input type="text" name="slug" id="slug" class="form-control @error('slug') is-invalid @enderror" value="{{ old('slug', $province->slug) }}" placeholder="Enter Province Slug" required>
+                <input type="text" name="slug" id="slug" class="form-control @error('slug') is-invalid @enderror" value="{{ old('slug', $province->slug) }}" placeholder="Enter Province Slug" >
                 @error('slug')
                     <div class="invalid-feedback">
                         {{ $message }}
@@ -50,7 +50,7 @@
                 <label for="timezone_1" class="form-label">
                     <i class="fas fa-clock"></i> Timezone 1
                 </label>
-                <input type="text" name="timezone_1" id="timezone_1" class="form-control @error('timezone_1') is-invalid @enderror" value="{{ old('timezone_1', $province->timezone_1) }}" placeholder="Enter Timezone 1" required>
+                <input type="text" name="timezone_1" id="timezone_1" class="form-control @error('timezone_1') is-invalid @enderror" value="{{ old('timezone_1', $province->timezone_1) }}" placeholder="Enter Timezone 1" >
                 @error('timezone_1')
                     <div class="invalid-feedback">
                         {{ $message }}
@@ -76,9 +76,9 @@
             <!-- Tax Value Field -->
             <div class="col-md-6 mb-3">
                 <label for="tax_value" class="form-label">
-                    <i class="fas fa-percent"></i> Tax Value
+                    <i class="fas fa-percent"></i> Tax Value <span class="text-danger">*</span>
                 </label>
-                <input type="number" step="0.01" name="tax_value" id="tax_value" class="form-control @error('tax_value') is-invalid @enderror" value="{{ old('tax_value', $province->tax_value) }}" placeholder="Enter Tax Value" required>
+                <input type="number" step="0.01" name="tax_value" id="tax_value" class="form-control @error('tax_value') is-invalid @enderror" value="{{ old('tax_value', $province->tax_value) }}" placeholder="Enter Tax Value" >
                 @error('tax_value')
                     <div class="invalid-feedback">
                         {{ $message }}
@@ -91,7 +91,7 @@
                 <label for="status" class="form-label">
                     <i class="fas fa-toggle-on"></i> Status
                 </label>
-                <select name="status" id="status" class="form-select @error('status') is-invalid @enderror" required>
+                <select name="status" id="status" class="form-select @error('status') is-invalid @enderror" >
                     <option value="1" {{ old('status', $province->status) == 1 ? 'selected' : '' }}>Active</option>
                     <option value="0" {{ old('status', $province->status) == 0 ? 'selected' : '' }}>Inactive</option>
                 </select>

@@ -3,53 +3,57 @@
 namespace App\Http\Controllers;
 
 use App\Models\Lp;
-use App\Models\Carveout;
-use Illuminate\Http\Request;
-use App\Models\Retailer;
 use Carbon\Carbon;
+use App\Models\Carveout;
+use App\Models\Province;
+use App\Models\Retailer;
+use Illuminate\Http\Request;
 
 class CarveoutController extends Controller
 {
     public function index($lp_id)
-    {
-        // Get the authenticated user's LP
-        $userLp = Lp::where('user_id', auth()->user()->id)->first();
+{
+    // Get the authenticated user's LP
+    $userLp = Lp::where('user_id', auth()->user()->id)->first();
 
-        // Check if the user is a Super Admin or an LP
-        if (auth()->user()->hasRole('Super Admin')) {
-            // Super Admin can see carveouts for the specified LP ID or all carveouts if lp_id is 0
-            $carveouts = Carveout::with(['retailer', 'lp'])
-                ->when($lp_id > 0, function ($query) use ($lp_id) {
-                    return $query->where('lp_id', $lp_id);
-                })
-                ->get();
+    // Initialize carveouts and lp variables
+    $carveouts = collect(); 
+    $lp = null;
 
-            // Set the $lp variable for the view based on the selected lp_id
-            $lp = Lp::find($lp_id);
-        } else {
-            // For LP users: Fetch carveouts related to their LP ID
-            if ($userLp) {
-                $carveouts = Carveout::with(['retailer', 'lp'])
-                    ->where('lp_id', $userLp->id)
-                    ->get();
+    // Check if the user is a Super Admin or an LP user
+    if (auth()->user()->hasRole('Super Admin')) {
+        // Super Admin can see carveouts for the specified LP ID or all carveouts if lp_id is 0
+        $carveouts = Carveout::with(['retailer', 'lp'])
+            ->when($lp_id > 0, function ($query) use ($lp_id) {
+                return $query->where('lp_id', $lp_id);
+            })
+            ->get();
+        
+        // Fetch the LP details based on lp_id
+        $lp = Lp::find($lp_id);
+    } elseif ($userLp) {
+        // For LP users: Fetch carveouts related to their own LP ID
+        $carveouts = Carveout::with(['retailer', 'lp'])
+            ->where('lp_id', $userLp->id)
+            ->get();
+        
+        // Set the authenticated LP for the LP user
+        $lp = $userLp;
+    } 
 
-                // Set the $lp variable to the authenticated LP
-                $lp = $userLp; // Use the authenticated LP
-            } else {
-                // Handle case where no LP is associated with the user (optional)
-                $carveouts = collect(); // Return an empty collection
-                $lp = null; // No LP found
-            }
-        }
+    // Fetch all retailers (optional based on view requirements)
+    $retailers = Retailer::all();
 
-        // Fetch all retailers (optional based on view requirements)
-        $retailers = Retailer::all();
+    // Fetch all LPs (optional based on view requirements)
+    $lps = Lp::all();
 
-        // Fetch all LPs (optional based on view requirements)
-        $lps = Lp::all();
+    // Fetch all provinces from the database
+    $provinces = Province::all(); // Assumes you have a Province model
 
-        return view(' super_admin.carveouts.index', compact('carveouts', 'retailers', 'lp_id', 'lps', 'lp')); // Pass $lp to the view
-    }
+    // Return the view with the required data
+    return view('super_admin.carveouts.index', compact('carveouts', 'retailers', 'lp_id', 'lps', 'lp', 'provinces'));
+}
+
 
     public function create()
     {
@@ -63,10 +67,10 @@ class CarveoutController extends Controller
     
         // Validate incoming request
         $request->validate([
-            'province' => 'required',
+            'province' => 'nullable',
             'retailer' => 'required|exists:retailers,id',
             'location' => 'required|string|max:255',
-            'sku' => 'required|string|max:255',
+            'sku' => 'nullable|string|max:255',
             'carveout_date' => 'required|date',
             'lp_id' => auth()->user()->hasRole('Super Admin') ? 'required|exists:lps,id' : '', // Only validate lp_id for Super Admin
         ]);
