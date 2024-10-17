@@ -353,6 +353,27 @@
     document.getElementById('makeExclusiveOfferCheckbox').addEventListener('change', function () {
         toggleCheckbox('makeExclusiveOfferCheckbox', 'addExclusiveOfferCheckbox', 'makeExclusiveOfferFields');
     });
+
+    // Function to update the end date based on the selected start date
+function updateEndDate() {
+    const startDateInput = document.getElementById('offer_start');
+    const endDateInput = document.getElementById('offer_end');
+    
+    if (startDateInput.value) {
+        const startDate = new Date(startDateInput.value);
+        
+        // Set the end date to one month later
+        const endDate = new Date(startDate.setMonth(startDate.getMonth() + 1));
+
+        // Format the date to YYYY-MM-DD for the input
+        const year = endDate.getFullYear();
+        const month = String(endDate.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+        const day = String(endDate.getDate()).padStart(2, '0');
+
+        // Set the value of the end date input
+        endDateInput.value = `${year}-${month}-${day}`;
+    }
+}
 </script>
 
 @endsection

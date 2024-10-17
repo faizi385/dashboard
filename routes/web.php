@@ -3,7 +3,6 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LpController;
 use App\Http\Controllers\LogController;
-use App\Http\Controllers\FormController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\LpLogController;
@@ -15,6 +14,7 @@ use App\Http\Controllers\CarveoutController;
 use App\Http\Controllers\OfferLogController;
 use App\Http\Controllers\ProvinceController;
 use App\Http\Controllers\RetailerController;
+use App\Http\Controllers\ReportLogController;
 use App\Http\Controllers\ManageInfoController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\CarveoutLogController;
@@ -177,10 +177,13 @@ Route::delete('/products/{id}', [ProductController::class, 'destroy'])->name('pr
 Route::put('/products/{id}', [ProductController::class, 'update'])->name('products.update');
 Route::get('/products/variations/{lp_id}/{gtin}', [ProductController::class, 'showVariations'])->name('products.variations');
 
+Route::get('/retailers/{retailer}/addresses', [RetailerController::class, 'getAddresses']);
+
 
 Route::get('/retailers/{retailer}/reports/create', [ReportController::class, 'create'])->name('retailers.reports.create');
 Route::post('/retailers/{retailer}/reports', [ReportController::class, 'store'])->name('retailers.reports.store');
 Route::post('retailers/{retailer}/reports/import', [ReportController::class, 'import'])->name('retailers.reports.import');
+Route::get('/report-logs', [ReportLogController::class, 'index'])->name('report.logs.index');
 
 
 

@@ -19,4 +19,8 @@ class Report extends Model
         'file_1',         // Newly added
         'file_2',         // Newly added
     ];
+    public function retailer()
+    {
+        return $this->belongsTo(Retailer::class);
+    }
 }

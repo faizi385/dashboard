@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Retailer extends Model
 {
     use SoftDeletes;
+
     protected $fillable = [
         'first_name',
         'last_name',
@@ -16,18 +17,30 @@ class Retailer extends Model
         'corporate_name',
         'dba',
         'user_id',
-       'status',
+        'status',
+        'postal_code',
     ];
+
     public function user()
     {
         return $this->belongsTo(User::class);
     }
-    
-// In Retailer.php model
-public function address()
-{
-    return $this->hasMany(RetailerAddress::class, 'retailer_id');
-}
 
+    public function address()
+    {
+        return $this->hasMany(RetailerAddress::class, 'retailer_id');
+    }
 
+    // Override the boot method to handle email modification on deletion
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($retailer) {
+            // Modify the email before deletion
+            $originalEmail = $retailer->email;
+            $retailer->email = 'deleted_' . time() . '_' . $originalEmail; // Append a timestamp to avoid conflicts
+            $retailer->save();
+        });
+    }
 }

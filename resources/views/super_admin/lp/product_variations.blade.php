@@ -80,24 +80,7 @@
         margin-top: 20px;
     }
 
-    .card {
-        border: 1px solid #dee2e6;
-        border-radius: 8px;
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .card-header {
-        background-color: white;
-        color: black;
-        padding: 10px;
-        font-weight: bold;
-        text-align: center;
-    }
-
-    .card-body {
-        padding: 15px;
-        background-color: #f9f9f9;
-    }
+   
 
     .table th, .table td {
     padding: 0.75rem; /* Adjust padding for a balanced layout */

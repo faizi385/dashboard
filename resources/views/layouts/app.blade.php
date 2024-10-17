@@ -56,7 +56,7 @@
 <body class="hold-transition sidebar-mini">
     <div class="wrapper">
         <!-- Navbar -->
-        <nav style="background-color: #54595F" class="main-header navbar navbar-expand navbar-white navbar-light">
+        <nav  class="main-header navbar navbar-expand navbar-white navbar-light">
             <!-- Left navbar links -->
             <ul class="navbar-nav">
                 <li class="nav-item">
@@ -69,7 +69,7 @@
 <ul class="navbar-nav ml-auto">
     <!-- User Dropdown -->
     <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle text-white" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <a class="nav-link dropdown-toggle " href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="fas fa-user"></i> {{ Auth::user()->first_name }}
         </a>
         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
@@ -156,53 +156,62 @@
                         </li>
         
                         <!-- Logs Dropdown (Visible only to Super Admin) -->
-                        <li class="nav-item has-treeview {{ request()->is('logs*') || request()->is('province-logs*') || request()->is('retailer-logs*') || request()->is('lp-logs*') || request()->is('offer-logs*') || request()->is('carveout-logs*') ? 'menu-open' : '' }}">
-                            <a href="#" class="nav-link {{ request()->is('logs*') || request()->is('province-logs*') || request()->is('retailer-logs*') || request()->is('lp-logs*') || request()->is('offer-logs*') || request()->is('carveout-logs*') ? 'active' : '' }}">
-                                <i class="nav-icon fas fa-book"></i>
-                                <p>Logs
-                                    <i class="right fas fa-angle-left"></i>
-                                </p>
-                            </a>
-                            <ul class="nav nav-treeview">
-                                <li class="nav-item">
-                                    <a href="{{ route('logs.index') }}" class="nav-link {{ Route::currentRouteName() == 'logs.index' ? 'active' : '' }}">
-                                        <i class="nav-icon"></i>
-                                        <p>User Logs</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{{ route('province-logs.index') }}" class="nav-link {{ Route::currentRouteName() == 'province-logs.index' ? 'active' : '' }}">
-                                        <i class="nav-icon"></i>
-                                        <p>Province Logs</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{{ route('retailer.logs') }}" class="nav-link {{ Route::currentRouteName() == 'retailer.logs' ? 'active' : '' }}">
-                                        <i class="nav-icon"></i>
-                                        <p>Retailer Logs</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{{ route('lp.logs.index') }}" class="nav-link {{ Route::currentRouteName() == 'lp.logs.index' ? 'active' : '' }}">
-                                        <i class="nav-icon"></i>
-                                        <p>LP Logs</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{{ route('offer.logs.index') }}" class="nav-link {{ Route::currentRouteName() == 'offer.logs.index' ? 'active' : '' }}">
-                                        <i class="nav-icon"></i>
-                                        <p>Offers Logs</p>
-                                    </a>
-                                </li>
-                                <!-- Add Carveout Logs here -->
-                                <li class="nav-item">
-                                    <a href="{{ route('carveout.logs.index') }}" class="nav-link {{ Route::currentRouteName() == 'carveout.logs.index' ? 'active' : '' }}">
-                                        <i class="nav-icon"></i>
-                                        <p>Carveout Logs</p>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
+                        <li class="nav-item has-treeview 
+    {{ request()->is('logs*') || request()->is('province-logs*') || request()->is('retailer-logs*') || request()->is('lp-logs*') || request()->is('offer-logs*') || request()->is('carveout-logs*') || request()->is('report-logs*') || 
+      Route::currentRouteName() == 'retailer.logs' || Route::currentRouteName() == 'lp.logs.index' ? 'menu-open' : '' }}">
+    <a href="#" class="nav-link 
+        {{ request()->is('logs*') || request()->is('province-logs*') || request()->is('retailer-logs*') || request()->is('lp-logs*') || request()->is('offer-logs*') || request()->is('carveout-logs*') || request()->is('report-logs*') ? 'active' : '' }}">
+        <i class="nav-icon fas fa-book"></i>
+        <p>Logs
+            <i class="right fas fa-angle-left"></i>
+        </p>
+    </a>
+    <ul class="nav nav-treeview">
+        <li class="nav-item">
+            <a href="{{ route('logs.index') }}" class="nav-link {{ Route::currentRouteName() == 'logs.index' ? 'active' : '' }}">
+                <i class="nav-icon"></i>
+                <p>User Logs</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('province-logs.index') }}" class="nav-link {{ Route::currentRouteName() == 'province-logs.index' ? 'active' : '' }}">
+                <i class="nav-icon"></i>
+                <p>Province Logs</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('retailer.logs') }}" class="nav-link {{ Route::currentRouteName() == 'retailer.logs' ? 'active' : '' }}">
+                <i class="nav-icon"></i>
+                <p>Retailer Logs</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('lp.logs.index') }}" class="nav-link {{ Route::currentRouteName() == 'lp.logs.index' ? 'active' : '' }}">
+                <i class="nav-icon"></i>
+                <p>LP Logs</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('offer.logs.index') }}" class="nav-link {{ Route::currentRouteName() == 'offer.logs.index' ? 'active' : '' }}">
+                <i class="nav-icon"></i>
+                <p>Offers Logs</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('carveout.logs.index') }}" class="nav-link {{ Route::currentRouteName() == 'carveout.logs.index' ? 'active' : '' }}">
+                <i class="nav-icon"></i>
+                <p>Carveout Logs</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('report.logs.index') }}" class="nav-link {{ Route::currentRouteName() == 'report.logs.index' ? 'active' : '' }}">
+                <i class="nav-icon"></i>
+                <p>Report Logs</p>
+            </a>
+        </li>
+    </ul>
+</li>
+
                         
                         
                         <!-- Retailer Management (Visible only to Super Admin) -->
@@ -274,8 +283,8 @@
                         <!-- Products Tab (Visible only to LPs) -->
                         @if(auth()->user()->hasRole('Super Admin') || auth()->user()->hasRole('LP'))
                         <li class="nav-item">
-                            <a href="{{ route('lp.products', ['lp_id' => auth()->user()->id, 'from_sidebar' => true]) }}" 
-                               class="nav-link {{ request()->get('from_sidebar') ? 'active' : '' }}">
+                            <a href="{{ route('lp.products', ['from_sidebar' => true]) }}" 
+                               class="nav-link {{ request()->routeIs('lp.products.index') || request()->get('from_sidebar') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-box"></i>
                                 <p>Products</p>
                             </a>
@@ -283,9 +292,9 @@
                     @endif
                     
                     {{-- <li class="nav-item">
-                        <a class="nav-link" href="{{ route('retailers.reports.create') }}">
-                            <i class="fa fa-file-upload"></i>
-                            <span>Upload Report</span>
+                        <a href="{{ route('retailers.reports.create', ['retailer' => $retailer->id]) }}" class="nav-link {{ Route::currentRouteName() == 'reports.create' ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-file-alt"></i>
+                            <p>Reports</p>
                         </a>
                     </li> --}}
                     

@@ -118,10 +118,33 @@ public function destroy($id)
         $lpId = $request->lp_id;
         $source = $request->source;
     
-        // Use a custom import class that associates offers with the selected LP
-        Excel::import(new OffersImport($lpId, $source), $request->file('offerExcel'));
+        // Handle Offer Imports
+        if ($request->hasFile('offerExcel')) {
+            $filePath = $request->file('offerExcel')->store('uploads');
     
-        // Redirect back with a success message
+            try {
+                // Import Offers and check for errors
+                $import = new OffersImport($lpId, $source);
+                Excel::import($import, $filePath);
+    
+                // Check for any import errors (if the OffersImport tracks errors)
+                $importErrors = $import->getErrors(); // Retrieve any header or data errors
+                
+                if (!empty($importErrors)) {
+                    // If there are errors, show them in a single message
+                    $errorMessage = implode(', ', $importErrors);
+                    return redirect()->back()->with('error', $errorMessage);
+                }
+    
+            } catch (\Exception $e) {
+                // Catch exceptions (such as missing headers) and display an error message
+                return redirect()->back()->with('error', $e->getMessage());
+            }
+        } else {
+            return redirect()->back()->withErrors('The offer file is required.');
+        }
+    
+        // Redirect back with a success message if no errors were found
         return redirect()->back()->with('toast_success', 'Offers imported successfully for the selected LP!');
     }
     

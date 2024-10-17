@@ -22,9 +22,10 @@
             </button>
 
 
-           <button class="btn btn-primary" onclick="window.location.href='{{ route('lp.products', ['lp_id' => $lp->id]) }}'">
-    View Products
-</button>
+            <button class="btn btn-primary" onclick="window.location.href='{{ route('lp.products.by.id', ['lp_id' => $lp->id]) }}'">
+                View Products
+            </button>
+            
 
         </div>
     </div>
@@ -114,29 +115,7 @@
         margin-top: 20px;
     }
 
-    .card {
-        border: 1px solid #dee2e6;
-        border-radius: 8px;
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .card-header {
-        background-color: white;
-        color: black;
-        padding: 10px;
-        font-weight: bold;
-        text-align: center;
-    }
-
-    .card-body {
-        padding: 15px;
-        background-color: #f9f9f9;
-    }
-
-    .mt-4 {
-        margin-top: 1.5rem;
-    }
-
+   
     .container {
         padding-bottom: 100px; /* Adjust this value based on footer height */
     }

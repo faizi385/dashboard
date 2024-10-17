@@ -10,9 +10,9 @@
 <div class="container p-2">
     <div class="d-flex justify-content-between mb-4">
         <h3 class="text-white">Offers List</h3>
-        <button class="btn btn-primary " data-bs-toggle="modal" data-bs-target="#addOfferModal">
+        {{-- <button class="btn btn-primary " data-bs-toggle="modal" data-bs-target="#addOfferModal">
             Add Offer
-        </button>
+        </button> --}}
         {{-- <div>
             @if(isset($lp)) <!-- Check if $lp is set -->
                 <a href="{{ url()->previous() }}" class="btn btn-primary">
@@ -151,12 +151,7 @@
     </div>
 </div>
 <!-- Include DataTables and SweetAlert -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
     $(document).ready(function() {
         $("#loader").fadeOut("slow");
@@ -210,39 +205,9 @@
         margin-top: 20px;
     }
 
-    .card {
-        border: 1px solid #dee2e6;
-        border-radius: 8px;
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .card-header {
-        background-color: white;
-        color: black;
-        padding: 10px;
-        font-weight: bold;
-        text-align: center;
-    }
-
-    .card-body {
-        padding: 15px;
-        background-color: #f9f9f9;
-    }
-
-    .table th, .table td {
-        vertical-align: middle;
-        white-space: nowrap; /* Prevent wrapping */
-        overflow: hidden;    /* Hide overflow */
-        text-overflow: ellipsis; /* Add ellipsis for overflow */
-    }
-
-    .table th {
-        font-size: 0.85rem; /* Adjust header font size to be smaller */
-        padding: 0.75rem; /* Optional: Adjust padding to reduce height */
-    }
-
-    .mb-4 {
-        margin-bottom: 1.5rem;
+  
+    .dataTables_wrapper .dataTables_filter label{
+        color: black
     }
 </style>
 @endsection

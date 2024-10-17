@@ -153,8 +153,8 @@
 @endsection
 
 @push('scripts')
-<!-- DataTables JS -->
-<script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+
+
 
 <script>
     $(document).ready(function() {
