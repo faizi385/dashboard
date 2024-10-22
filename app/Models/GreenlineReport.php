@@ -20,7 +20,7 @@ class GreenlineReport extends Model
         'closing',
         'average_price',
         'average_cost',
-      
+      'status',  
         'report_id',  // Include report_id in the fillable fields
     ];
     public function report()

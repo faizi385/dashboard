@@ -18,5 +18,6 @@ class IdealSalesSummaryReport extends Model
         'purchase_amount',
         'return_quantity',
         'amount_return',
+        'status',  
     ];
 }

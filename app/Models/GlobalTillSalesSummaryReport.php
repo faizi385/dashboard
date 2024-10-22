@@ -35,6 +35,7 @@ class GlobalTillSalesSummaryReport extends Model
         'other_reductions_value',
         'closing_inventory',
         'closing_inventory_value',
+        'status',  
     ];
 
     public function report()

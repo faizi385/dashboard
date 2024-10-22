@@ -36,6 +36,7 @@ class CovaDiagnosticReport extends Model
         'returns_to_supplier_units',
         'other_reductions_units',
         'closing_inventory_units',
+        'status',  
     ];
 
     // Define relationships if necessary, for example, a report belongs to a parent Report

@@ -23,6 +23,25 @@ use App\Imports\{
 
 class ReportController extends Controller
 {
+
+    public function index(Request $request, $retailer = null)
+{
+    // Get the currently authenticated user
+    $user = auth()->user();
+
+    // Check if the user is a retailer
+    if ($user->hasRole('Retailer')) {
+        // Fetch reports only for the logged-in retailer
+        $reports = Report::with('retailer')->where('retailer_id', $user->id)->get();
+    } else {
+        // Super admin: Fetch all reports
+        $reports = Report::with('retailer')->get();
+    }
+
+    return view('reports.index', compact('reports'));
+}
+
+
     public function create($retailerId)
     {
         // Find the retailer by ID

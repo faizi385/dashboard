@@ -15,6 +15,7 @@ use App\Observers\OfferObserver;
 use App\Observers\ReportObserver;
 use App\Observers\CarveoutObserver;
 use App\Observers\ProvinceObserver;
+use Illuminate\Support\Facades\View;
 use App\Observers\RetailerLogObserver;
 use Illuminate\Support\ServiceProvider;
 
@@ -44,5 +45,12 @@ class AppServiceProvider extends ServiceProvider
         Offer::observe(OfferObserver::class);
         Carveout::observe(CarveoutObserver::class);
         Report::observe(ReportObserver::class);
+
+        View::composer(['layouts.app', 'reports.index'], function ($view) {
+            // Assuming that the retailer ID is stored in session or some logic to fetch it
+            $retailerId = session('current_retailer_id');
+            $retailer = Retailer::find($retailerId);
+            $view->with('retailer', $retailer);
+        });
     }
 }

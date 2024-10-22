@@ -22,5 +22,6 @@ class IdealDiagnosticReport extends Model
         'write_offs',
         'closing',
         'net_sales_ex',
+        'status',  
     ];
 }

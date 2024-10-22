@@ -35,5 +35,6 @@ class CovaSalesReport extends Model
         'supplier_skus',
         'total_tax',
         'hst_13',
+        'status',  
     ];
 }
