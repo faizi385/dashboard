@@ -68,6 +68,14 @@ public function lp()
 {
     return $this->belongsTo(Lp::class, 'lp_id'); // Make sure 'lp_id' is the correct foreign key
 }
+public function delete()
+{
+    // Append something to the email (e.g., '-deleted' or timestamp)
+    $this->email = $this->email . '-deleted-' . time();
+    $this->save();
 
+    // Now perform the soft delete
+    parent::delete();
+}
     
 }

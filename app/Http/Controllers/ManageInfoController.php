@@ -22,7 +22,7 @@ class ManageInfoController extends Controller
             return redirect()->route('home')->with('error', 'No LP information found for your account.');
         }
     
-        return view('manage-info.index', compact('lp'));
+        return view('LP_portal.manage-info.index', compact('lp'));
     }
     
     

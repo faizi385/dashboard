@@ -49,27 +49,33 @@ class UserObserver
     public function updated(User $user)
     {
         $actionUser = auth()->user(); // Get the currently authenticated user
-        
+    
         $original = $user->getOriginal();
         $changes = $user->getChanges();
     
-        // Get the roles if they've been updated, or fallback to current roles
-        $roles = $user->roles->pluck('name')->toArray() ?? [];
+        // Prepare a new changes array
+        $loggedChanges = [];
     
-        // Exclude the password from changes
-        unset($changes['password']); // Remove the password field from changes
+        foreach ($changes as $key => $value) {
+            if ($key === 'password') {
+                $loggedChanges[$key] = '**********'; // Mask password changes
+            } else {
+                $loggedChanges[$key] = $value; // Log other changes as is
+            }
+        }
     
         Log::create([
             'action' => 'updated',
             'user_id' => $user->id,
-            'action_user_id' => $actionUser ? $actionUser->id : null, // Store the action user's ID or null if not authenticated
+            'action_user_id' => $actionUser ? $actionUser->id : null,
             'ip_address' => request()->ip(),
             'description' => json_encode([
                 'old' => $original,
-                'new' => array_merge($changes, ['roles' => $roles]), // Add roles to the changes array
+                'new' => $loggedChanges,
             ]),
         ]);
     }
+    
     
 
     /**

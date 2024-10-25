@@ -15,10 +15,16 @@ class RetailerAddress extends Model
         'location',
         'contact_person_name',
         'contact_person_phone',
+        'postal_code', // Add postal_code here
     ];
 
     public function retailer()
     {
         return $this->belongsTo(Retailer::class);
+    }
+
+    public function getFullAddressAttribute()
+    {
+        return "{$this->street_no} {$this->street_name}, {$this->city}, {$this->province}, {$this->location}";
     }
 }

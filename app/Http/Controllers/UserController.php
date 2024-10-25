@@ -22,7 +22,7 @@ class UserController extends Controller
             $users = User::with('roles')->get();
         }
 
-        return view('users.index', compact('users'));
+        return view('super_admin.users.index', compact('users'));
     }
 
    public function create()
@@ -32,27 +32,54 @@ class UserController extends Controller
 
     $permissions = Permission::all();
 
-    return view('users.create', compact('roles', 'permissions'));
+    return view('super_admin.users.create', compact('roles', 'permissions'));
 }
 
 public function store(Request $request)
 {
     // Validate the incoming request
     $request->validate([
-        'first_name' => 'required|string|max:255',
-        'last_name' => 'required|string|max:255',
-        'email' => 'required|string|email|max:255|unique:users',
-        'password' => 'required|string|min:8|confirmed',
-         'phone' => [
+        'first_name' => [
             'required',
-            'regex:/^(\+?\d{1,3}[- ]?)?\(?\d{1,4}?\)?[- ]?\d{1,4}[- ]?\d{1,4}$/', // Adjust regex for international formats
+            'string',
+            'max:255',
+            'regex:/^[a-zA-Z\s]+$/', // Only alphabets and spaces allowed
+        ],
+        'last_name' => [
+            'required',
+            'string',
+            'max:255',
+            'regex:/^[a-zA-Z\s]+$/', // Only alphabets and spaces allowed
+        ],
+        'email' => [
+            'required',
+            'string',
+            'email',
+            'max:255',
+            'unique:users,email,NULL,id,deleted_at,NULL', // Check uniqueness only for active users
+        ],
+        'password' => [
+            !isset($user) ? 'required' : 'nullable', // Password is required for new users, optional for updates
+            'string',
+            'min:8',
+            'confirmed', // Ensure the password matches the confirmation field
+        ],
+        'phone' => [
+            'required',
+            'regex:/^(\+?\d{1,3}[- ]?)?\(?\d{1,4}?\)?[- ]?\d{1,4}[- ]?\d{1,4}$/', // Allow international phone formats
             'max:20', // Ensure the phone number does not exceed 20 characters
         ],
         'address' => 'nullable|string|max:255',
-        'roles' => 'required|array', // Make sure this is required if it must be filled
+        'roles' => 'required|array', // Ensure at least one role is selected
         'permissions' => 'nullable|array',
+    ], [
+        'first_name.regex' => 'The first name may only contain letters and spaces.',
+        'last_name.regex' => 'The last name may only contain letters and spaces.',
+        'email.unique' => 'This email address is already associated with another account.',
+        'roles.required' => 'Please select at least one role.', // Custom message for roles validation
+        'phone.regex' => 'Please enter a valid phone number format.',
     ]);
-
+    
     // Create the user
     $user = User::create([
         'first_name' => $request->input('first_name'),
@@ -92,7 +119,7 @@ public function store(Request $request)
 
         $permissions = Permission::all();
         
-        return view('users.edit', compact('user', 'roles', 'permissions'));
+        return view('super_admin.users.edit', compact('user', 'roles', 'permissions'));
     }
 
     public function update(Request $request, User $user)

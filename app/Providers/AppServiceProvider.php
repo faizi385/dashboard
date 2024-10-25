@@ -4,10 +4,16 @@ namespace App\Providers;
 
 use App\Models\LP;
 use App\Models\User;
+use App\Models\Offer;
+use App\Models\Report;
+use App\Models\Carveout;
 use App\Models\Province;
 use App\Models\Retailer;
 use App\Observers\LpObserver;
 use App\Observers\UserObserver;
+use App\Observers\OfferObserver;
+use App\Observers\ReportObserver;
+use App\Observers\CarveoutObserver;
 use App\Observers\ProvinceObserver;
 use App\Observers\RetailerLogObserver;
 use Illuminate\Support\ServiceProvider;
@@ -35,5 +41,8 @@ class AppServiceProvider extends ServiceProvider
         Province::observe(ProvinceObserver::class);
         Retailer::observe(RetailerLogObserver::class);
         LP::observe(LpObserver::class);
+        Offer::observe(OfferObserver::class);
+        Carveout::observe(CarveoutObserver::class);
+        Report::observe(ReportObserver::class);
     }
 }

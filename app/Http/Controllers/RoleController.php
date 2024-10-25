@@ -25,21 +25,20 @@ class RoleController extends Controller
             $roles = Role::all();
         }
     
-        return view('roles.index', compact('roles'));
+        return view('super_admin.roles.index', compact('roles'));
     }
     
-
     public function create()
     {
         $permissions = Permission::all();
-        return view('roles.create', compact('permissions'));
+        return view('super_admin.roles.create', compact('permissions'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|regex:/^[a-zA-Z]+$/|max:255',
-            'permissions' => 'required|array|min:1', // Ensure at least one permission is selected
+            'name' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'],
+            'permissions' => 'nullable|array|min:1', // Ensure at least one permission is selected
             'permissions.*' => 'exists:permissions,id', // Ensure each permission ID exists in the database
         ]);
     
@@ -76,17 +75,23 @@ class RoleController extends Controller
         $permissions = Permission::all();
         $rolePermissions = $role->permissions->pluck('id')->toArray();
 
-        return view('roles.edit', compact('role', 'permissions', 'rolePermissions'));
+        return view('super_admin.roles.edit', compact('role', 'permissions', 'rolePermissions'));
     }   
 
     public function update(Request $request, Role $role)
     {
         $request->validate([
-            'name' => 'required|unique:roles,name,' . $role->id . ',id,created_by,' . auth()->id(),
+            'name' => [
+                'required', 
+                'string', 
+                'max:255', 
+                'regex:/^[a-zA-Z\s]+$/', // Ensure no numeric values
+                'unique:roles,name,' . $role->id . ',id,created_by,' . auth()->id(),
+            ],
             'permissions' => 'array', 
         ]);
 
-        $role->update(['name' => $request->name]);
+        $role->update(['original_name' => $request->name]);
 
         if ($request->has('permissions')) {
             $validPermissions = Permission::whereIn('id', $request->permissions)->pluck('id')->toArray();

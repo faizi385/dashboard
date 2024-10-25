@@ -3,17 +3,21 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LpController;
 use App\Http\Controllers\LogController;
-use App\Http\Controllers\FormController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\LpLogController;
 use App\Http\Controllers\OfferController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CarveoutController;
+use App\Http\Controllers\OfferLogController;
 use App\Http\Controllers\ProvinceController;
 use App\Http\Controllers\RetailerController;
+use App\Http\Controllers\ReportLogController;
 use App\Http\Controllers\ManageInfoController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\CarveoutLogController;
 use App\Http\Controllers\ProvinceLogController;
 use App\Http\Controllers\RetailerLogController;
 
@@ -46,11 +50,19 @@ Route::middleware('auth')->group(function () {
 //     Route::get('/', [ManageInfoController::class, 'index'])->name('index');
 //     Route::post('/', [ManageInfoController::class, 'update'])->name('update');
 // });
-Route::resource('users', UserController::class)->middleware('auth');
-Route::get('/profile', [App\Http\Controllers\UserController::class, 'profile'])->name('profile');
-Route::get('/settings', [App\Http\Controllers\UserController::class, 'settings'])->name('settings');
-Route::post('/settings', [UserController::class, 'updateSettings'])->name('settings.update');
+Route::middleware('auth')->group(function () {
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
+    Route::post('/users', [UserController::class, 'store'])->name('users.store');
+    Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
+    Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+    Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+});
 
+Route::get('/profile', [UserController::class, 'profile'])->name('profile');
+Route::get('/settings', [UserController::class, 'settings'])->name('settings');
+Route::post('/settings', [UserController::class, 'updateSettings'])->name('settings.update');
 
 Route::get('/permissions', [PermissionController::class, 'index'])->name('permissions.index');
 Route::resource('permissions', PermissionController::class);
@@ -135,6 +147,8 @@ Route::get('/offers', [OfferController::class, 'index'])->name('offers.index');
 Route::get('offers/{id}/edit', [OfferController::class, 'edit'])->name('offers.edit');
 Route::put('offers/{id}', [OfferController::class, 'update'])->name('offers.update');
 Route::delete('offers/{id}', [OfferController::class, 'destroy'])->name('offers.destroy');
+Route::get('/offer-logs', [OfferLogController::class, 'index'])->name('offer.logs.index');
+
 // Carveout Routes
 Route::get('/carveouts', [CarveoutController::class, 'index'])->name('carveouts.index');
 Route::get('/carveouts/create', [CarveoutController::class, 'create'])->name('carveouts.create');
@@ -149,8 +163,30 @@ Route::get('/carveouts/{lp_id}', [CarveoutController::class, 'index'])->name('ca
 Route::get('/lp/carveouts', [CarveoutController::class, 'lpIndex'])->name('lp.carveouts.index')->middleware('role:LP');
 Route::get('/carveouts/{id}', [CarveoutController::class, 'show'])->name('carveouts.show');
 
+Route::get('carveout-logs', [CarveoutLogController::class, 'index'])->name('carveout.logs.index');
 
-Route::get('/lp/products', [LpController::class, 'viewProducts'])->name('lp.products');
+
+Route::get('/lp/products', [ProductController::class, 'viewProducts'])->name('lp.products');
+
+// This route should be placed after the above route
+Route::get('lp/{lp_id}/products', [ProductController::class, 'viewProducts'])->name('lp.products.by.id');
+
+Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+Route::get('/products/{id}/edit', [ProductController::class, 'edit'])->name('products.edit');
+Route::delete('/products/{id}', [ProductController::class, 'destroy'])->name('products.destroy');
+Route::put('/products/{id}', [ProductController::class, 'update'])->name('products.update');
+Route::get('/products/variations/{lp_id}/{gtin}', [ProductController::class, 'showVariations'])->name('products.variations');
+
+Route::get('/retailers/{retailer}/addresses', [RetailerController::class, 'getAddresses']);
+
+
+Route::get('/retailers/{retailer}/reports/create', [ReportController::class, 'create'])->name('retailers.reports.create');
+Route::post('/retailers/{retailer}/reports', [ReportController::class, 'store'])->name('retailers.reports.store');
+Route::post('retailers/{retailer}/reports/import', [ReportController::class, 'import'])->name('retailers.reports.import');
+Route::get('/report-logs', [ReportLogController::class, 'index'])->name('report.logs.index');
+
+
+
 
 // Authentication routes
 require __DIR__.'/auth.php';

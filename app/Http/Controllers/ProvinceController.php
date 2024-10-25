@@ -10,12 +10,12 @@ class ProvinceController extends Controller
     public function index()
     {
         $provinces = Province::all();
-        return view('provinces.index', compact('provinces'));
+        return view('super_admin.provinces.index', compact('provinces'));
     }
 
     public function create()
     {
-        return view('provinces.create');
+        return view('super_admin.provinces.create');
     }
 
     public function store(Request $request)
@@ -23,8 +23,8 @@ class ProvinceController extends Controller
         $request->validate([
             'name' => 'required|string|max:255|unique:provinces',
             'slug' => 'required|string|max:255|unique:provinces',
-            'timezone_1' => 'string|max:255',
-            'timezone_2' => 'string|max:255',
+            'timezone_1' => 'nullable|string|max:255',
+            'timezone_2' => 'nullable|string|max:255',
             'tax_value' => [
                 'required',
                 'numeric',
@@ -41,7 +41,7 @@ class ProvinceController extends Controller
 
     public function edit(Province $province)
     {
-        return view('provinces.edit', compact('province'));
+        return view('super_admin.provinces.edit', compact('province'));
     }
 
     public function update(Request $request, Province $province)
@@ -50,7 +50,7 @@ class ProvinceController extends Controller
             'name' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:provinces,slug,' . $province->id,
             'timezone_1' => 'required|string|max:255',
-            'timezone_2' => 'required|string|max:255',
+            'timezone_2' => 'nullable|string|max:255',
             'tax_value' => 'required|numeric',
             'status' => 'required|boolean',
         ]);

@@ -4,16 +4,21 @@ namespace App\Imports;
 use App\Models\Offer;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class OffersImport implements ToModel, WithHeadingRow
 {
     protected $lpId;
+    protected $source; // Add a property to store the source
+    protected $errors = []; // Array to store error messages
+    protected $hasCheckedHeaders = false; // Flag to check if headers have been validated
 
-    // Constructor to accept the LP ID
-    public function __construct($lpId)
+    // Constructor to accept the LP ID and source
+    public function __construct($lpId, $source)
     {
         $this->lpId = $lpId;
+        $this->source = $source; // Initialize the source
     }
 
     /**
@@ -23,41 +28,57 @@ class OffersImport implements ToModel, WithHeadingRow
      */
     public function model(array $row)
     {
-        // Handle both 'GTIN (unit)' and 'gtin' headers
-        $gtin = (int)$row['gtin_unit'] ?? (int)$row['gtin'] ?? null;
-
-        // Handle both 'product' and 'product_name' headers
+      
+        $requiredHeaders = [
+            'gtin_unit', 'product', 
+            'offer_start', 'provincial_sku', 'province', 'data_fee', 
+            'category', 'brand', 'thc_range', 'cbd_range'
+        ];
+    
+        // Check if required headers are missing only once
+        if (!$this->hasCheckedHeaders) {
+            $missingHeaders = array_diff($requiredHeaders, array_keys($row));
+            if (!empty($missingHeaders)) {
+                // Remove underscores from missing headers
+                $formattedHeaders = array_map(function ($header) {
+                    return str_replace('_', ' ', $header); // Replace underscores with spaces
+                }, $missingHeaders);
+    
+                // Log an error and throw an exception to stop the import
+                $errorMessage = 'Missing headers: ' . implode(', ', $formattedHeaders);
+                Log::error($errorMessage);
+                $this->errors[] = $errorMessage;
+    
+                // Throw an exception to stop the import
+                throw new \Exception($errorMessage); // Stop the import completely
+            }
+    
+            $this->hasCheckedHeaders = true; // Set the flag to prevent further checks
+        }
+    
+        // Continue processing the row only if all headers are present
+        $gtin = (int)($row['gtin_unit'] ?? $row['gtin'] ?? null);
         $productName = $row['product'] ?? $row['product_name'] ?? null;
-
-        // Handle both 'Unit Cost (excl. HST)' and 'unit_cost' headers
         $unitCost = $row['unit_cost_excl_hst'] ?? $row['unit_cost'] ?? null;
-
-        // Handle both 'Case Quantity (Units per case)' and 'case_quantity' headers
         $caseQuantity = $row['case_quantity_units_per_case'] ?? $row['case_quantity'] ?? null;
-
-        // Handle 'Offer Start' header
         $offerStart = $row['offer_start'] ?? null;
+        
         if ($offerStart === null) {
             throw new \Exception("Offer start date cannot be null");
         }
-
-        // Default values for unit_cost and case_quantity
+    
         $unitCost = $unitCost ?? 0;
         $caseQuantity = $caseQuantity ?? 1;
-
-        // Handle 'Product Size' header
-        $productSize = $row['Product Size (g)'] ?? $row['product_size'] ?? null;
-
-        // Handle province and province_slug
-        $provinceSlug = $row['province'] ?? null; // Get the province abbreviation from the row
-        $province = $this->getFullProvinceName($provinceSlug); // Get the full province name based on the abbreviation
-
+        $productSize = $row['Product Size (g)'] ?? $row['product_size_g'] ?? null;
+        $provinceSlug = $row['province'] ?? null;
+        $province = $this->getFullProvinceName($provinceSlug);
+    
         return new Offer([
             'product_name' => $productName,
             'gtin' => $gtin,
             'provincial_sku' => $row['provincial_sku'] ?? null,
-            'province' => $province, // Save full province name
-            'province_slug' => $provinceSlug, // Save province abbreviation
+            'province' => $province,
+            'province_slug' => $provinceSlug,
             'data_fee' => $this->convertToFloat($row['data_fee'] ?? null),
             'unit_cost' => $this->convertToFloat($unitCost),
             'category' => $row['category'] ?? null,
@@ -69,10 +90,16 @@ class OffersImport implements ToModel, WithHeadingRow
             'cbd_range' => $row['cbd_range'] ?? null,
             'comment' => $row['comment'] ?? null,
             'product_link' => $row['product_link'] ?? null,
-            'lp_id' => $this->lpId, // Use the lpId passed to the constructor
+            'lp_id' => $this->lpId,
             'offer_date' => $this->parseDate($row['offer_date'] ?? null),
             'retailer_id' => $row['retailer_id'] ?? null,
+            'source' => $this->source,
         ]);
+    }
+    
+    public function getErrors()
+    {
+        return $this->errors; // Return collected errors
     }
 
     /**
@@ -84,7 +111,7 @@ class OffersImport implements ToModel, WithHeadingRow
             'ON' => 'Ontario',
             'AB' => 'Alberta',
             'BC' => 'British Columbia',
-            'SK' => 'shinchin',
+            'SK' => 'Saskatchewan',
         ];
 
         return $provinces[$slug] ?? null;

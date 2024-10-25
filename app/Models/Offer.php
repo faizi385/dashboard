@@ -4,12 +4,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Offer extends Model
 {
-    use HasFactory;
+    use HasFactory,SoftDeletes; 
 
     // Define fillable properties for mass assignment
     protected $fillable = [
@@ -33,7 +34,8 @@ class Offer extends Model
         'lp_id',
         'offer_date', 
         'retailer_id',
-        'province_slug',// Include this field in fillable
+        'province_slug',
+        'source',// Include this field in fillable
     ];
 
     // Define the relationship with the Lp model
