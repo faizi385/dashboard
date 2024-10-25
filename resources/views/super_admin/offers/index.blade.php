@@ -209,5 +209,16 @@
     .dataTables_wrapper .dataTables_filter label{
         color: black
     }
+    .dataTables_wrapper .dataTables_length{
+        color: black;
+    }
+
+
+    .dataTables_wrapper .dataTables_info{
+        color: black
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled{
+        color: black
+    }
 </style>
 @endsection

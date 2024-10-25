@@ -84,7 +84,18 @@ class ReportController extends Controller
             'location' => 'required|string|max:255',
             'pos' => 'required|string',
         ]);
-
+    
+        // Check if a report already exists for the given location in the current month
+        $existingReport = Report::where('retailer_id', $retailerId)
+            ->where('location', $request->location)
+            ->whereYear('date', now()->year)
+            ->whereMonth('date', now()->month)
+            ->first();
+    
+        if ($existingReport) {
+            return redirect()->back()->with('error', 'A report has already been uploaded for this location this month.');
+        }
+    
         // Create the report record with submitted_by and status
         $report = Report::create([
             'retailer_id' => $retailerId,
@@ -94,7 +105,6 @@ class ReportController extends Controller
             'status' => 'pending', // Default status
             'date' => now()->startOfMonth(),  
         ]);
-
         // Initialize file paths
         $file1Path = null;
         $file2Path = null;
@@ -263,7 +273,7 @@ class ReportController extends Controller
             $file1Path = $request->file('inventory_log_summary')->store('uploads');
             if ($request->pos === 'greenline') {
                 // Import GreenLine report and check for errors
-                $import = new GreenLineReportImport($request->location);
+                $import = new GreenLineReportImport($request->location, $report->id);
                 
                 try {
                     Excel::import($import, $file1Path);
