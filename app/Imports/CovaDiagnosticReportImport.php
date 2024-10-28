@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Imports;
 
 use App\Models\CovaDiagnosticReport;
@@ -14,6 +13,7 @@ class CovaDiagnosticReportImport implements ToModel, WithHeadingRow
     protected $reportId;
     protected $errors = []; // Array to store error messages
     protected $hasCheckedHeaders = false; // Flag to check if headers have been validated
+    protected $diagnosticReportId; // To store the last imported diagnostic report ID
 
     public function __construct($location, $reportId)
     {
@@ -52,7 +52,7 @@ class CovaDiagnosticReportImport implements ToModel, WithHeadingRow
         if (!$this->hasCheckedHeaders) {
             $missingHeaders = array_diff($requiredHeaders, array_keys($row));
             if (!empty($missingHeaders)) {
-                // Format the missing headers for better readability (replace underscores with spaces)
+                // Format the missing headers for better readability
                 $formattedHeaders = array_map(function ($header) {
                     return str_replace('_', ' ', $header); // Format headers for display
                 }, $missingHeaders);
@@ -65,16 +65,14 @@ class CovaDiagnosticReportImport implements ToModel, WithHeadingRow
         
                 // Throw an exception with the collected errors
                 throw new \Exception('' . implode(', ', $this->errors));
-        
-                // Set the flag to true so we don't re-check headers on every row
-                $this->hasCheckedHeaders = true;
-                return null; // Stop processing this row
             }
+
+            // Set the flag to true to prevent re-checking headers on every row
+            $this->hasCheckedHeaders = true;
         }
-        
 
         // Proceed with creating the model if headers are valid
-        return new CovaDiagnosticReport([
+        $diagnosticReport = new CovaDiagnosticReport([
             'product_name' => $row['product_name'] ?? null,
             'type' => $row['type'] ?? null,
             'aglc_sku' => $row['aglc_sku'] ?? null,
@@ -99,10 +97,22 @@ class CovaDiagnosticReportImport implements ToModel, WithHeadingRow
             'report_id' => $this->reportId,
             'location' => $this->location,
         ]);
+
+        $diagnosticReport->save(); // Save to get the ID
+
+        // Store the ID for later use
+        $this->diagnosticReportId = $diagnosticReport->id;
+
+        return $diagnosticReport; // Return the created model
     }
 
     public function getErrors()
     {
         return $this->errors; // Return collected errors
+    }
+
+    public function getId()
+    {
+        return $this->diagnosticReportId; // Return the ID of the last imported diagnostic report
     }
 }

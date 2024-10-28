@@ -85,15 +85,16 @@ class ReportController extends Controller
             'pos' => 'required|string',
         ]);
     
-        // Check if a report already exists for the given location in the current month
+        // Check if a report already exists for the given location and POS in the current month
         $existingReport = Report::where('retailer_id', $retailerId)
             ->where('location', $request->location)
+            ->where('pos', $request->pos)
             ->whereYear('date', now()->year)
             ->whereMonth('date', now()->month)
             ->first();
     
         if ($existingReport) {
-            return redirect()->back()->with('error', 'A report has already been uploaded for this location this month.');
+            return redirect()->back()->with('error', 'A report has already been uploaded for this location and POS this month.');
         }
     
         // Create the report record with submitted_by and status
@@ -105,9 +106,11 @@ class ReportController extends Controller
             'status' => 'pending', // Default status
             'date' => now()->startOfMonth(),  
         ]);
+    
         // Initialize file paths
         $file1Path = null;
         $file2Path = null;
+    
 
         // Check if POS system requires single file or multiple files
         if ($request->pos === 'cova') {
@@ -119,6 +122,11 @@ class ReportController extends Controller
                     // Import diagnostic report and check for errors
                     $diagnosticImport = new CovaDiagnosticReportImport($request->location, $report->id);
                     Excel::import($diagnosticImport, $file1Path);
+                    
+                    // Check for errors from diagnostic import
+                    if ($diagnosticImport->getErrors()) {
+                        return redirect()->back()->withErrors($diagnosticImport->getErrors());
+                    }
         
                 } catch (\Exception $e) {
                     // Catch any exceptions (including missing headers) and display the error
@@ -127,8 +135,13 @@ class ReportController extends Controller
         
                 try {
                     // Import sales summary report and check for errors
-                    $salesImport = new CovaSalesReportImport($request->location, $report->id);
+                    $salesImport = new CovaSalesReportImport($request->location, $report->id, $diagnosticImport->getId());
                     Excel::import($salesImport, $file2Path);
+        
+                    // Check for errors from sales summary import
+                    if ($salesImport->getErrors()) {
+                        return redirect()->back()->withErrors($salesImport->getErrors());
+                    }
         
                 } catch (\Exception $e) {
                     // Catch any exceptions (including missing headers) and display the error
@@ -138,6 +151,7 @@ class ReportController extends Controller
             } else {
                 return redirect()->back()->withErrors('Both diagnostic and sales summary reports are required for COVA.');
             }
+                
         
         
         

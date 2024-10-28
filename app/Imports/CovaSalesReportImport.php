@@ -11,13 +11,15 @@ class CovaSalesReportImport implements ToModel, WithHeadingRow
 {
     protected $location;
     protected $reportId;
+    protected $covaDiagnosticReportId; // Add this line to declare the variable
     protected $errors = []; // Array to store error messages
     protected $hasCheckedHeaders = false; // Flag to check if headers have been validated
 
-    public function __construct($location, $reportId)
+    public function __construct($location, $reportId, $covaDiagnosticReportId)
     {
         $this->location = $location;
         $this->reportId = $reportId;
+        $this->covaDiagnosticReportId = $covaDiagnosticReportId;
     }
 
     public function model(array $row)
@@ -76,6 +78,7 @@ class CovaSalesReportImport implements ToModel, WithHeadingRow
         // Proceed with creating the model if headers are valid
         return new CovaSalesReport([
             'report_id' => $this->reportId,
+            'cova_diagnostic_report_id' => $this->covaDiagnosticReportId, // Add this line to save the diagnostic report ID
             'product' => $row['product'] ?? null,
             'sku' => $row['sku'] ?? null,
             'classification' => $row['classification'] ?? null,

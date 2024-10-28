@@ -1,24 +1,27 @@
 <?php
-use App\Traits\TechPosIntegration; // Ensure this trait exists
+
+namespace App\Reconciliations;
+
+use App\Traits\BarnetIntegration; // Ensure this trait exists
 use Illuminate\Support\Facades\DB;
-use App\Models\TechPosReport; // Ensure you have this model set up
+use App\Models\BarnetPosReport; // Ensure you have this model set up
 use Illuminate\Support\Facades\Log;
 
-class TechPosReconciliation
+class BarnetReconciliation
 {
-    use TechPosIntegration; // Use the TechPosIntegration trait
+    use BarnetIntegration; // Use the BarnetIntegration trait
 
     /**
-     * Run the reconciliation process for TechPos reports.
+     * Run the reconciliation process for Barnet reports.
      */
     public function runReconciliation()
     {
         // Set the limit for reports to process
         $limit = 1; // You can adjust this limit
 
-        // Fetch pending TechPos reports from the 'reports' table
+        // Fetch pending Barnet reports from the 'reports' table
         $reports = DB::table('reports')
-            ->where('pos', 'techpos')
+            ->where('pos', 'barnet')
             ->where('status', 'pending')
             ->limit($limit)
             ->get();
@@ -30,21 +33,21 @@ class TechPosReconciliation
                 // Mark report as started
                 DB::table('reports')->where('id', $report->id)->update(['status' => 'reconciliation_start']);
 
-                // Retrieve TechPos reports related to this report
-                $techPosReports = TechPosReport::where('report_id', $report->id)
+                // Retrieve Barnet reports related to this report
+                $barnetReports = BarnetPosReport::where('report_id', $report->id)
                     ->where(function ($query) {
                         $query->where('status', 'pending')
                               ->orWhere('status', 'error');
                     })
                     ->get();
 
-                dump('TechPos reports fetched -- ' . date('Y-m-d H:i:s'));
+                dump('Barnet reports fetched -- ' . date('Y-m-d H:i:s'));
 
-                // Process each TechPos report using the TechPosIntegration method
-                $this->processTechPosReports($techPosReports);
+                // Process each Barnet report using the BarnetIntegration method
+                $this->processBarnetReports($barnetReports);
 
-                // Update the TechPos reports to mark them as 'done'
-                DB::table('tech_pos_reports')
+                // Update the Barnet reports to mark them as 'done'
+                DB::table('barnet_pos_reports')
                     ->where('report_id', $report->id)
                     ->update(['status' => 'done']);
 
@@ -53,7 +56,7 @@ class TechPosReconciliation
 
             } catch (\Exception $e) {
                 // Log any errors encountered during processing
-                Log::error('Error in TechPos reconciliation: ' . $e->getMessage());
+                Log::error('Error in Barnet reconciliation: ' . $e->getMessage());
 
                 // Mark the report as failed if there's an error
                 DB::table('reports')->where('id', $report->id)->update(['status' => 'failed']);
@@ -65,7 +68,7 @@ class TechPosReconciliation
 }
 
 // Run the reconciliation process
-$techPosReconciliation = new TechPosReconciliation();
-$techPosReconciliation->runReconciliation();
+$barnetReconciliation = new BarnetReconciliation();
+$barnetReconciliation->runReconciliation();
 
-print_r('Reconciliation process completed successfully.');
+print_r('Barnet reconciliation process completed successfully.');

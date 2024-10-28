@@ -36,5 +36,6 @@ class CovaSalesReport extends Model
         'total_tax',
         'hst_13',
         'status',  
+        'cova_diagnostic_report_id',
     ];
 }

@@ -1,24 +1,26 @@
 <?php
-use App\Traits\TechPosIntegration; // Ensure this trait exists
-use Illuminate\Support\Facades\DB;
-use App\Models\TechPosReport; // Ensure you have this model set up
-use Illuminate\Support\Facades\Log;
+namespace App\Traits;
 
-class TechPosReconciliation
+use Illuminate\Support\Facades\DB;
+use App\Traits\OtherPOSIntegration;
+use Illuminate\Support\Facades\Log;
+use App\Models\OtherPOSReport; // Import your OtherPOSReport model
+
+class OtherPOSReconciliation
 {
-    use TechPosIntegration; // Use the TechPosIntegration trait
+    use OtherPOSIntegration; // Trait for Other POS specific integration
 
     /**
-     * Run the reconciliation process for TechPos reports.
+     * Run the reconciliation process for Other POS reports.
      */
     public function runReconciliation()
     {
         // Set the limit for reports to process
         $limit = 1; // You can adjust this limit
 
-        // Fetch pending TechPos reports from the 'reports' table
+        // Fetch pending Other POS reports from the 'reports' table
         $reports = DB::table('reports')
-            ->where('pos', 'techpos')
+            ->where('pos', 'otherpos')
             ->where('status', 'pending')
             ->limit($limit)
             ->get();
@@ -30,21 +32,21 @@ class TechPosReconciliation
                 // Mark report as started
                 DB::table('reports')->where('id', $report->id)->update(['status' => 'reconciliation_start']);
 
-                // Retrieve TechPos reports related to this report
-                $techPosReports = TechPosReport::where('report_id', $report->id)
+                // Retrieve Other POS reports related to this report
+                $otherPOSReports = OtherPOSReport::where('report_id', $report->id)
                     ->where(function ($query) {
                         $query->where('status', 'pending')
                               ->orWhere('status', 'error');
                     })
                     ->get();
 
-                dump('TechPos reports fetched -- ' . date('Y-m-d H:i:s'));
+                dump('Other POS reports fetched -- ' . date('Y-m-d H:i:s'));
 
-                // Process each TechPos report using the TechPosIntegration method
-                $this->processTechPosReports($techPosReports);
+                // Process each Other POS report
+                $this->processOtherPOSReports($otherPOSReports);
 
-                // Update the TechPos reports to mark them as 'done'
-                DB::table('tech_pos_reports')
+                // Update the Other POS reports to mark them as 'done'
+                DB::table('other_pos_reports')
                     ->where('report_id', $report->id)
                     ->update(['status' => 'done']);
 
@@ -53,19 +55,25 @@ class TechPosReconciliation
 
             } catch (\Exception $e) {
                 // Log any errors encountered during processing
-                Log::error('Error in TechPos reconciliation: ' . $e->getMessage());
+                Log::error('Error in Other POS reconciliation: ' . $e->getMessage());
 
                 // Mark the report as failed if there's an error
                 DB::table('reports')->where('id', $report->id)->update(['status' => 'failed']);
-
-                continue; // Move on to the next report
             }
         }
     }
+
+    /**
+     * Process Other POS reports.
+     *
+     * @param \Illuminate\Support\Collection $otherPOSReports
+     * @return void
+     */
+ 
 }
 
 // Run the reconciliation process
-$techPosReconciliation = new TechPosReconciliation();
-$techPosReconciliation->runReconciliation();
+$reconciliation = new OtherPOSReconciliation();
+$reconciliation->runReconciliation();
 
-print_r('Reconciliation process completed successfully.');
+print_r('Reconciliation process for Other POS completed successfully.');

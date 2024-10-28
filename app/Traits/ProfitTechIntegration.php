@@ -7,42 +7,43 @@ use App\Models\Product;
 use App\Models\Province;
 use App\Models\Retailer;
 use App\Models\CleanSheet;
-use App\Models\TechPOSReport; // Assuming this is your TechPOS report model
 use Illuminate\Support\Facades\Log;
+use App\Models\ProfitTechInventoryLog;
+use App\Models\ProfitTechReport; // Assuming this is your ProfitTech report model
 
-trait TechPOSIntegration
+trait ProfitTechIntegration
 {
     use ICIntegrationTrait;
 
     /**
-     * Process TechPOS reports and save to CleanSheet.
+     * Process ProfitTech reports and save to CleanSheet.
      *
      * @param array $reports
      * @return void
      */
-    public function processTechPOSReports($reports)
+    public function processProfitTechReports($reports)
     {
-        Log::info('Processing TechPOS reports:', ['reports' => $reports]);
+        Log::info('Processing ProfitTech reports:', ['reports' => $reports]);
 
         foreach ($reports as $report) {
-            // Retrieve the TechPOS report by report_id
-            $techPOSReport = TechPOSReport::with('report')->find($report->id);
+            // Retrieve the ProfitTech report by report_id
+            $profitTechReport = ProfitTechInventoryLog::with('report')->find($report->id);
 
-            if (!$techPOSReport) {
-                Log::warning('TechPOS report not found:', ['report_id' => $report->id]);
+            if (!$profitTechReport) {
+                Log::warning('ProfitTech report not found:', ['report_id' => $report->id]);
                 continue;
             }
 
-            $retailer_id = $techPOSReport->report->retailer_id ?? null;
-            $location = $techPOSReport->report->location ?? null;
+            $retailer_id = $profitTechReport->report->retailer_id ?? null;
+            $location = $profitTechReport->report->location ?? null;
 
             if (!$retailer_id) {
                 Log::warning('Retailer ID not found for report:', ['report_id' => $report->id]);
                 continue;
             }
 
-            $sku = $techPOSReport->sku;
-            $gtin = $techPOSReport->barcode;
+            $sku = $profitTechReport->product_sku;
+            $gtin = $profitTechReport->barcode;
 
             $provinceName = null;
             $provinceSlug = null;
@@ -61,9 +62,9 @@ trait TechPOSIntegration
             // Match the product using SKU and GTIN
             if (!empty($sku)) {
                 $product = $this->matchICSku($sku);
-            } elseif (!empty($techPOSReport->productname)) {
+            } elseif (!empty($profitTechReport->productname)) {
                 // If no SKU match, try to match product by name
-                $product = $this->matchICProductName($techPOSReport->productname);
+                $product = $this->matchICProductName($profitTechReport->productname);
             }
             if ($product) {
                 // Fetch province information
@@ -72,18 +73,18 @@ trait TechPOSIntegration
                 $provinceSlug = $province->slug ?? null;
 
                 // Fetch LP name using lp_id
-                $lpName = Product::find($product->id)->lp->name ?? null; // Assuming you have a relationship set up in Product model
+                $lpName = Product::find($product->id)->lp->name ?? null;
                 
                 // Calculate dqi_fee and dqi_per
-                $dqi_fee = $this->calculateDqiFee($techPOSReport, $product);
-                $dqi_per = $this->calculateDqiPer($techPOSReport, $product);
+                $dqi_fee = $this->calculateDqiFee($profitTechReport, $product);
+                $dqi_per = $this->calculateDqiPer($profitTechReport, $product);
 
                 $cleanSheetData = [
                     'retailer_id' => $retailer_id,
                     'lp_id' => $product->lp_id,
                     'report_id' => $report->id,
-                    'retailer_name' => $retailerName, // Use fetched Retailer name
-                    'lp_name' => $lpName, // Use fetched LP name
+                    'retailer_name' => $retailerName,
+                    'lp_name' => $lpName,
                     'thc_range' => $product->thc_range,
                     'cbd_range' => $product->cbd_range,
                     'size_in_gram' =>  $product->product_size,
@@ -91,28 +92,29 @@ trait TechPOSIntegration
                     'province' => $provinceName,
                     'province_slug' => $provinceSlug,
                     'sku' => $sku,
-                    'product_name' =>  $techPOSReport->productname,
+                    'product_name' =>  $profitTechReport->productname,
                     'category' => $product->category,
                     'brand' => $product->brand,
-                    'sold' => $techPOSReport->quantitysoldunits ?? '0',
-                    'purchase' => $techPOSReport->quantitypurchasedunits ?? '0',
+                    'sold' => $profittechReports->quantity_sold_instore_units ?? '0',
+                    'purchase' => $profittechReports->quantity_purchased_units ?? '0',
                     'average_price' => $report->average_price,
                     'average_cost' => $report->average_cost,
                     'report_price_og' => $report->report_price_og,
                     'barcode' => $gtin,
                     'transfer_in' => $report->transfer_in,
                     'transfer_out' => $report->transfer_out,
-                    'pos' => 'TechPOS',
-                    'pos_report_id' => $techPOSReport->id,
+                    'pos' => 'ProfitTech',
+                    'pos_report_id' => $profitTechReport->id,
                     'comment' => 'Record found in the Master Catalog',
-                    'opening_inventory_unit' => $techPOSReport->openinventoryunits ?? '0',
-                    'closing_inventory_unit' => $techPOSReport->closinginventoryunits ?? '0',
-                    'purchase' => $techPOSReport->purchased ?? '0',
+                    'opening_inventory_unit' =>$profittechReports->opening_inventory_units ?? '0',
+                    'closing_inventory_unit' =>  $profittechReports->closing_inventory_units ?? '0',
+                    'purchase' => $profitTechReport->purchased ?? '0',
                     'dqi_fee' => $dqi_fee,
                     'dqi_per' => $dqi_per,
                     'reconciliation_date' => now(),
                 ];
-                $offers =$this->DQISummaryFlag($techPOSReport->sku,$techPOSReport->barcode,$techPOSReport->productname); // Get the offers
+
+                $offers =$this->DQISummaryFlag($profitTechReport->product_sku,'',''); // Get the offers
 
                 if (!empty($offers)) {
                     // Set DQI data in cleanSheetData
@@ -120,16 +122,16 @@ trait TechPOSIntegration
                     $cleanSheetData['dqi_fee'] = $dqi_fee;
                     $cleanSheetData['dqi_per'] = $dqi_per;
                 }
+                
                 $this->saveToCleanSheet($cleanSheetData);
             } else {
                 Log::warning('Product not found for SKU and GTIN:', ['sku' => $sku, 'gtin' => $gtin, 'report_data' => $report]);
 
                 // Match the offer using SKU and GTIN
                 $offer = !empty($sku) ? $this->matchOfferSku($sku) : null;
-             
 
-                if (!$offer && !empty($techPOSReport->productname)) {
-                    $offer = $this->matchOfferProductName($techPOSReport->productname);
+                if (!$offer && !empty($profitTechReport->productname)) {
+                    $offer = $this->matchOfferProductName($profitTechReport->productname);
                 }
 
                 if ($offer) {
@@ -137,8 +139,8 @@ trait TechPOSIntegration
                     $lpName = Offer::find($offer->id)->lp->name ?? null;
 
                     // Handle offer data if product not found
-                    $dqi_fee = $this->calculateDqiFee($techPOSReport, $offer);
-                    $dqi_per = $this->calculateDqiPer($techPOSReport, $offer);
+                    $dqi_fee = $this->calculateDqiFee($profitTechReport, $offer);
+                    $dqi_per = $this->calculateDqiPer($profitTechReport, $offer);
 
                     $cleanSheetData = [
                         'retailer_id' => $retailer_id,
@@ -156,20 +158,20 @@ trait TechPOSIntegration
                         'product_name' => $offer->product_name,
                         'category' => $offer->category,
                         'brand' => $offer->brand,
-                        'sold' => $techPOSReport->quantitysoldunits ?? '0',
-                        'purchase' =>$techPOSReport->quantitypurchasedunits ?? '0',
+                        'sold' => $profittechReports->quantity_sold_instore_units ?? '0',
+                        'purchase' => $profittechReports->quantity_purchased_units ?? '0',
                         'average_price' => $report->average_price,
                         'average_cost' => $report->average_cost,
                         'report_price_og' => $report->report_price_og,
                         'barcode' => $gtin,
                         'transfer_in' => $report->transfer_in,
                         'transfer_out' => $report->transfer_out,
-                        'pos' => 'TechPOS',
-                        'pos_report_id' => $techPOSReport->id,
+                        'pos' => 'ProfitTech',
+                        'pos_report_id' => $profitTechReport->id,
                         'comment' => 'Record found in the Offers Table',
-                        'opening_inventory_unit' => $techPOSReport->openinventoryunits ?? '0',
-                        'closing_inventory_unit' =>$techPOSReport->closinginventoryunits ?? '0',
-                        'purchase' => $techPOSReport->purchased ?? '0',
+                        'opening_inventory_unit' => $profittechReports->opening_inventory_units ?? '0',
+                        'closing_inventory_unit' => $profittechReports->closing_inventory_units ?? '0',
+                        'purchase' => $profitTechReport->purchased ?? '0',
                         'dqi_fee' => $dqi_fee,
                         'dqi_per' => $dqi_per,
                         'reconciliation_date' => now(),
@@ -191,26 +193,26 @@ trait TechPOSIntegration
                         'location' => $location,
                         'province' => null,
                         'province_slug' => null,
-                        'sku' => $techPOSReport->$sku,
-                        'product_name' => $techPOSReport->productname,
-                        'category' => $techPOSReport->category,
-                        'brand' => $techPOSReport->brand,
-                        'sold' => $techPOSReport->quantitysoldunits ?? '0',
-                        'purchase' =>$techPOSReport->quantitypurchasedunits ?? '0',
+                        'sku' => $profitTechReport->$sku,
+                        'product_name' => $profitTechReport->productname,
+                        'category' => $profitTechReport->category,
+                        'brand' => $profitTechReport->brand,
+                        'sold' => $profittechReports->quantity_sold_instore_units ?? '0',
+                        'purchase' =>  $profittechReports->quantity_purchased_units ?? '0',
                         'average_price' => $report->average_price,
                         'average_cost' => $report->average_cost,
                         'report_price_og' => $report->report_price_og,
                         'barcode' => $gtin,
                         'transfer_in' => $report->transfer_in,
                         'transfer_out' => $report->transfer_out,
-                        'pos' => 'TechPOS',
-                        'pos_report_id' => $techPOSReport->id,
-                        'comment' => 'No match found, saved report as is',
-                        'opening_inventory_unit' => $techPOSReport->openinventoryunits ?? '0',
-                        'closing_inventory_unit' => $techPOSReport->closinginventoryunits ?? '0',
-                        'purchase' => $techPOSReport->purchased ?? '0',
-                        'dqi_fee' => null,
-                        'dqi_per' => null,
+                        'pos' => 'ProfitTech',
+                        'pos_report_id' => $profitTechReport->id,
+                        'comment' => 'Product not found in Master Catalog or Offers Table',
+                        'opening_inventory_unit' =>$profittechReports->opening_inventory_units ?? '0',
+                        'closing_inventory_unit' =>  $profittechReports->closing_inventory_units ?? '0',
+                        'purchase' => $profitTechReport->purchased ?? '0',
+                        'dqi_fee' => '0',
+                        'dqi_per' => '0',
                         'reconciliation_date' => now(),
                     ];
 
@@ -218,7 +220,5 @@ trait TechPOSIntegration
                 }
             }
         }
-
-        Log::info('Finished processing TechPOS reports.');
     }
 }
