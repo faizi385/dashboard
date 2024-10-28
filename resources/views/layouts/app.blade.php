@@ -281,7 +281,7 @@
                         @endif
         
                         <!-- Products Tab (Visible only to LPs) -->
-                        @if(auth()->user()->hasRole('Super Admin') || auth()->user()->hasRole('LP'))
+                        {{-- @if(auth()->user()->hasRole('Super Admin') || auth()->user()->hasRole('LP'))
                         <li class="nav-item">
                             <a href="{{ route('lp.products', ['from_sidebar' => true]) }}" 
                                class="nav-link {{ request()->routeIs('lp.products.index') || request()->get('from_sidebar') ? 'active' : '' }}">
@@ -289,7 +289,7 @@
                                 <p>Products</p>
                             </a>
                         </li>
-                    @endif
+                    @endif --}}
                     
                     <li class="nav-item">
                         <a href="{{ route('super_admin.reports.index') }}" class="nav-link {{ request()->routeIs('super_admin.reports.index') ? 'active' : '' }}">
