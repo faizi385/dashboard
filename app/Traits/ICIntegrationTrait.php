@@ -3,6 +3,7 @@
 namespace App\Traits;
 
 use App\Helpers\GeneralFunctions;
+use App\Models\InternalMasterCatalouge;
 use App\Models\Lp;
 use App\Models\LpVariableFeeStructure;
 use App\Models\Product;
@@ -36,47 +37,56 @@ trait ICIntegrationTrait
         }
     }
 
-    public function matchICBarcode(string $barcode)
+    public function matchICBarcode($barcode, $provinceName, $provinceSlug, $provinceId)
     {
-        $product = ProductVariation::where('gtin', $barcode)->first();
-
-        if ($product) {
-            Log::info('Product matched by barcode:', ['barcode' => $barcode, 'product_id' => $product->id]);
-            return $product;
+        $product = $this->matchBarcode($barcode);
+        if (!empty($product)) {
+            $product = $this->matchProvince($product, $provinceName, $provinceSlug, $provinceId);
         }
-
-        Log::warning('No product found for barcode:', ['barcode' => $barcode]);
-        return null;
+        return $product;
     }
 
-    public function matchICSku(string $sku)
+    public function matchBarcode($barcode)
     {
-        $product = ProductVariation::where('provincial_sku', $sku)->first();
-
-        if ($product) {
-            Log::info('Product matched by SKU:', ['sku' => $sku, 'product_id' => $product->id]);
-            return $product;
+        $GeneralFunction = new GeneralFunctions;
+        $Filterbarcode = $GeneralFunction->CleanGTIN($barcode);
+        $product = ProductVariation::where('gtin', $Filterbarcode)->get();
+        if (empty($product)) {
+            $product = ProductVariation::where('gtin', '00' . $Filterbarcode)->get();
         }
-
-        Log::warning('No product found for SKU:', ['sku' => $sku]);
-        return null;
+        return $product;
     }
 
-    public function matchICBarcodeSku(string $sku, string $gtin)
+    public function matchICSku($sku, $provinceName, $provinceSlug, $provinceId)
     {
-        $product = ProductVariation::where('provincial_sku', $sku)->where('gtin', $gtin)->first();
+        $product = ProductVariation::where('provincial_sku', trim($sku))->get();
+        if (!empty($product)) {
+            $product = $this->matchProvince($product, $provinceName, $provinceSlug, $provinceId);
+        }
+        return $product;
+    }
+    public function matchProvince($product, $provinceName, $provinceSlug, $provinceId)
+    {
+        $product = $product->where('province', trim($provinceName))->first();
+        return $product;
+    }
 
-        if ($product) {
-            Log::info('Product matched by SKU and GTIN:', [
-                'sku' => $sku,
-                'gtin' => $gtin,
-                'product_id' => $product->id
-            ]);
-            return $product;
+    public function matchICBarcodeSku($barcode, $sku, $provinceName, $provinceSlug, $provinceId)
+    {
+        $GeneralFunction = new GeneralFunctions;
+        $Filterbarcode = $GeneralFunction->CleanGTIN($barcode);
+        $product = ProductVariation::where('provincial_sku', trim($sku))->where('gtin', $barcode)->first();
+        if (empty($product)) {
+            $product = ProductVariation::where('gtin', $Filterbarcode)->where('provincial_sku', trim($sku))->first();
+            if (empty($product)) {
+                $product = ProductVariation::where('gtin', '00' . $Filterbarcode)->where('provincial_sku', trim($sku))->first();
+            }
+        }
+        if (!($product)) {
+            $product = ProductVariation::where('provincial_sku', trim($sku))->where('province', $provinceName)->first();
         }
 
-        Log::warning('No product found for SKU and GTIN:', ['sku' => $sku, 'gtin' => $gtin]);
-        return null;
+        return $product;
     }
 
     public function matchOfferBarcode($date, $barcode, $provinceName, $provinceSlug, $provinceId, $retailerId)

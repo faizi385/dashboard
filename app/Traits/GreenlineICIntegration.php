@@ -35,12 +35,12 @@ trait GreenlineICIntegration
         $sku = $greenlineReport->sku;
         $gtin = $greenlineReport->barcode;
         $productName = $greenlineReport->name;
-
-        $provinceName = null;
-        $provinceSlug = null;
+        $provinceId = $report->province_id;
+        $provinceName = $report->province;
+        $provinceSlug = $report->province_slug;
         $product = null;
-        $lpName = null;
-        $retailerName = null;
+//        $lpName = null;
+//        $retailerName = null;
 
         $retailer = Retailer::find($retailer_id);
         if ($retailer) {
@@ -50,23 +50,19 @@ trait GreenlineICIntegration
         }
 
         if (!empty($gtin) && !empty($sku)) {
-            $product = $this->matchICBarcodeSku($sku, $gtin);
+            $product = $this->matchICBarcodeSku($greenlineReport->barcode,$greenlineReport->sku,$provinceName,$provinceSlug,$provinceId);
         } if (!empty($sku) && empty($product)) {
-            $product = $this->matchICSku($sku);
+            $product = $this->matchICSku($greenlineReport->sku,$provinceName,$provinceSlug,$provinceId);
         } if (!empty($gtin) && empty($product)) {
-            $product = $this->matchICBarcode($gtin);
+            $product = $this->matchICBarcode($greenlineReport->barcode,$provinceName,$provinceSlug,$provinceId);
         }
         if ($product) {
-            $provinceName = $product->province;
-            $province = Province::where('name', $provinceName)->first();
-            $provinceSlug = $province->slug ?? null;
-
             $lpName = $product->lp->name ?? null;
             $lpId = $product->lp->id ?? null;
 
             $cleanSheetData['retailer_id'] = $retailer_id;
             $cleanSheetData['pos_report_id'] = $greenlineReport->id;
-            $cleanSheetData['retailer_name'] = $retailerName;
+            $cleanSheetData['retailer_name'] = $retailerName ?? null;
             $cleanSheetData['thc_range'] = $product->thc_range;
             $cleanSheetData['cbd_range'] = $product->cbd_range;
             $cleanSheetData['size_in_gram'] =  $product->product_size;
