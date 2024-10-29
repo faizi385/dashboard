@@ -25,7 +25,7 @@ trait GreenlineICIntegration
         Log::info('Processing Greenline reports:', ['reports' => $reports]);
         
         foreach ($reports as $report) {
-            // Retrieve the Greenline report by report_id
+        
             $greenlineReport = GreenlineReport::with('report')->find($report->id);
         
             if (!$greenlineReport) {
@@ -47,10 +47,10 @@ trait GreenlineICIntegration
             $provinceName = null;
             $provinceSlug = null;
             $product = null; 
-            $lpName = null; // Initialize LP Name variable
-            $retailerName = null; // Initialize Retailer Name variable
+            $lpName = null; 
+            $retailerName = null;
     
-            // Fetch Retailer Name
+        
             $retailer = Retailer::find($retailer_id);
             if ($retailer) {
                 $retailerName = trim("{$retailer->first_name} {$retailer->last_name}");
@@ -58,28 +58,24 @@ trait GreenlineICIntegration
                 Log::warning('Retailer not found:', ['retailer_id' => $retailer_id]);
             }
     
-            // Match the product using SKU and GTIN
+     
             if (!empty($gtin) && !empty($sku)) {
                 $product = $this->matchICBarcodeSku($sku, $gtin);
-            } elseif (!empty($gtin) && empty($sku)) {
-                $product = $this->matchICBarcode($gtin);
-            } elseif (empty($gtin) && !empty($sku)) {
+            } if (!empty($sku) && empty($product)) {
                 $product = $this->matchICSku($sku);
-            } else {
-                Log::warning('Both SKU and GTIN are empty for report:', ['report_id' => $report->id]);
-                continue;
+            } if (!empty($gtin) && empty($product)) {
+                $product = $this->matchICBarcode($gtin);
             }
-        
             if ($product) {
-                // Fetch province information
+            
                 $provinceName = $product->province;
                 $province = Province::where('name', $provinceName)->first();
                 $provinceSlug = $province->slug ?? null;
     
-                // Fetch LP name using lp_id
-                $lpName = Product::find($product->id)->lp->name ?? null; // Assuming you have a relationship set up in Product model
+          
+                $lpName = Product::find($product->id)->lp->name ?? null; 
                 
-                // Calculate dqi_fee and dqi_per
+
                 $dqi_fee = $this->calculateDqiFee($greenlineReport, $product);
                 $dqi_per = $this->calculateDqiPer($greenlineReport, $product);
         
@@ -88,8 +84,8 @@ trait GreenlineICIntegration
                     // 'lp_id' => $product->lp_id,
                     'report_id' => $report->id,
                  
-                    'retailer_name' => $retailerName, // Use fetched Retailer name
-                    'lp_name' => $lpName, // Use fetched LP name
+                    'retailer_name' => $retailerName,
+                    'lp_name' => $lpName, 
                     'thc_range' => $product->thc_range,
                     'cbd_range' => $product->cbd_range,
                     'size_in_gram' =>  $product->product_size,
@@ -121,6 +117,13 @@ trait GreenlineICIntegration
                 $offers =$this->DQISummaryFlag($greenlineReport->sku,$greenlineReport->barcode,$greenlineReport->name); // Get the offers
 
                 if (!empty($offers)) {
+                    if((int) $cleanSheetData['purchased'] > 0){
+                        $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offers->lp_id,$offers->lp,$offers->provincial,$product);
+                        $cleanSheet['c_flag'] = $checkCarveout ? 'yes' : 'no';
+                    }
+                    else{
+                        $cleanSheet['c_flag'] = '';
+                    }
                     $cleanSheetData['offer_id'] = $offers->id;
                     $cleanSheetData['lp_id'] = $product->lp_id;
                     $cleanSheetData['dqi_fee'] = $dqi_fee;
@@ -132,7 +135,7 @@ trait GreenlineICIntegration
             } else {
                 Log::warning('Product not found for SKU and GTIN:', ['sku' => $sku, 'gtin' => $gtin, 'report_data' => $report]);
     
-                // Match the offer using SKU and GTIN
+
                 $offer = null;
                 if (!empty($gtin) && !empty($sku)) {
                     $offer = $this->matchOfferProduct($sku, $gtin); 
@@ -143,10 +146,10 @@ trait GreenlineICIntegration
                 }
         
                 if ($offer) {
-                    // Fetch LP name using lp_id
-                    $lpName = Offer::find($offer->id)->lp->name ?? null; // Assuming you have a relationship set up in Offer model
+              
+                    $lpName = Offer::find($offer->id)->lp->name ?? null; 
     
-                    // Handle offer data if product not found
+       
                     $dqi_fee = $this->calculateDqiFee($greenlineReport, $offer);
                     $dqi_per = $this->calculateDqiPer($greenlineReport, $offer);
         
@@ -154,8 +157,9 @@ trait GreenlineICIntegration
                         'retailer_id' => $retailer_id,
                         'lp_id' => $offer->lp_id,
                         'report_id' => $report->id,
-                        'retailer_name' => $retailerName, // Use fetched Retailer name
-                        'lp_name' => $lpName, // Use fetched LP name
+                      'offer_id' => $offer->id,
+                        'retailer_name' => $retailerName, 
+                        'lp_name' => $lpName, 
                         'thc_range' => $offer->thc_range,
                         'cbd_range' => $offer->cbd_range,
                         'size_in_gram' => $offer->product_size,
@@ -185,28 +189,29 @@ trait GreenlineICIntegration
                         'reconciliation_date' => now(),
                     ];
         
-                    // Call saveToCleanSheet after finding the offer
+
                     $this->saveToCleanSheet($cleanSheetData);
                 } else {
-                    // If neither product nor offer is found, save report data as is
+              
                     Log::info('No product or offer found, saving report data as is:', ['report_data' => $report]);
     
                     $cleanSheetData = [
                         'retailer_id' => $retailer_id,
-                        'lp_id' => null, // or some default value if needed
+                        'lp_id' => null, 
                         'report_id' => $report->id,
-                        'retailer_name' => $retailerName, // Use fetched Retailer name or null
-                        'lp_name' => $lpName, // Use fetched LP name or null
-                        'thc_range' => null, // or some default value if needed
-                        'cbd_range' => null, // or some default value if needed
-                        'size_in_gram' => null, // or some default value if needed
+                        
+                        'retailer_name' => $retailerName,
+                        'lp_name' => $lpName, 
+                        'thc_range' => null, 
+                        'cbd_range' => null,
+                        'size_in_gram' => null, 
                         'location' => $location,
-                        'province' => null, // or some default value if needed
-                        'province_slug' => null, // or some default value if needed
+                        'province' => null, 
+                        'province_slug' => null, 
                         'sku' => $sku,
                         'product_name' => $greenlineReport->name,
-                        'category' => null, // or some default value if needed
-                        'brand' => null, // or some default value if needed
+                        'category' => null, 
+                        'brand' => null, 
                         'sold' => $greenlineReport->sold,
                         'purchase' => $report->purchase,
                         'average_price' => $report->average_price,
@@ -221,8 +226,8 @@ trait GreenlineICIntegration
                         'opening_inventory_unit' => $greenlineReport->opening ?? '0',
                         'closing_inventory_unit' => $greenlineReport->closing ?? '0',
                         'purchase' => $greenlineReport->purchased ?? '0',
-                        'dqi_fee' => null, // or some default value if needed
-                        'dqi_per' => null, // or some default value if needed
+                        'dqi_fee' => null,
+                        'dqi_per' => null, 
                         'reconciliation_date' => now(),
                     ];
         

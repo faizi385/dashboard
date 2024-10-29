@@ -110,7 +110,7 @@
     <select name="roles[]" id="roles" class="form-select @error('roles') is-invalid @enderror" oninput="removeValidation(this)">
         <option value="">Select a role</option>
         @foreach($roles as $role)
-            @if(!in_array($role->original_name, ['LP', 'Retailer', 'Super Admin']))
+            @if(!in_array($role->original_name, ['LP', 'Retailer']))
                 <option value="{{ $role->original_name }}" {{ isset($user) && $user->hasRole($role->name) ? 'selected' : '' }}>
                     {{ $role->original_name }}
                 </option>

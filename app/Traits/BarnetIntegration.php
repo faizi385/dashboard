@@ -9,7 +9,7 @@ use App\Models\Retailer;
 use App\Models\CleanSheet;
 use App\Models\BarnetPosReport;
 use Illuminate\Support\Facades\Log;
-use App\Models\BarnetReport; // Adjust the model name based on your application
+use App\Models\BarnetReport; 
 
 trait BarnetIntegration
 {
@@ -26,7 +26,7 @@ trait BarnetIntegration
         Log::info('Processing Barnet reports:', ['reports' => $reports]);
 
         foreach ($reports as $report) {
-            // Retrieve the Barnet report by report_id
+        
             $barnetReport = BarnetPosReport::with('report')->find($report->id);
 
             if (!$barnetReport) {
@@ -48,10 +48,9 @@ trait BarnetIntegration
             $provinceName = null;
             $provinceSlug = null;
             $product = null; 
-            $lpName = null; // Initialize LP Name variable
-            $retailerName = null; // Initialize Retailer Name variable
-
-            // Fetch Retailer Name
+            $lpName = null; 
+            $retailerName = null; 
+    
             $retailer = Retailer::find($retailer_id);
             if ($retailer) {
                 $retailerName = trim("{$retailer->first_name} {$retailer->last_name}");
@@ -59,29 +58,27 @@ trait BarnetIntegration
                 Log::warning('Retailer not found:', ['retailer_id' => $retailer_id]);
             }
 
-            // Match the product using SKU and GTIN
+     
             if (!empty($gtin) && !empty($sku)) {
                 $product = $this->matchICBarcodeSku($sku, $gtin);
-            } elseif (!empty($gtin) && empty($sku)) {
-                $product = $this->matchICBarcode($gtin);
-            } elseif (empty($gtin) && !empty($sku)) {
+            } if (!empty($sku) && empty($product)) {
                 $product = $this->matchICSku($sku);
-                
-            } elseif (!empty($techPOSReport->productname)) {
-                // If no SKU match, try to match product by name
+            } if (!empty($gtin) && empty($product)) {
+                $product = $this->matchICBarcode($gtin);
+            } if(!empty($techPOSReport->productname) && empty($product)) {
                 $product = $this->matchICProductName($barnetReport->productname);
             }
 
             if ($product) {
-                // Fetch province information
+       
                 $provinceName = $product->province;
                 $province = Province::where('name', $provinceName)->first();
                 $provinceSlug = $province->slug ?? null;
 
-                // Fetch LP name using lp_id
-                $lpName = Product::find($product->id)->lp->name ?? null; // Assuming you have a relationship set up in Product model
+              
+                $lpName = Product::find($product->id)->lp->name ?? null; 
 
-                // Calculate dqi_fee and dqi_per
+    
                 $dqi_fee = $this->calculateDqiFee($barnetReport, $product);
                 $dqi_per = $this->calculateDqiPer($barnetReport, $product);
 
@@ -122,6 +119,13 @@ trait BarnetIntegration
                 $offers =$this->DQISummaryFlag($barnetReport->product_sku,$barnetReport->barcode,$barnetReport->description); // Get the offers
 
                 if (!empty($offers)) {
+                    if((int) $cleanSheetData['purchased'] > 0){
+                        $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offers->lp_id,$offers->lp,$offers->provincial,$product);
+                        $cleanSheet['c_flag'] = $checkCarveout ? 'yes' : 'no';
+                    }
+                    else{
+                        $cleanSheet['c_flag'] = '';
+                    }
                     $cleanSheetData['offer_id'] = $offers->id;
                     $cleanSheetData['lp_id'] = $product->lp_id;
                     $cleanSheetData['dqi_fee'] = $dqi_fee;
@@ -131,7 +135,7 @@ trait BarnetIntegration
             } else {
                 Log::warning('Product not found for SKU and GTIN:', ['sku' => $sku, 'gtin' => $gtin, 'report_data' => $report]);
 
-                // Match the offer using SKU and GTIN
+             
                 $offer = null;
                 if (!empty($gtin) && !empty($sku)) {
                     $offer = $this->matchOfferProduct($sku, $gtin); 
@@ -142,10 +146,10 @@ trait BarnetIntegration
                 }
 
                 if ($offer) {
-                    // Fetch LP name using lp_id
+          
                     $lpName = Offer::find($offer->id)->lp->name ?? null;
 
-                    // Handle offer data if product not found
+         
                     $dqi_fee = $this->calculateDqiFee($barnetReport, $offer);
                     $dqi_per = $this->calculateDqiPer($barnetReport, $offer);
 
@@ -153,6 +157,7 @@ trait BarnetIntegration
                         'retailer_id' => $retailer_id,
                         'lp_id' => $offer->lp_id,
                         'report_id' => $report->id,
+                        'offer_id' => $offer->id,
                         'retailer_name' => $retailerName,
                         'lp_name' => $lpName,
                         'thc_range' => $offer->thc_range,
@@ -186,7 +191,7 @@ trait BarnetIntegration
 
                     $this->saveToCleanSheet($cleanSheetData);
                 } else {
-                    // If neither product nor offer is found, save report data as is
+           
                     Log::info('No product or offer found, saving report data as is:', ['report_data' => $report]);
 
                     $cleanSheetData = [

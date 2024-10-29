@@ -26,7 +26,7 @@ trait IdealIntegration
         Log::info('Processing IdealPOS reports:', ['reports' => $reports]);
 
         foreach ($reports as $report) {
-            // Attempt to find the report in ideal_diagnostic_reports or ideal_sales_summary_reports
+      
             $idealReport = IdealDiagnosticReport::with('report')->find($report->id);
 
             // if (!$idealReport) {
@@ -56,7 +56,7 @@ trait IdealIntegration
             $lpName = null;
             $retailerName = null;
 
-            // Fetch Retailer Name
+
             $retailer = Retailer::find($retailer_id);
             if ($retailer) {
                 $retailerName = trim("{$retailer->first_name} {$retailer->last_name}");
@@ -64,24 +64,23 @@ trait IdealIntegration
                 Log::warning('Retailer not found:', ['retailer_id' => $retailer_id]);
             }
 
-            // Match the product using SKU and GTIN
+    
             if (!empty($sku)) {
                 $product = $this->matchICSku($sku);
-            } elseif (!empty($idealReport->productname)) {
-                // If no SKU match, try to match product by name
+            } if (!empty($idealReport->productname) && empty($product)) {
                 $product = $this->matchICProductName($idealReport->description);
             }
 
             if ($product) {
-                // Fetch province information
+       
                 $provinceName = $product->province;
                 $province = Province::where('name', $provinceName)->first();
                 $provinceSlug = $province->slug ?? null;
 
-                // Fetch LP name using lp_id
+
                 $lpName = Product::find($product->id)->lp->name ?? null;
                 
-                // Calculate dqi_fee and dqi_per
+  
                 $dqi_fee = $this->calculateDqiFee($idealReport, $product);
                 $dqi_per = $this->calculateDqiPer($idealReport, $product);
 
@@ -119,6 +118,13 @@ trait IdealIntegration
                 $offers = $this->DQISummaryFlag($idealReport->sku, $idealReport->barcode, $idealReport->productname);
 
                 if (!empty($offers)) {
+                    if((int) $cleanSheetData['purchased'] > 0){
+                        $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offers->lp_id,$offers->lp,$offers->provincial,$product);
+                        $cleanSheet['c_flag'] = $checkCarveout ? 'yes' : 'no';
+                    }
+                    else{
+                        $cleanSheet['c_flag'] = '';
+                    }
                     $cleanSheetData['offer_id'] = $offers->id;
                     $cleanSheetData['lp_id'] = $product->lp_id;
                     $cleanSheetData['dqi_fee'] = $dqi_fee;
@@ -145,6 +151,7 @@ trait IdealIntegration
                         'retailer_id' => $retailer_id,
                         'lp_id' => $offer->lp_id,
                         'report_id' => $report->id,
+                        'offer_id' => $offer->id,
                         'retailer_name' => $retailerName,
                         'lp_name' => $lpName,
                         'thc_range' => $offer->thc_range,

@@ -26,7 +26,7 @@ trait GlobalTillIntegration
         Log::info('Processing GlobalTill reports:', ['reports' => $reports]);
 
         foreach ($reports as $report) {
-            // Attempt to find the report in global_till_diagnostic_reports
+     
             $globalTillReport = GlobalTillDiagnosticReport::with('report')->find($report->id);
 
             // Check in sales summary reports if not found in diagnostic reports
@@ -50,14 +50,14 @@ trait GlobalTillIntegration
             $sku = $globalTillReport->supplier_sku;
             $gtin = $globalTillReport->compliance_code;
 
-            // Initialize variables for product and retailer details
+         
             $provinceName = null;
             $provinceSlug = null;
             $product = null;
             $lpName = null;
             $retailerName = null;
 
-            // Fetch Retailer Name
+      
             $retailer = Retailer::find($retailer_id);
             if ($retailer) {
                 $retailerName = trim("{$retailer->first_name} {$retailer->last_name}");
@@ -65,27 +65,27 @@ trait GlobalTillIntegration
                 Log::warning('Retailer not found:', ['retailer_id' => $retailer_id]);
             }
 
-            // Match the product using SKU and GTIN
+          
             if (!empty($gtin) && !empty($sku)) {
                 $product = $this->matchICBarcodeSku($sku, $gtin);
-            } elseif (!empty($gtin)) {
-                $product = $this->matchICBarcode($gtin);
-            } elseif (!empty($sku)) {
+            } if (!empty($sku) && empty($product)) {
                 $product = $this->matchICSku($sku);
-            } else {
+            } if (!empty($gtin) && empty($product)) {
+                $product = $this->matchICBarcode($gtin);
+            } if (!empty($globalTillReport->product) && empty($product)) {
                 $product = $this->matchICProductName($globalTillReport->product);
             }
 
             if ($product) {
-                // Fetch province information
+            
                 $provinceName = $product->province;
                 $province = Province::where('name', $provinceName)->first();
                 $provinceSlug = $province->slug ?? null;
 
-                // Fetch LP name using lp_id
+              
                 $lpName = Product::find($product->id)->lp->name ?? null;
 
-                // Calculate dqi_fee and dqi_per
+           
                 $dqi_fee = $this->calculateDqiFee($globalTillReport, $product);
                 $dqi_per = $this->calculateDqiPer($globalTillReport, $product);
 
@@ -120,10 +120,17 @@ trait GlobalTillIntegration
                     'reconciliation_date' => now(),
                 ];
 
-                // Check for DQI offers
+         
                 $offers = $this->DQISummaryFlag($globalTillReport->supplier_sku, $globalTillReport->compliance_code, $globalTillReport->product);
 
                 if (!empty($offers)) {
+                    if((int) $cleanSheetData['purchased'] > 0){
+                        $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offers->lp_id,$offers->lp,$offers->provincial,$product);
+                        $cleanSheet['c_flag'] = $checkCarveout ? 'yes' : 'no';
+                    }
+                    else{
+                        $cleanSheet['c_flag'] = '';
+                    }
                     $cleanSheetData['offer_id'] = $offers->id;
                     $cleanSheetData['lp_id'] = $product->lp_id;
                     $cleanSheetData['dqi_fee'] = $dqi_fee;
@@ -134,7 +141,7 @@ trait GlobalTillIntegration
             } else {
                 Log::warning('Product not found for SKU and GTIN:', ['sku' => $sku, 'gtin' => $gtin, 'report_data' => $report]);
 
-                // Attempt to find an offer based on SKU or product name
+                
                 $offer = !empty($sku) ? $this->matchOfferSku($sku) : null;
 
                 if (!$offer && !empty($globalTillReport->productname)) {
@@ -151,6 +158,7 @@ trait GlobalTillIntegration
                         'retailer_id' => $retailer_id,
                         'lp_id' => $offer->lp_id,
                         'report_id' => $report->id,
+                        'offer_id' => $offer->id,
                         'retailer_name' => $retailerName,
                         'lp_name' => $lpName,
                         'thc_range' => $offer->thc_range,

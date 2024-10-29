@@ -9,7 +9,7 @@ use App\Models\Retailer;
 use App\Models\CleanSheet;
 use Illuminate\Support\Facades\Log;
 use App\Models\TendyDiagnosticReport;
-use App\Models\TendySalesSummaryReport; // Import the sales summary report model
+use App\Models\TendySalesSummaryReport; 
 
 trait TendyIntegration
 {
@@ -18,7 +18,7 @@ trait TendyIntegration
     /**
      * Process Tendy reports and save to CleanSheet.
      *
-     * @param array $reports
+     * @param array 
      * @return void
      */
     public function processTendyReports($reports)
@@ -26,7 +26,7 @@ trait TendyIntegration
         Log::info('Processing Tendy reports:', ['reports' => $reports]);
         
         foreach ($reports as $report) {
-            // Retrieve the Tendy report by report_id
+ 
             $tendyReport = TendyDiagnosticReport::find($report->id);
         
             if (!$tendyReport) {
@@ -51,7 +51,6 @@ trait TendyIntegration
             $lpName = null;
             $retailerName = null;
 
-            // Fetch Retailer Name
             $retailer = Retailer::find($retailer_id);
             if ($retailer) {
                 $retailerName = trim("{$retailer->first_name} {$retailer->last_name}");
@@ -59,7 +58,7 @@ trait TendyIntegration
                 Log::warning('Retailer not found:', ['retailer_id' => $retailer_id]);
             }
 
-            // Match the product using SKU from TendyDiagnosticReport and if not found, check TendySalesSummaryReport
+          
             if (!empty($sku)) {
                 $product = $this->matchICSku($sku);
             }
@@ -69,11 +68,9 @@ trait TendyIntegration
             //     $product = $this->matchICProductName($tendyReport->product);
             // }
 
-            // If still not found, check TendySalesSummaryReport for SKU
-            if (!$product && !empty($sku)) {
-                $tendySalesReport = TendySalesSummaryReport::where('sku', $sku)->first();
+            if (empty($sku) && empty($product)) {
+                $tendySalesReport = TendySalesSummaryReport::where('diagnostic_report_id ', $tendyReport->id)->first();
                 if ($tendySalesReport) {
-                    // Try to match product by name from sales summary
                     $product = $this->matchICProductName($tendySalesReport->product);
                 }
             }
@@ -102,10 +99,7 @@ trait TendyIntegration
                     'product_name' => $tendyReport->product,
                     'category' => $product->category,
                     'brand' => $product->brand,
-                    // Check for net_qty_sold in TendySalesSummaryReport
                     'sold' => isset($tendyReport->net_qty_sold) ? $tendySalesReport->net_qty_sold : '0',
-              
-
                     'purchase' => $tendyReport->quantity_purchased_units ?? '0',
                     'average_price' =>       isset($tendyReport->avg_retail_price) ? $tendySalesReport->avg_retail_price: '0',
                     'average_cost' => $report->average_cost,
@@ -118,9 +112,8 @@ trait TendyIntegration
                     'comment' => 'Record found in the Master Catalog',
                     'opening_inventory_unit' => $tendyReport->opening_inventory_units ?? '0',
                     'closing_inventory_unit' => $tendyReport->closing_inventory_units ?? '0',
-                
-                    'dqi_fee' => $dqi_fee,
-                    'dqi_per' => $dqi_per,
+                    // 'dqi_fee' => $dqi_fee,
+                    // 'dqi_per' => $dqi_per,
                     'reconciliation_date' => now(),
                 ];
     
@@ -128,6 +121,13 @@ trait TendyIntegration
                 $offers = $this->DQISummaryFlag($tendyReport->product_sku, null, $product); // Get the offers
 
                 if (!empty($offers)) {
+                    if((int) $cleanSheetData['purchased'] > 0){
+                        $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offers->lp_id,$offers->lp,$offers->provincial,$product);
+                        $cleanSheet['c_flag'] = $checkCarveout ? 'yes' : 'no';
+                    }
+                    else{
+                        $cleanSheet['c_flag'] = '';
+                    }
                     $cleanSheetData['offer_id'] = $offers->id;
                     $cleanSheetData['lp_id'] = $product->lp_id;
                     $cleanSheetData['dqi_fee'] = $dqi_fee;
@@ -155,6 +155,7 @@ trait TendyIntegration
                             'retailer_id' => $retailer_id,
                             'lp_id' => $offer->lp_id,
                             'report_id' => $report->id,
+                            'offer_id' => $offer->id,
                             'retailer_name' => $retailerName,
                             'lp_name' => $lpName,
                             'thc_range' => $offer->thc_range,
