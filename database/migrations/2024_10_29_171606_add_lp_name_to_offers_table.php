@@ -15,6 +15,7 @@ return new class extends Migration
     {
         Schema::table('offers', function (Blueprint $table) {
             $table->string('lp_name')->after('lp_id')->nullable(); // Add lp_name column
+            $table->unsignedBigInteger('province_id')->nullable()->after('gtin'); // Add province_id column
         });
     }
     
@@ -22,6 +23,7 @@ return new class extends Migration
     {
         Schema::table('offers', function (Blueprint $table) {
             $table->dropColumn('lp_name'); // Drop lp_name column if the migration is rolled back
+            $table->dropColumn('province_id'); // Drop province_id column if needed
         });
     }
     

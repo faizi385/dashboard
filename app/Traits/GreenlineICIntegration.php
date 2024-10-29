@@ -12,10 +12,11 @@ use App\Models\Retailer;
 use App\Models\CleanSheet;
 use App\Models\GreenlineReport;
 use Illuminate\Support\Facades\Log;
+// use App\Traits\ICIntegrationTrait;
 
 trait GreenlineICIntegration
 {
-    use ICIntegrationTrait;
+    // use ICIntegrationTrait;
 
     /**
      * Process Greenline reports and save to CleanSheet.
@@ -26,7 +27,7 @@ trait GreenlineICIntegration
     public function mapGreenlineCatalouge($greenlineReport,$report)
     {
         Log::info('Processing Greenline reports:', ['report' => $report]);
-        $cleanSheet = []; $cleanSheet['report_price_og'] = '0.00';
+        $cleanSheetData = []; $cleanSheetData['report_price_og'] = '0.00';
         $retailer_id = $greenlineReport->report->retailer_id ?? null;
         $location = $greenlineReport->report->location ?? null;
 
@@ -40,8 +41,6 @@ trait GreenlineICIntegration
         $provinceName = $report->province;
         $provinceSlug = $report->province_slug;
         $product = null;
-//        $lpName = null;
-//        $retailerName = null;
 
         $retailer = Retailer::find($retailer_id);
         if ($retailer) {
@@ -78,14 +77,16 @@ trait GreenlineICIntegration
             $cleanSheetData['sold'] = $greenlineReport->sold;
             $cleanSheetData['purchase'] = $greenlineReport->purchased ?? '0';
             $greenlineAveragePrice = trim(str_replace('$', '', trim($greenlineReport->average_price)));
+            $greenlineAveragePrice = trim($greenlineReport->average_price);
             if($greenlineAveragePrice != "0.00" && ((float)$greenlineAveragePrice > 0.00 || (float)$greenlineAveragePrice < 0.00)) {
                 $cleanSheetData['average_price'] = $greenlineAveragePrice;
             }
             else{
-                $greenlineAveragePrice = "0.00";
-                $cleanSheetData['average_price'] = "0.00";
+                $greenlineAveragePrice = 0.00;
+                $cleanSheetData['average_price'] = 0.00;
             }
             $greenlineAverageCost = trim(str_replace('$', '', trim($greenlineReport->average_cost)));
+            $greenlineAverageCost = trim($greenlineReport->average_cost);
             if ($greenlineAverageCost != "0.00" && ((float)$greenlineAverageCost > 0.00 || (float)$greenlineAverageCost < 0.00)) {
                 $cleanSheetData['average_cost'] = $greenlineAverageCost;
                 $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
@@ -117,8 +118,8 @@ trait GreenlineICIntegration
             $cleanSheetData['opening_inventory_unit'] = $greenlineReport->opening ?? '0';
             $cleanSheetData['closing_inventory_unit'] = $greenlineReport->closing ?? '0';
             $cleanSheetData['product_variation_id'] = $product->id;
-            $cleanSheetData['dqi_per'] = '';
-            $cleanSheetData['dqi_fee'] = '';
+            $cleanSheetData['dqi_per'] = 0.00;
+            $cleanSheetData['dqi_fee'] = 0.00;
             $offer = $this->DQISummaryFlag($report,$greenlineReport->sku,$greenlineReport->barcode,$greenlineReport->name,$provinceName,$provinceSlug,$provinceId);
             if (!empty($offer)) {
                 $cleanSheetData['offer_id'] = $offer->id;
@@ -135,15 +136,13 @@ trait GreenlineICIntegration
                 $cleanSheetData['flag'] = '3';
                 $TotalQuantityGet = $cleanSheetData['purchase'];
                 $TotalUnitCostGet = $cleanSheetData['average_cost'];
-                /***************************************************************************/
                 $TotalPurchaseCostMake = (float)$TotalQuantityGet * (float)$TotalUnitCostGet;
                 $FinalDQIFEEMake = (float)trim($offer->data, '%') * 100;
                 $FinalFeeInDollar = (float)$TotalPurchaseCostMake * $FinalDQIFEEMake / 100;
                 $cleanSheetData['dqi_per'] = $FinalDQIFEEMake;
                 $cleanSheetData['dqi_fee'] = number_format($FinalFeeInDollar,2);
-                /**************************************************************************/
                 $cleanSheetData['comment'] = 'Record found in the Master Catalog and Offer';
-                if( $cleanSheetData['average_cost'] == '0.00' && (int)$cleanSheet['average_cost'] == 0){
+                if( $cleanSheetData['average_cost'] == '0.00' && (int)$cleanSheetData['average_cost'] == 0){
                     $cleanSheetData['average_cost'] = $offers->unit_cost ?? "0.00";
                 }
             }
@@ -185,8 +184,8 @@ trait GreenlineICIntegration
                 $cleanSheetData['brand'] = $offer->brand;
                 $cleanSheetData['sold'] = $greenlineReport->sold;
                 $cleanSheetData['purchase'] = $greenlineReport->purchased ?? '0';
-                if((int) $cleanSheet['purchase'] > 0){
-                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku);
+                if((int) $cleanSheetData['purchase'] > 0){
+                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku,$product);
                     $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
                 }
                 else{
@@ -194,6 +193,7 @@ trait GreenlineICIntegration
                 }
 
                 $greenlineAveragePrice = trim(str_replace('$', '', trim($greenlineReport->average_price)));
+                $greenlineAveragePrice = trim($greenlineReport->average_price);
                 if($greenlineAveragePrice != "0.00" && ((float)$greenlineAveragePrice > 0.00 || (float)$greenlineAveragePrice < 0.00)) {
                     $cleanSheetData['average_price'] = $greenlineAveragePrice;
                 }
@@ -202,6 +202,7 @@ trait GreenlineICIntegration
                     $cleanSheetData['average_price'] = "0.00";
                 }
                 $greenlineAverageCost = trim(str_replace('$', '', trim($greenlineReport->average_cost)));
+                $greenlineAverageCost = trim($greenlineReport->average_cost);
                 if ($greenlineAverageCost != "0.00" && ((float)$greenlineAverageCost > 0.00 || (float)$greenlineAverageCost < 0.00)) {
                     $cleanSheetData['average_cost'] = $greenlineAverageCost;
                     $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
@@ -238,8 +239,8 @@ trait GreenlineICIntegration
                 $cleanSheetData['comment'] = 'Record found in the Offers';
                 $cleanSheetData['dqi_flag'] = 1;
                 $cleanSheetData['product_variation_id'] = null;
-                $TotalQuantityGet = $cleanSheet['purchase'];
-                $TotalUnitCostGet = $cleanSheet['average_cost'];
+                $TotalQuantityGet = $cleanSheetData['purchase'];
+                $TotalUnitCostGet = $cleanSheetData['average_cost'];
                 $TotalPurchaseCostMake = (float)$TotalQuantityGet * (float)$TotalUnitCostGet;
                 $FinalDQIFEEMake = (float)trim($offer->data, '%') * 100;
                 $FinalFeeInDollar = (float)$TotalPurchaseCostMake * $FinalDQIFEEMake / 100;
@@ -252,22 +253,22 @@ trait GreenlineICIntegration
                 $cleanSheetData['pos_report_id'] = $greenlineReport->id;
                 $cleanSheetData['lp_id'] = null;
                 $cleanSheetData['retailer_name'] = $retailerName;
-                $cleanSheetData['lp_name'] = $lpName;
+                $cleanSheetData['lp_name'] = null;
                 $cleanSheetData['thc_range'] = null;
                 $cleanSheetData['cbd_range'] = null;
                 $cleanSheetData['size_in_gram'] = null;
                 $cleanSheetData['location'] = $location;
-                $cleanSheetData['province'] = null;
-                $cleanSheetData['province_slug'] = null;
+                $cleanSheetData['province'] = $provinceName;
+                $cleanSheetData['province_slug'] = $provinceSlug;
                 $cleanSheetData['sku'] = $sku;
                 $cleanSheetData['product_name'] = $greenlineReport->name;
                 $cleanSheetData['category'] = null;
                 $cleanSheetData['brand'] = null;
                 $cleanSheetData['sold'] = $greenlineReport->sold;
                 $cleanSheetData['purchase'] = $greenlineReport->purchased ?? '0';
-                $cleanSheetData['average_price'] = $report->average_price;
-                $cleanSheetData['average_cost'] = $report->average_cost;
-                $cleanSheetData['report_price_og'] = $report->report_price_og;
+                $cleanSheetData['average_price'] = $greenlineReport->average_price;
+                $cleanSheetData['average_cost'] = $greenlineReport->average_cost;
+                $cleanSheetData['report_price_og'] = $greenlineReport->average_cost;
                 $cleanSheetData['barcode'] = $gtin;
                 $cleanSheetData['report_id'] = $report->id;
                 $cleanSheetData['c_flag'] = '';
@@ -290,13 +291,13 @@ trait GreenlineICIntegration
                 $cleanSheetData['flag'] = '0';
                 $cleanSheetData['comment'] = 'No matching product or offer found.';
                 $cleanSheetData['dqi_flag'] = 0;
-                $cleanSheetData['ic_id'] = null;
-                $cleanSheetData['dqi_per'] = '';
-                $cleanSheetData['dqi_fee'] = '';
+                $cleanSheetData['product_variation_id'] = null;
+                $cleanSheetData['dqi_per'] = 0.00;
+                $cleanSheetData['dqi_fee'] = 0.00;
             }
         }
         $cleanSheetData['sold'] = $this->sanitizeNumeric($cleanSheetData['sold']);
-        $cleanSheetData['purchased'] = $this->sanitizeNumeric($cleanSheetData['purchased']);
+        $cleanSheetData['purchase'] = $this->sanitizeNumeric($cleanSheetData['purchase']);
         $cleanSheetData['average_price'] = $this->sanitizeNumeric($cleanSheetData['average_price']);
         $cleanSheetData['report_price_og'] = $this->sanitizeNumeric($cleanSheetData['report_price_og']);
         $cleanSheetData['average_cost'] = $this->sanitizeNumeric($cleanSheetData['average_cost']);

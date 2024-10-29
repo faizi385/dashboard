@@ -36,7 +36,8 @@ class Offer extends Model
         'retailer_id',
         'province_slug',
         'source',
-        'lp_name'
+        'lp_name',
+        'province_id'
     ];
 
     // Define the relationship with the Lp model

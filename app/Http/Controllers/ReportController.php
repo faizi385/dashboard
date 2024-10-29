@@ -95,10 +95,10 @@ class ReportController extends Controller
         return redirect()->back()->withErrors('Retailer or Retailer Address not found.');
     }
 
-    $province = Province::where('name', $address->province)->first();
+    $province = Province::where('id', $address->province)->first();
     // dd($address);
     if (!$province) {
-        return redirect()->back()->withErrors('Province not found.');
+        return redirect()->back()->with('error','Province not found.');
     }
 
 

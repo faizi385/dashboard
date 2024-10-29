@@ -2,6 +2,7 @@
 namespace App\Imports;
 
 use App\Models\Offer;
+use App\Models\Province;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Illuminate\Support\Facades\Log;
@@ -71,13 +72,16 @@ class OffersImport implements ToModel, WithHeadingRow
         $caseQuantity = $caseQuantity ?? 1;
         $productSize = $row['Product Size (g)'] ?? $row['product_size_g'] ?? null;
         $provinceSlug = $row['province'] ?? null;
-        $province = $this->getFullProvinceName($provinceSlug);
+        $province = Province::where('slug',$provinceSlug)->first();
+        $provinceName = $province->name;
+        $provinceId = $province->id;
     
         return new Offer([
             'product_name' => $productName,
             'gtin' => $gtin,
             'provincial_sku' => $row['provincial_sku'] ?? null,
-            'province' => $province,
+            'province' => $provinceName,
+            'province_id'=> $provinceId,
             'province_slug' => $provinceSlug,
             'data_fee' => $this->convertToFloat($row['data_fee'] ?? null),
             'unit_cost' => $this->convertToFloat($unitCost),
@@ -94,6 +98,7 @@ class OffersImport implements ToModel, WithHeadingRow
             'offer_date' => $this->parseDate($row['offer_date'] ?? null),
             'retailer_id' => $row['retailer_id'] ?? null,
             'source' => $this->source,
+            'offer_date' => now()->startOfMonth(), 
         ]);
     }
     

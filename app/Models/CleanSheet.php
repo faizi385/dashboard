@@ -24,6 +24,7 @@ class CleanSheet extends Model
         'size_in_gram',
         'location',
         'province_id',
+        'province_name',
         'province_slug',
         'sku',
         'product_name',
@@ -49,6 +50,7 @@ class CleanSheet extends Model
         'dqi_per',
         'offer_id',
         'pos_report_id',
+        'product_variation_id'
     ];
 
     // Optional: define relationships if needed

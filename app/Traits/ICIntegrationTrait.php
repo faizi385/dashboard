@@ -15,6 +15,7 @@ use App\Models\CleanSheet;
 use App\Models\Retailer;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use App\Traits\GreenlineICIntegration;
 
 trait ICIntegrationTrait
 {
@@ -97,27 +98,14 @@ trait ICIntegrationTrait
 
         $offer = Offer::where('offer_date', $date)
             ->where('GTin', $barcode)
-            ->where('province', $provinceName)
+            ->where('province_id', $provinceId)
             ->where('retailer_id', $retailerId)
             ->first();
-        if(empty($offer)){
-            $offer = Offer::where('offer_date', $date)
-                ->where('GTin', $barcode)
-                ->where('province', $provinceSlug)
-                ->where('retailer_id', $retailerId)
-                ->first();
-        }
         if(empty($offer)) {
             $offer = Offer::where('offer_date', $date)
                 ->where('GTin', $barcode)
-                ->where('province', $provinceName)
+                ->where('province_id', $provinceId)
                 ->first();
-            if (empty($offer)) {
-                $offer = Offer::where('offer_date', $date)
-                    ->where('GTin', $barcode)
-                    ->where('province', $provinceSlug)
-                    ->first();
-            }
         }
         if(empty($offer)){
             $offer = $this->matchOfferBarcodeWithOutZero($date, $barcode, $provinceName, $provinceSlug, $provinceId, $retailerId);
@@ -133,28 +121,15 @@ trait ICIntegrationTrait
         $barcode = $GeneralFunction->CleanGTIN($barcode);
 
         $offer = Offer::where('offer_date', $date)
-            ->where('GTin', $barcode)
-            ->where('province', $provinceName)
+            ->where('gtin', $barcode)
+            ->where('province_id', $provinceId)
             ->where('retailer_id', $retailerId)
             ->first();
-        if(empty($offer)){
-            $offer = Offer::where('offer_date', $date)
-                ->where('GTin', $barcode)
-                ->where('province', $provinceSlug)
-                ->where('retailer_id', $retailerId)
-                ->first();
-        }
         if(empty($offer)) {
             $offer = Offer::where('offer_date', $date)
-                ->where('GTin', $barcode)
-                ->where('province', $provinceName)
+                ->where('gtin', $barcode)
+                ->where('province_id', $provinceId)
                 ->first();
-            if (empty($offer)) {
-                $offer = Offer::where('offer_date', $date)
-                    ->where('GTin', $barcode)
-                    ->where('province', $provinceSlug)
-                    ->first();
-            }
         }
         return $offer;
     }
@@ -165,27 +140,14 @@ trait ICIntegrationTrait
 
         $offer = Offer::where('offer_date', $date)
             ->where('provincial_sku', $sku)
-            ->where('province', $provinceName)
+            ->where('province_id', $provinceId)
             ->where('retailer_id', $retailerId)
             ->first();
-        if(empty($offer)){
-            $offer = Offer::where('offer_date', $date)
-                ->where('provincial_sku', $sku)
-                ->where('province', $provinceSlug)
-                ->where('retailer_id', $retailerId)
-                ->first();
-        }
         if(empty($offer)) {
             $offer = Offer::where('offer_date', $date)
                 ->where('provincial_sku', $sku)
-                ->where('province', $provinceName)
+                ->where('province_id', $provinceId)
                 ->first();
-            if (empty($offer)) {
-                $offer = Offer::where('offer_date', $date)
-                    ->where('provincial_sku', $sku)
-                    ->where('province', $provinceSlug)
-                    ->first();
-            }
         }
         return $offer;
     }
@@ -218,27 +180,14 @@ trait ICIntegrationTrait
     {
         $offer = Offer::where('offer_date', $date)
             ->where('product_name', $productName)
-            ->where('province', $provinceName)
+            ->where('province_id', $provinceId)
             ->where('retailer_id', $retailerId)
             ->first();
-        if(empty($offer)){
-            $offer = Offer::where('offer_date', $date)
-                ->where('product_name', $productName)
-                ->where('province', $provinceSlug)
-                ->where('retailer_id', $retailerId)
-                ->first();
-        }
         if(empty($offer)) {
             $offer = Offer::where('offer_date', $date)
                 ->where('product_name', $productName)
-                ->where('province', $provinceName)
+                ->where('province_id', $provinceId)
                 ->first();
-            if (empty($offer)) {
-                $offer = Offer::where('offer_date', $date)
-                    ->where('product_name', $productName)
-                    ->where('province', $provinceSlug)
-                    ->first();
-            }
         }
         return $offer;
     }
@@ -256,7 +205,6 @@ trait ICIntegrationTrait
     public function DQISummaryFlag($report, $sku, $gtin, $productName, $provinceName, $provinceSlug, $provinceId)
     {
         $offer = null;
-
 //        if (!empty($gtin) && !empty($sku)) {
 //            $offer = $this->matchOfferProduct($sku, $gtin);
 //        } elseif (!empty($gtin)) {
