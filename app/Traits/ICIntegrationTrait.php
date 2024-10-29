@@ -2,8 +2,10 @@
 
 namespace App\Traits;
 
-use App\Models\Product;
+use App\Models\User;
 use App\Models\Offer;
+use App\Models\Product;
+use App\Models\Carveout;
 use App\Models\CleanSheet;
 use Illuminate\Support\Facades\Log;
 
@@ -143,4 +145,162 @@ trait ICIntegrationTrait
 
         return $offer;
     }
+
+    public function checkCarveOuts($report, $province_id, $province_name,  $lpID ,$lpName, $sku,$product)
+    {
+        if($lpName == null || $lpID == null){
+            return null;
+        }
+
+       $lp_name = Product::find($product->id)->lp->name ?? null;
+    
+        if($lp_name == null || empty($lp_name)){
+            return null;
+        }
+        $date = $report->date;
+
+
+        $checkCarveout = Carveout::where('retailer_id', $report->retailer_id)
+            ->where(function ($query) use ($lpName, $lp_name) {
+                $query->where('lp', $lp_name->name)
+                    ->orWhere('lp', $lpName);
+            })
+            ->where(function ($query) use ($province_id, $province_name) {
+                $query->where('location', $province_id);
+            })
+            ->where(function ($query) use ($date) {
+                $query->where('date', $date);
+
+            })
+            ->first();
+            if ($checkCarveout) {
+                if((!empty($checkCarveout->sku) || $checkCarveout->sku != null) && (!empty($checkCarveout->address_id) || $checkCarveout->address_id != null)){
+                    $checkCarveout = Carveout::where('retailer_id', $report->retailer_id)
+                                        ->where(function ($query) use ($lpName, $lp_name) {
+                                            $query->where('lp', $lp_name->name)
+                                                ->orWhere('lp', $lpName);
+                                        })
+                                        ->where(function ($query) use ($province_id, $province_name) {
+                                            $query->where('location', $province_id);
+                                        })
+                                        ->where(function ($query) use ($date) {
+                                            $query->where('date', $date);
+
+                                        })
+                                        ->where('sku',$sku)
+                                        ->where('address',$report->address_id)
+                                        ->first();
+                }
+                else if($checkCarveout->sku != null || !empty($checkCarveout->sku)){
+                    $checkCarveout = Carveout::where('retailer_id', $report->retailer_id)
+                                                ->where(function ($query) use ($lpName, $lp_name) {
+                                                    $query->where('lp', $lp_name->name)
+                                                        ->orWhere('lp', $lpName);
+                                                })
+                                                ->where(function ($query) use ($province_id, $province_name) {
+                                                    $query->where('location', $province_id);
+                                                })
+                                                ->where(function ($query) use ($date) {
+                                                    $query->where('date', $date);
+
+                                                })
+                                                ->where('sku',$sku)
+                                                ->first();
+                }
+
+                else if($checkCarveout->address != null || !empty($checkCarveout->address)){
+                    $checkCarveout = Carveout::where('retailer_id', $report->retailer_id)
+                                                    ->where(function ($query) use ($lpName, $lp_name) {
+                                                        $query->where('lp', $lp_name->name)
+                                                            ->orWhere('lp', $lpName);
+                                                    })
+                                                    ->where(function ($query) use ($province_id, $province_name) {
+                                                        $query->where('location', $province_id);
+                                                    })
+                                                    ->where(function ($query) use ($date) {
+                                                        $query->where('date', $date);
+
+                                                    })
+                                                    ->where('address',$report->address_id)
+                                                    ->first();
+                }
+            }
+
+            if(!$checkCarveout || empty($checkCarveout)) {
+                $checkCarveout = Carveout::where('retailer_id', $report->retailer_id)
+                                                    ->where(function ($query) use ($lpName, $lp_name) {
+                                                        $query->where('lp', $lp_name->name)
+                                                            ->orWhere('lp', $lpName);
+                                                    })
+                                                    ->where(function ($query) use ($province_id, $province_name) {
+                                                        $query->where('location', $province_name);
+                                                    })
+                                                    ->where(function ($query) use ($date) {
+                                                        $query->where('date', $date);
+
+                                                    })
+                                                    ->first();
+                if ($checkCarveout) {
+                    if((!empty($checkCarveout->sku) || $checkCarveout->sku != null) && (!empty($checkCarveout->address_id) || $checkCarveout->address_id != null)){
+                        $checkCarveout = Carveout::where('retailer_id', $report->retailer_id)
+                                                        ->where(function ($query) use ($lpName, $lp_name) {
+                                                            $query->where('lp', $lp_name->name)
+                                                                ->orWhere('lp', $lpName);
+                                                        })
+                                                        ->where(function ($query) use ($province_id, $province_name) {
+                                                            $query->where('location', $province_name);
+                                                        })
+                                                        ->where(function ($query) use ($date) {
+                                                            $query->where('date', $date);
+
+                                                        })
+                                                        ->where('sku',$sku)
+                                                        ->where('address',$report->address_id)
+                                                        ->first();
+                    }
+                    else if($checkCarveout->sku != null || !empty($checkCarveout->sku)){
+                        $checkCarveout = Carveout::where('retailer_id', $report->retailer_id)
+                                                        ->where(function ($query) use ($lpName, $lp_name) {
+                                                            $query->where('lp', $lp_name->name)
+                                                                ->orWhere('lp', $lpName);
+                                                        })
+                                                        ->where(function ($query) use ($province_id, $province_name) {
+                                                            $query->where('location', $province_name);
+                                                        })
+                                                        ->where(function ($query) use ($date) {
+                                                            $query->where('date', $date);
+
+                                                        })
+                                                        ->where('sku',$sku)
+                                                        ->first();
+                    }
+
+                    else if($checkCarveout->address != null || !empty($checkCarveout->address)){
+                        $checkCarveout = Carveout::where('retailer_id', $report->retailer_id)
+                                                        ->where(function ($query) use ($lpName, $lp_name) {
+                                                            $query->where('lp', $lp_name->name)
+                                                                ->orWhere('lp', $lpName);
+                                                        })
+                                                        ->where(function ($query) use ($province_id, $province_name) {
+                                                            $query->where('location', $province_name);
+                                                        })
+                                                        ->where(function ($query) use ($date) {
+                                                            $query->where('date', $date);
+
+                                                        })
+                                                        ->where('address',$report->address_id)
+                                                        ->first();
+                    }
+                }
+            }
+            return $checkCarveout;
+
+    }
+
+
+
+
+
+
+
 }

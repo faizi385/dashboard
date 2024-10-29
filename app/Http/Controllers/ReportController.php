@@ -54,29 +54,29 @@ class ReportController extends Controller
         return view('reports.create', compact('retailer', 'addresses'));
     }
 
-    public function import(Request $request, $retailerId)
-    {
-        $request->validate([
-            'inventory_log_summary' => 'required|file|mimes:xlsx,xls,csv',
-            'location' => 'required|string|max:255',
-        ]);
+    // public function import(Request $request, $retailerId)
+    // {
+    //     $request->validate([
+    //         'inventory_log_summary' => 'required|file|mimes:xlsx,xls,csv',
+    //         'location' => 'required|string|max:255',
+    //     ]);
 
-        // Store the uploaded file
-        $path = $request->file('inventory_log_summary')->store('uploads');
+    //     // Store the uploaded file
+    //     $path = $request->file('inventory_log_summary')->store('uploads');
 
-        // Import the GreenLine report and check for errors
-        $import = new GreenLineReportImport($request->location);
-        Excel::import($import, $path);
+    //     // Import the GreenLine report and check for errors
+    //     $import = new GreenLineReportImport($request->location);
+    //     Excel::import($import, $path);
 
-        // Get errors after import
-        $importErrors = $import->getErrors();
+    //     // Get errors after import
+    //     $importErrors = $import->getErrors();
 
-        if (!empty($importErrors)) {
-            return redirect()->back()->with('error', implode(', ', $importErrors));
-        }
+    //     if (!empty($importErrors)) {
+    //         return redirect()->back()->with('error', implode(', ', $importErrors));
+    //     }
 
-        return redirect()->back()->with('success', 'Greenline report imported successfully!');
-    }
+    //     return redirect()->back()->with('success', 'Greenline report imported successfully!');
+    // }
 
     public function store(Request $request, $retailerId)
     {
@@ -88,7 +88,7 @@ class ReportController extends Controller
         // Check if a report already exists for the given location and POS in the current month
         $existingReport = Report::where('retailer_id', $retailerId)
             ->where('location', $request->location)
-            ->where('pos', $request->pos)
+            // ->where('pos', $request->pos)
             ->whereYear('date', now()->year)
             ->whereMonth('date', now()->month)
             ->first();

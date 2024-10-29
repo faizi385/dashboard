@@ -13,18 +13,19 @@ class UserSeeder extends Seeder
     {
         // Create user 1
         $user1 = User::create([
-            'name' => 'faizanmoeen',
+            'first_name' => 'faizanmoeen',
+            'last_name' => 'moeen',
             'email' => 'admin@example.com',
             'password' => Hash::make('password'),
         ]);
 
         // Assign the Super Admin role
-        $superAdminRole = Role::where('name', 'super_admin_1')->first();
+        $superAdminRole = Role::where('first_name', 'super_admin_1')->first();
         if ($superAdminRole) {
             $user1->assignRole($superAdminRole);
         }
 
         // Optionally, create additional users
-        User::factory(9)->create(); // This will create 9 more users
+        // User::factory(9)->create(); // This will create 9 more users
     }
 }

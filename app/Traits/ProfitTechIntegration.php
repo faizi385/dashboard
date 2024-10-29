@@ -9,7 +9,7 @@ use App\Models\Retailer;
 use App\Models\CleanSheet;
 use Illuminate\Support\Facades\Log;
 use App\Models\ProfitTechInventoryLog;
-use App\Models\ProfitTechReport; // Assuming this is your ProfitTech report model
+
 
 trait ProfitTechIntegration
 {
@@ -26,7 +26,7 @@ trait ProfitTechIntegration
         Log::info('Processing ProfitTech reports:', ['reports' => $reports]);
 
         foreach ($reports as $report) {
-            // Retrieve the ProfitTech report by report_id
+       
             $profitTechReport = ProfitTechInventoryLog::with('report')->find($report->id);
 
             if (!$profitTechReport) {
@@ -48,10 +48,10 @@ trait ProfitTechIntegration
             $provinceName = null;
             $provinceSlug = null;
             $product = null;
-            $lpName = null; // Initialize LP Name variable
-            $retailerName = null; // Initialize Retailer Name variable
+            $lpName = null; 
+            $retailerName = null; 
 
-            // Fetch Retailer Name
+    
             $retailer = Retailer::find($retailer_id);
             if ($retailer) {
                 $retailerName = trim("{$retailer->first_name} {$retailer->last_name}");
@@ -59,23 +59,22 @@ trait ProfitTechIntegration
                 Log::warning('Retailer not found:', ['retailer_id' => $retailer_id]);
             }
 
-            // Match the product using SKU and GTIN
+           
             if (!empty($sku)) {
                 $product = $this->matchICSku($sku);
-            } elseif (!empty($profitTechReport->productname)) {
-                // If no SKU match, try to match product by name
+            } if (!empty($profitTechReport->productname) && empty($product)) {
                 $product = $this->matchICProductName($profitTechReport->productname);
             }
             if ($product) {
-                // Fetch province information
+               
                 $provinceName = $product->province;
                 $province = Province::where('name', $provinceName)->first();
                 $provinceSlug = $province->slug ?? null;
 
-                // Fetch LP name using lp_id
+      
                 $lpName = Product::find($product->id)->lp->name ?? null;
                 
-                // Calculate dqi_fee and dqi_per
+             
                 $dqi_fee = $this->calculateDqiFee($profitTechReport, $product);
                 $dqi_per = $this->calculateDqiPer($profitTechReport, $product);
 
@@ -114,10 +113,17 @@ trait ProfitTechIntegration
                     'reconciliation_date' => now(),
                 ];
 
-                $offers =$this->DQISummaryFlag($profitTechReport->product_sku,'',''); // Get the offers
+                $offers =$this->DQISummaryFlag($profitTechReport->product_sku,'','');
 
                 if (!empty($offers)) {
-                    // Set DQI data in cleanSheetData
+                    if((int) $cleanSheetData['purchased'] > 0){
+                        $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offers->lp_id,$offers->lp,$offers->provincial,$product);
+                        $cleanSheet['c_flag'] = $checkCarveout ? 'yes' : 'no';
+                    }
+                    else{
+                        $cleanSheet['c_flag'] = '';
+                    }
+                    $cleanSheetData['offer_id'] = $offers->id;
                     $cleanSheetData['lp_id'] = $product->lp_id;
                     $cleanSheetData['dqi_fee'] = $dqi_fee;
                     $cleanSheetData['dqi_per'] = $dqi_per;
@@ -127,7 +133,6 @@ trait ProfitTechIntegration
             } else {
                 Log::warning('Product not found for SKU and GTIN:', ['sku' => $sku, 'gtin' => $gtin, 'report_data' => $report]);
 
-                // Match the offer using SKU and GTIN
                 $offer = !empty($sku) ? $this->matchOfferSku($sku) : null;
 
                 if (!$offer && !empty($profitTechReport->productname)) {
@@ -135,10 +140,10 @@ trait ProfitTechIntegration
                 }
 
                 if ($offer) {
-                    // Fetch LP name using lp_id
+               
                     $lpName = Offer::find($offer->id)->lp->name ?? null;
 
-                    // Handle offer data if product not found
+
                     $dqi_fee = $this->calculateDqiFee($profitTechReport, $offer);
                     $dqi_per = $this->calculateDqiPer($profitTechReport, $offer);
 
@@ -146,6 +151,7 @@ trait ProfitTechIntegration
                         'retailer_id' => $retailer_id,
                         'lp_id' => $offer->lp_id,
                         'report_id' => $report->id,
+                        'offer_id' => $offer->id,
                         'retailer_name' => $retailerName,
                         'lp_name' => $lpName,
                         'thc_range' => $offer->thc_range,
