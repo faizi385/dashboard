@@ -13,6 +13,7 @@ class IdealDiagnosticReportImport implements ToModel, WithHeadingRow
     protected $reportId;
     protected $errors = []; // Array to store error messages
     protected $hasCheckedHeaders = false; // Flag to check if headers have been validated
+    protected $diagnosticReportId; // Stores the last imported diagnostic report ID
 
     public function __construct($location, $reportId)
     {
@@ -55,8 +56,8 @@ class IdealDiagnosticReportImport implements ToModel, WithHeadingRow
             }
         }
 
-        // Proceed with creating the model if headers are valid
-        return new IdealDiagnosticReport([
+        // Create the diagnostic report and save it to the database
+        $diagnosticReport = IdealDiagnosticReport::create([
             'report_id' => $this->reportId,
             'sku' => $row['sku'],
             'description' => $row['description'],
@@ -70,10 +71,18 @@ class IdealDiagnosticReportImport implements ToModel, WithHeadingRow
             'closing' => $row['closing'],
             'net_sales_ex' => $row['net_sales_ex'],
         ]);
+
+        // Store the ID of the last inserted diagnostic report
+        $this->diagnosticReportId = $diagnosticReport->id;
     }
 
     public function getErrors()
     {
         return $this->errors; // Return collected errors
+    }
+
+    public function getId()
+    {
+        return $this->diagnosticReportId; // Return the ID of the last imported diagnostic report
     }
 }

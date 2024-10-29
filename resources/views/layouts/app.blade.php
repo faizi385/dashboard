@@ -291,12 +291,12 @@
                         </li>
                     @endif
                     
-                    {{-- <li class="nav-item">
-                        <a href="{{ route('retailers.reports.create', ['retailer' => $retailer->id]) }}" class="nav-link {{ Route::currentRouteName() == 'reports.create' ? 'active' : '' }}">
+                    <li class="nav-item">
+                        <a href="{{ route('super_admin.reports.index') }}" class="nav-link {{ request()->routeIs('super_admin.reports.index') ? 'active' : '' }}">
                             <i class="nav-icon fas fa-file-alt"></i>
                             <p>Reports</p>
                         </a>
-                    </li> --}}
+                    </li>
                     
                     
                     

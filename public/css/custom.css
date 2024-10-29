@@ -310,7 +310,7 @@ table.dataTable tbody td, table.dataTable thead th {
      border: none; /* Remove border */
  }
  .dataTables_wrapper .dataTables_paginate .paginate_button.disabled{
-    color: #fff !important;
+    color: #fff ;
  }
 
  /* Search field styles */

@@ -10,13 +10,15 @@ use Illuminate\Support\Facades\Log;
 class GreenLineReportImport implements ToModel, WithHeadingRow
 {
     protected $location;
+    protected $reportId;
     protected $errors = []; 
     protected $hasCheckedHeaders = false; 
     protected $requiredHeaders = ['sku', 'name', 'barcode', 'brand', 'compliance_category', 'opening', 'sold', 'purchased', 'closing', 'average_price', 'average_cost'];
 
-    public function __construct($location)
+    public function __construct($location,$reportId)
     {
         $this->location = $location;
+        $this->reportId = $reportId;
     }
 
     public function model(array $row)
@@ -40,9 +42,6 @@ class GreenLineReportImport implements ToModel, WithHeadingRow
             }
         }
 
-        // Fetch the report ID based on the location
-        $report = Report::where('location', $this->location)->first();
-
         // Proceed with creating the model if headers are valid
         return new GreenLineReport([
             'sku' => $row['sku'] ?? null,
@@ -56,7 +55,7 @@ class GreenLineReportImport implements ToModel, WithHeadingRow
             'closing' => $row['closing'] ?? null,
             'average_price' => $this->convertToDecimal($row['average_price'] ?? null),
             'average_cost' => $this->convertToDecimal($row['average_cost'] ?? null),
-            'report_id' => $report ? $report->id : null,
+            'report_id' => $this->reportId,
         ]);
     }
 

@@ -23,6 +23,25 @@ use App\Imports\{
 
 class ReportController extends Controller
 {
+
+    public function index(Request $request, $retailer = null)
+{
+    // Get the currently authenticated user
+    $user = auth()->user();
+
+    // Check if the user is a retailer
+    if ($user->hasRole('Retailer')) {
+        // Fetch reports only for the logged-in retailer
+        $reports = Report::with('retailer')->where('retailer_id', $user->id)->get();
+    } else {
+        // Super admin: Fetch all reports
+        $reports = Report::with('retailer')->get();
+    }
+
+    return view('reports.index', compact('reports'));
+}
+
+
     public function create($retailerId)
     {
         // Find the retailer by ID
@@ -65,7 +84,19 @@ class ReportController extends Controller
             'location' => 'required|string|max:255',
             'pos' => 'required|string',
         ]);
-
+    
+        // Check if a report already exists for the given location and POS in the current month
+        $existingReport = Report::where('retailer_id', $retailerId)
+            ->where('location', $request->location)
+            ->where('pos', $request->pos)
+            ->whereYear('date', now()->year)
+            ->whereMonth('date', now()->month)
+            ->first();
+    
+        if ($existingReport) {
+            return redirect()->back()->with('error', 'A report has already been uploaded for this location and POS this month.');
+        }
+    
         // Create the report record with submitted_by and status
         $report = Report::create([
             'retailer_id' => $retailerId,
@@ -75,10 +106,11 @@ class ReportController extends Controller
             'status' => 'pending', // Default status
             'date' => now()->startOfMonth(),  
         ]);
-
+    
         // Initialize file paths
         $file1Path = null;
         $file2Path = null;
+    
 
         // Check if POS system requires single file or multiple files
         if ($request->pos === 'cova') {
@@ -90,6 +122,11 @@ class ReportController extends Controller
                     // Import diagnostic report and check for errors
                     $diagnosticImport = new CovaDiagnosticReportImport($request->location, $report->id);
                     Excel::import($diagnosticImport, $file1Path);
+                    
+                    // Check for errors from diagnostic import
+                    if ($diagnosticImport->getErrors()) {
+                        return redirect()->back()->withErrors($diagnosticImport->getErrors());
+                    }
         
                 } catch (\Exception $e) {
                     // Catch any exceptions (including missing headers) and display the error
@@ -98,8 +135,13 @@ class ReportController extends Controller
         
                 try {
                     // Import sales summary report and check for errors
-                    $salesImport = new CovaSalesReportImport($request->location, $report->id);
+                    $salesImport = new CovaSalesReportImport($request->location, $report->id, $diagnosticImport->getId());
                     Excel::import($salesImport, $file2Path);
+        
+                    // Check for errors from sales summary import
+                    if ($salesImport->getErrors()) {
+                        return redirect()->back()->withErrors($salesImport->getErrors());
+                    }
         
                 } catch (\Exception $e) {
                     // Catch any exceptions (including missing headers) and display the error
@@ -109,6 +151,7 @@ class ReportController extends Controller
             } else {
                 return redirect()->back()->withErrors('Both diagnostic and sales summary reports are required for COVA.');
             }
+                
         
         
         
@@ -142,7 +185,7 @@ class ReportController extends Controller
             }
         
         
-        } elseif ($request->pos === 'global') {
+        }elseif ($request->pos === 'global') {
             // Check for both diagnostic and sales summary report files
             if ($request->hasFile('diagnostic_report') && $request->hasFile('sales_summary_report')) {
                 $file1Path = $request->file('diagnostic_report')->store('uploads');
@@ -152,17 +195,20 @@ class ReportController extends Controller
                     // Import Global Till diagnostic report and check for errors
                     $diagnosticImport = new GlobalTillDiagnosticReportImport($request->location, $report->id);
                     Excel::import($diagnosticImport, $file1Path);
-                
+        
+                    // Get the ID of the imported diagnostic report
+                    $diagnosticReportId = $diagnosticImport->getId();
+        
                 } catch (\Exception $e) {
                     // Catch any exceptions (including missing headers) and display the error
                     return redirect()->back()->with('error', 'Diagnostic report errors: ' . $e->getMessage());
                 }
         
                 try {
-                    // Import Global Till sales summary report and check for errors
-                    $salesImport = new GlobalTillSalesSummaryReportImport($request->location, $report->id);
+                    // Import Global Till sales summary report and include diagnostic report ID
+                    $salesImport = new GlobalTillSalesSummaryReportImport($request->location, $report->id, $diagnosticReportId);
                     Excel::import($salesImport, $file2Path);
-                
+        
                 } catch (\Exception $e) {
                     // Catch any exceptions (including missing headers) and display the error
                     return redirect()->back()->with('error', 'Sales summary report errors: ' . $e->getMessage());
@@ -171,6 +217,7 @@ class ReportController extends Controller
             } else {
                 return redirect()->back()->withErrors('Both diagnostic and sales summary reports are required for GLOBAL TILL.');
             }
+        
         
         
         
@@ -191,8 +238,11 @@ class ReportController extends Controller
                     return redirect()->back()->with('error', $errorMessage);
                 }
         
+                // Retrieve the ID of the last inserted diagnostic report
+                // $diagnosticReportId = $diagnosticImport->getLastInsertedId();  // Assuming you added a method to retrieve the last inserted ID
+        
                 // Import Ideal sales summary report and check for errors
-                $salesImport = new IdealSalesSummaryReportImport($request->location, $report->id);
+                $salesImport = new IdealSalesSummaryReportImport($request->location, $report->id, $diagnosticImport->getId());
                 Excel::import($salesImport, $file2Path);
                 $salesImportErrors = $salesImport->getErrors();
         
@@ -205,6 +255,7 @@ class ReportController extends Controller
             } else {
                 return redirect()->back()->withErrors('Both diagnostic and sales summary reports are required for IDEAL.');
             }
+        
         
         
         }elseif ($request->pos === 'profittech') {
@@ -235,16 +286,14 @@ class ReportController extends Controller
                 return redirect()->back()->withErrors('The inventory log summary file is required for ProfitTech.');
             }
         
-        
-      
-        
+
         
         
         } elseif ($request->hasFile('inventory_log_summary')) {
             $file1Path = $request->file('inventory_log_summary')->store('uploads');
             if ($request->pos === 'greenline') {
                 // Import GreenLine report and check for errors
-                $import = new GreenLineReportImport($request->location);
+                $import = new GreenLineReportImport($request->location, $report->id);
                 
                 try {
                     Excel::import($import, $file1Path);

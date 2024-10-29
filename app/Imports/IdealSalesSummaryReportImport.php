@@ -11,18 +11,19 @@ class IdealSalesSummaryReportImport implements ToModel, WithHeadingRow
 {
     protected $location;
     protected $reportId;
+    protected $diagnosticReportId; // New property for the diagnostic report ID
     protected $errors = []; // Array to store error messages
     protected $hasCheckedHeaders = false; // Flag to check if headers have been validated
 
-    public function __construct($location, $reportId)
+    public function __construct($location, $reportId, $diagnosticReportId) // Add diagnosticReportId to constructor
     {
         $this->location = $location;
         $this->reportId = $reportId;
+        $this->diagnosticReportId = $diagnosticReportId; // Set diagnosticReportId
     }
 
     public function model(array $row)
     {
-   
         $requiredHeaders = [
             'sku',
             'product_description',
@@ -36,16 +37,15 @@ class IdealSalesSummaryReportImport implements ToModel, WithHeadingRow
         if (!$this->hasCheckedHeaders) {
             $missingHeaders = array_diff($requiredHeaders, array_keys($row));
             if (!empty($missingHeaders)) {
-                // Log an error and store the message
                 Log::error('Missing headers: ' . implode(', ', $missingHeaders));
 
                 // Format headers to replace underscores with spaces
                 $formattedHeaders = array_map(function ($header) {
-                    return str_replace('_', ' ', $header); // Replace underscores with spaces
+                    return str_replace('_', ' ', $header);
                 }, $missingHeaders);
 
-                $this->errors[] = 'Missing header: ' . implode(', ', $formattedHeaders); // Use formatted headers
-                $this->hasCheckedHeaders = true; // Set the flag to prevent further checks
+                $this->errors[] = 'Missing header: ' . implode(', ', $formattedHeaders);
+                $this->hasCheckedHeaders = true;
                 return null; // Stop processing this row
             }
         }
@@ -54,6 +54,7 @@ class IdealSalesSummaryReportImport implements ToModel, WithHeadingRow
         return new IdealSalesSummaryReport([
             'location' => $this->location,
             'report_id' => $this->reportId,
+            'ideal_diagnostic_report_id' => $this->diagnosticReportId, // Add the diagnostic report ID here
             'sku' => $row['sku'],
             'product_description' => $row['product_description'],
             'quantity_purchased' => $row['quantity_purchased'],
@@ -67,4 +68,6 @@ class IdealSalesSummaryReportImport implements ToModel, WithHeadingRow
     {
         return $this->errors; // Return collected errors
     }
+
+   
 }

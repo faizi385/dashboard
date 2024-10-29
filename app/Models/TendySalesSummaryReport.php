@@ -34,6 +34,7 @@ class TendySalesSummaryReport extends Model
         'gross_profit',
         'avg_retail_price',
         'gross_margin',
+        'status',  
     ];
 
     public function report()

@@ -184,6 +184,9 @@ Route::get('/retailers/{retailer}/reports/create', [ReportController::class, 'cr
 Route::post('/retailers/{retailer}/reports', [ReportController::class, 'store'])->name('retailers.reports.store');
 Route::post('retailers/{retailer}/reports/import', [ReportController::class, 'import'])->name('retailers.reports.import');
 Route::get('/report-logs', [ReportLogController::class, 'index'])->name('report.logs.index');
+Route::get('/retailers/{retailer}/reports', [ReportController::class, 'index'])->name('retailers.reports.index');
+Route::get('/super-admin/reports', [ReportController::class, 'index'])->name('super_admin.reports.index');
+Route::get('/retailer/reports', [ReportController::class, 'index'])->middleware('auth')->name('retailer.reports.index');
 
 
 

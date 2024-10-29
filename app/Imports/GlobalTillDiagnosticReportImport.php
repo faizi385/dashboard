@@ -14,6 +14,7 @@ class GlobalTillDiagnosticReportImport implements ToModel, WithHeadingRow
     protected $reportId;
     protected $errors = []; // Array to store error messages
     protected $hasCheckedHeaders = false; // Flag to check if headers have been validated
+    protected $diagnosticReportId; // To store the ID of the last imported diagnostic report
 
     public function __construct($location, $reportId)
     {
@@ -73,12 +74,13 @@ class GlobalTillDiagnosticReportImport implements ToModel, WithHeadingRow
                 }, $missingHeaders);
 
                 // Throw an exception for missing headers
-                throw new  \Exception('Missing headers' . implode(', ', $formattedHeaders)); 
+                throw new \Exception('Missing headers: ' . implode(', ', $formattedHeaders)); 
             }
+            $this->hasCheckedHeaders = true; // Set the flag to prevent further checks
         }
 
         // Proceed with creating the model if headers are valid
-        return new GlobalTillDiagnosticReport([
+        $diagnosticReport = new GlobalTillDiagnosticReport([
             'report_id' => $this->reportId,
             'storelocation' => $row['storelocation'] ?? null,
             'store_sku' => $row['store_sku'] ?? null,
@@ -100,10 +102,21 @@ class GlobalTillDiagnosticReportImport implements ToModel, WithHeadingRow
             'product_url' => $row['product_url'] ?? null,
             'inventory_transactions_url' => $row['inventory_transactions_url'] ?? null,
         ]);
+
+        $diagnosticReport->save();
+        $this->diagnosticReportId = $diagnosticReport->id; // Store the ID of the last imported diagnostic report
     }
 
     public function getErrors()
     {
         return $this->errors; // Return collected errors
     }
+
+    public function getId()
+    {
+        return $this->diagnosticReportId; // Return the ID of the last imported diagnostic report
+    }
 }
+
+
+

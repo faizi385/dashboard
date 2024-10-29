@@ -43,7 +43,7 @@
             border: none;
             border-radius: 5px;
             text-decoration: none;
-            margin-top: 20px;
+            margin-top: 2px;
         }
         .btn-complete:hover {
             background-color: #218838;
@@ -76,7 +76,7 @@
             
             <a href="{{ $link }}" class="btn-complete">Complete Your Details</a>
 
-            <p>If you have any questions or require further assistance, feel free to contact us at any time.</p>
+            <p class="mt-2">If you have any questions or require further assistance, feel free to contact us at any time.</p>
             <p>Thank you for your prompt attention to this matter.</p>
         </div>
 

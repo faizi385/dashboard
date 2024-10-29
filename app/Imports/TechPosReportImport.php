@@ -20,6 +20,8 @@ class TechPOSReportImport implements ToModel, WithHeadingRow
 
     public function model(array $row)
     {
+
+      
         // List of required headers for TechPOS
         $requiredHeaders = [
             'branchname', 'sku', 'productname', 'category', 'categoryparent', 'brand',
