@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Report;
 use App\Models\Retailer;
+use App\Models\Province;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\{
@@ -20,6 +21,7 @@ use App\Imports\{
     GlobalTillSalesSummaryReportImport,
     OtherPOSReportImport,
 };
+use App\Models\RetailerAddress;
 
 class ReportController extends Controller
 {
@@ -80,33 +82,49 @@ class ReportController extends Controller
 
     public function store(Request $request, $retailerId)
     {
-        $request->validate([
-            'location' => 'required|string|max:255',
-            'pos' => 'required|string',
-        ]);
-    
-        // Check if a report already exists for the given location and POS in the current month
-        $existingReport = Report::where('retailer_id', $retailerId)
-            ->where('location', $request->location)
-            // ->where('pos', $request->pos)
-            ->whereYear('date', now()->year)
-            ->whereMonth('date', now()->month)
-            ->first();
-    
-        if ($existingReport) {
-            return redirect()->back()->with('error', 'A report has already been uploaded for this location and POS this month.');
-        }
-    
-        // Create the report record with submitted_by and status
-        $report = Report::create([
-            'retailer_id' => $retailerId,
-            'location' => $request->location,
-            'pos' => $request->pos,
-            'submitted_by' => auth()->id(), // Assuming you're using Laravel's auth
-            'status' => 'pending', // Default status
-            'date' => now()->startOfMonth(),  
-        ]);
-    
+       
+    $request->validate([
+        'location' => 'required|string|max:255',
+        'pos' => 'required|string',
+    ]);
+
+   
+    $retailer = Retailer::find($retailerId);
+    $address = RetailerAddress::find($request->location);
+    if (!$retailer || !$address) {
+        return redirect()->back()->withErrors('Retailer or Retailer Address not found.');
+    }
+
+    $province = Province::where('name', $address->province)->first();
+    // dd($address);
+    if (!$province) {
+        return redirect()->back()->withErrors('Province not found.');
+    }
+
+
+    // Check if a report already exists for the given location and POS in the current month
+    $existingReport = Report::where('retailer_id', $retailerId)
+        ->where('location', $request->location)
+        ->whereYear('date', now()->year)
+        ->whereMonth('date', now()->month)
+        ->first();
+
+    if ($existingReport) {
+        return redirect()->back()->with('error', 'A report has already been uploaded for this location and POS this month.');
+    }
+
+    // Create the report record with province details, submitted_by, and status
+    $report = Report::create([
+        'retailer_id' => $retailerId,
+        'location' => $request->location,
+        'pos' => $request->pos,
+        'province' => $province->name,
+        'province_id' => $province->id,
+        'province_slug' => $province->slug,
+        'submitted_by' => auth()->id(), // Assuming you're using Laravel's auth
+        'status' => 'pending', // Default status
+        'date' => now()->startOfMonth(),  
+    ]);
         // Initialize file paths
         $file1Path = null;
         $file2Path = null;
