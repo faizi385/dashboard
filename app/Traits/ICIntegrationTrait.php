@@ -2,13 +2,20 @@
 
 namespace App\Traits;
 
+use App\Models\Lp;
 use App\Models\Product;
 use App\Models\Offer;
 use App\Models\CleanSheet;
+use App\Models\Retailer;
 use Illuminate\Support\Facades\Log;
 
 trait ICIntegrationTrait
 {
+    use CovaICIntegration;
+    public function covaMasterCatalouge($covaDaignosticReport, $report)
+    {
+        return $this->mapCovaMasterCatalouge($covaDaignosticReport, $report);
+    }
     public function saveToCleanSheet(array $cleanSheetData)
     {
         try {
@@ -134,13 +141,52 @@ trait ICIntegrationTrait
         $offer = null;
 
         if (!empty($gtin) && !empty($sku)) {
-            $offer = $this->matchOfferProduct($sku, $gtin); 
+            $offer = $this->matchOfferProduct($sku, $gtin);
         } elseif (!empty($gtin)) {
-            $offer = $this->matchOfferBarcode($gtin); 
+            $offer = $this->matchOfferBarcode($gtin);
         } elseif (!empty($sku)) {
-            $offer = $this->matchOfferSku($sku); 
+            $offer = $this->matchOfferSku($sku);
         }
 
         return $offer;
+    }
+
+    function getRetailerProvince($retailerReportSubmission)
+    {
+        if ($retailerReportSubmission->province == 'ON' || $retailerReportSubmission->province == 'Ontario') {
+            $provinceDetail['province_name'] = 'Ontario';
+            $provinceDetail['province_slug'] = 'ON';
+        } elseif ($retailerReportSubmission->province == 'MB' || $retailerReportSubmission->province == 'Manitoba') {
+            $provinceDetail['province_name'] = 'Manitoba';
+            $provinceDetail['province_slug'] = 'MB';
+        } elseif ($retailerReportSubmission->province == 'BC' || $retailerReportSubmission->province == 'British Columbia') {
+            $provinceDetail['province_name'] = 'British Columbia';
+            $provinceDetail['province_slug'] = 'BC';
+        } elseif ($retailerReportSubmission->province == 'AB' || $retailerReportSubmission->province == 'Alberta') {
+            $provinceDetail['province_name'] = 'Alberta';
+            $provinceDetail['province_slug'] = 'AB';
+        } elseif ($retailerReportSubmission->province == 'SK' || $retailerReportSubmission->province == 'Saskatchewan') {
+            $provinceDetail['province_name'] = 'Saskatchewan';
+            $provinceDetail['province_slug'] = 'SK';
+        }
+        return $provinceDetail;
+    }
+
+    public function getRetailerName($retailerId)
+    {
+        $retialer = Retailer::where('id',$retailerId)->first();
+        if($retialer){
+            return $retialer->DBA;
+        }
+        return '';
+    }
+
+    public function getlpID($lpName)
+    {
+        $lp = Lp::where('DBA',$lpName)->first();
+        if($lp){
+            return $lp->id;
+        }
+        return null;
     }
 }
