@@ -2,22 +2,29 @@
 
 namespace App\Traits;
 
+use App\Helpers\GeneralFunctions;
 use App\Models\Lp;
+use App\Models\LpVariableFeeStructure;
 use App\Models\Product;
+use App\Models\ProductVariation;
 use App\Models\User;
 use App\Models\Offer;
-use App\Models\Product;
 use App\Models\Carveout;
 use App\Models\CleanSheet;
 use App\Models\Retailer;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
 trait ICIntegrationTrait
 {
-    use CovaICIntegration;
+    use CovaICIntegration, GreenlineICIntegration;
     public function covaMasterCatalouge($covaDaignosticReport, $report)
     {
         return $this->mapCovaMasterCatalouge($covaDaignosticReport, $report);
+    }
+    public function greenlineMasterCatalouge($greenlineReports, $report)
+    {
+        return $this->mapGreenlineCatalouge($greenlineReports, $report);
     }
     public function saveToCleanSheet(array $cleanSheetData)
     {
@@ -31,7 +38,7 @@ trait ICIntegrationTrait
 
     public function matchICBarcode(string $barcode)
     {
-        $product = Product::where('gtin', $barcode)->first();
+        $product = ProductVariation::where('gtin', $barcode)->first();
 
         if ($product) {
             Log::info('Product matched by barcode:', ['barcode' => $barcode, 'product_id' => $product->id]);
@@ -44,7 +51,7 @@ trait ICIntegrationTrait
 
     public function matchICSku(string $sku)
     {
-        $product = Product::where('provincial_sku', $sku)->first();
+        $product = ProductVariation::where('provincial_sku', $sku)->first();
 
         if ($product) {
             Log::info('Product matched by SKU:', ['sku' => $sku, 'product_id' => $product->id]);
@@ -57,9 +64,7 @@ trait ICIntegrationTrait
 
     public function matchICBarcodeSku(string $sku, string $gtin)
     {
-        $product = Product::where('provincial_sku', $sku)
-            ->where('gtin', $gtin)
-            ->first();
+        $product = ProductVariation::where('provincial_sku', $sku)->where('gtin', $gtin)->first();
 
         if ($product) {
             Log::info('Product matched by SKU and GTIN:', [
@@ -74,30 +79,105 @@ trait ICIntegrationTrait
         return null;
     }
 
-    public function matchOfferBarcode(string $gtin)
+    public function matchOfferBarcode($date, $barcode, $provinceName, $provinceSlug, $provinceId, $retailerId)
     {
-        $offer = Offer::where('gtin', $gtin)->first();
+        $GeneralFunction = new GeneralFunctions;
+        $barcode = $GeneralFunction->CleanGTIN($barcode);
+        $barcode = '00'.$barcode;
 
-        if ($offer) {
-            Log::info('Offer matched by GTIN:', ['gtin' => $gtin, 'offer_id' => $offer->id]);
-            return $offer;
+        $offer = Offer::where('offer_date', $date)
+            ->where('GTin', $barcode)
+            ->where('province', $provinceName)
+            ->where('retailer_id', $retailerId)
+            ->first();
+        if(empty($offer)){
+            $offer = Offer::where('offer_date', $date)
+                ->where('GTin', $barcode)
+                ->where('province', $provinceSlug)
+                ->where('retailer_id', $retailerId)
+                ->first();
+        }
+        if(empty($offer)) {
+            $offer = Offer::where('offer_date', $date)
+                ->where('GTin', $barcode)
+                ->where('province', $provinceName)
+                ->first();
+            if (empty($offer)) {
+                $offer = Offer::where('offer_date', $date)
+                    ->where('GTin', $barcode)
+                    ->where('province', $provinceSlug)
+                    ->first();
+            }
+        }
+        if(empty($offer)){
+            $offer = $this->matchOfferBarcodeWithOutZero($date, $barcode, $provinceName, $provinceSlug, $provinceId, $retailerId);
         }
 
-        Log::warning('No offer found for GTIN:', ['gtin' => $gtin]);
-        return null;
+
+        return $offer;
     }
 
-    public function matchOfferSku(string $sku)
+    public function matchOfferBarcodeWithOutZero($date, $barcode, $provinceName, $provinceSlug, $provinceId, $retailerId)
     {
-        $offer = Offer::where('provincial_sku', $sku)->first();
+        $GeneralFunction = new GeneralFunctions;
+        $barcode = $GeneralFunction->CleanGTIN($barcode);
 
-        if ($offer) {
-            Log::info('Offer matched by SKU:', ['sku' => $sku, 'offer_id' => $offer->id]);
-            return $offer;
+        $offer = Offer::where('offer_date', $date)
+            ->where('GTin', $barcode)
+            ->where('province', $provinceName)
+            ->where('retailer_id', $retailerId)
+            ->first();
+        if(empty($offer)){
+            $offer = Offer::where('offer_date', $date)
+                ->where('GTin', $barcode)
+                ->where('province', $provinceSlug)
+                ->where('retailer_id', $retailerId)
+                ->first();
         }
+        if(empty($offer)) {
+            $offer = Offer::where('offer_date', $date)
+                ->where('GTin', $barcode)
+                ->where('province', $provinceName)
+                ->first();
+            if (empty($offer)) {
+                $offer = Offer::where('offer_date', $date)
+                    ->where('GTin', $barcode)
+                    ->where('province', $provinceSlug)
+                    ->first();
+            }
+        }
+        return $offer;
+    }
 
-        Log::warning('No offer found for SKU:', ['sku' => $sku]);
-        return null;
+    public function matchOfferSku($date, $sku, $provinceName, $provinceSlug, $provinceId, $retailerId)
+    {
+        $sku = trim($sku);
+
+        $offer = Offer::where('offer_date', $date)
+            ->where('provincial', $sku)
+            ->where('province', $provinceName)
+            ->where('retailer_id', $retailerId)
+            ->first();
+        if(empty($offer)){
+            $offer = Offer::where('offer_date', $date)
+                ->where('provincial', $sku)
+                ->where('province', $provinceSlug)
+                ->where('retailer_id', $retailerId)
+                ->first();
+        }
+        if(empty($offer)) {
+            $offer = Offer::where('offer_date', $date)
+                ->where('provincial', $sku)
+                ->where('province', $provinceName)
+                ->first();
+            if (empty($offer)) {
+                $offer = Offer::where('offer_date', $date)
+                    ->where('provincial', $sku)
+                    ->where('province', $provinceSlug)
+                    ->first();
+            }
+        }
+        return $offer;
     }
 
     public function matchOfferProduct(string $sku, string $gtin)
@@ -124,9 +204,33 @@ trait ICIntegrationTrait
         return Product::where('product_name', 'LIKE', "%{$productName}%")->first();
     }
 
-    public function matchOfferProductName($productName)
+    public function matchOfferProductName($date, $productName, $provinceName, $provinceSlug, $provinceId, $retailerId)
     {
-        return Offer::where('product_name', 'LIKE', '%' . $productName . '%')->first();
+        $offer = Offer::where('offer_date', $date)
+            ->where('product_name', $productName)
+            ->where('province', $provinceName)
+            ->where('retailer_id', $retailerId)
+            ->first();
+        if(empty($offer)){
+            $offer = Offer::where('offer_date', $date)
+                ->where('product_name', $productName)
+                ->where('province', $provinceSlug)
+                ->where('retailer_id', $retailerId)
+                ->first();
+        }
+        if(empty($offer)) {
+            $offer = Offer::where('offer_date', $date)
+                ->where('product_name', $productName)
+                ->where('province', $provinceName)
+                ->first();
+            if (empty($offer)) {
+                $offer = Offer::where('offer_date', $date)
+                    ->where('product_name', $productName)
+                    ->where('province', $provinceSlug)
+                    ->first();
+            }
+        }
+        return $offer;
     }
 
     protected function calculateDqiFee($greenlineReport, $item)
@@ -139,19 +243,46 @@ trait ICIntegrationTrait
         return ($greenlineReport->sold ?? 0) / ($item->average_price ?? 1);
     }
 
-    public function DQISummaryFlag($sku = null, $gtin = null)
+    public function DQISummaryFlag($report, $sku, $gtin, $productName, $provinceName, $provinceSlug, $provinceId)
     {
         $offer = null;
 
-        if (!empty($gtin) && !empty($sku)) {
-            $offer = $this->matchOfferProduct($sku, $gtin);
-        } elseif (!empty($gtin)) {
-            $offer = $this->matchOfferBarcode($gtin);
-        } elseif (!empty($sku)) {
-            $offer = $this->matchOfferSku($sku);
+//        if (!empty($gtin) && !empty($sku)) {
+//            $offer = $this->matchOfferProduct($sku, $gtin);
+//        } elseif (!empty($gtin)) {
+//            $offer = $this->matchOfferBarcode($gtin);
+//        } elseif (!empty($sku)) {
+//            $offer = $this->matchOfferSku($sku);
+//        }
+
+        if (!empty($sku)) {
+            $offer = $this->matchOfferSku($report->date, $sku, $provinceName, $provinceSlug, $provinceId, $report->retailer_id);
+        }
+        if (empty($offer) && !empty($barcode)) {
+            $offer = $this->matchOfferBarcode($report->date, $barcode, $provinceName, $provinceSlug,$provinceId, $report->retailer_id);
+        }
+        if (empty($offer) && !empty($productName)) {
+            $offer = $this->matchOfferProductName($report->date, $productName, $provinceName, $provinceSlug, $provinceId, $report->retailer_id);
+        }
+        if (!empty($offer)) {
+            return $offer;
+        }
+        if (empty($offer)) {
+            return null;
         }
 
         return $offer;
+    }
+
+    function sanitizeNumeric($value) {
+        $removeCommaValue = str_replace(',','',$value);
+        $removeCommaValue = str_replace('$','',$removeCommaValue);
+        $removeCommaValue = trim($removeCommaValue);
+        if (is_numeric($removeCommaValue)) {
+            return strpos($removeCommaValue, '.') !== false ? (float)$removeCommaValue : (int)$removeCommaValue;
+        }
+
+        return 0;
     }
 
     function getRetailerProvince($retailerReportSubmission)
@@ -192,7 +323,7 @@ trait ICIntegrationTrait
         }
         return null;
     }
-    
+
     public function checkCarveOuts($report, $province_id, $province_name,  $lpID ,$lpName, $sku,$product)
     {
         if($lpName == null || $lpID == null){
@@ -200,7 +331,7 @@ trait ICIntegrationTrait
         }
 
        $lp_name = Product::find($product->id)->lp->name ?? null;
-    
+
         if($lp_name == null || empty($lp_name)){
             return null;
         }
