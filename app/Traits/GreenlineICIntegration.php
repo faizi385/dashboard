@@ -3,6 +3,7 @@
 namespace App\Traits;
 
 use App\Helpers\GeneralFunctions;
+use App\Models\Lp;
 use App\Models\Offer;
 use App\Models\Product;
 use App\Models\ProductVariation;
@@ -57,8 +58,9 @@ trait GreenlineICIntegration
             $product = $this->matchICBarcode($greenlineReport->barcode,$provinceName,$provinceSlug,$provinceId);
         }
         if ($product) {
-            $lpName = $product->lp->name ?? null;
-            $lpId = $product->lp->id ?? null;
+            $lp = Lp::where('id',$product->lp_id)->first();
+            $lpName = $lp->name ?? null;
+            $lpId = $lp->id ?? null;
 
             $cleanSheetData['retailer_id'] = $retailer_id;
             $cleanSheetData['pos_report_id'] = $greenlineReport->id;
@@ -117,13 +119,13 @@ trait GreenlineICIntegration
             $cleanSheetData['product_variation_id'] = $product->id;
             $cleanSheetData['dqi_per'] = '';
             $cleanSheetData['dqi_fee'] = '';
-            $offers = $this->DQISummaryFlag($report,$greenlineReport->sku,$greenlineReport->barcode,$greenlineReport->name,$provinceName,$provinceSlug,$provinceId);
-            if (!empty($offers)) {
-                $cleanSheetData['offer_id'] = $offers->id;
+            $offer = $this->DQISummaryFlag($report,$greenlineReport->sku,$greenlineReport->barcode,$greenlineReport->name,$provinceName,$provinceSlug,$provinceId);
+            if (!empty($offer)) {
+                $cleanSheetData['offer_id'] = $offer->id;
                 $cleanSheetData['lp_id'] = $product->lp_id;
-                $cleanSheetData['lp_name'] = $offers->lp;
+                $cleanSheetData['lp_name'] = $offer->lp_name;
                 if((int) $cleanSheetData['purchase'] > 0){
-                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offers->lp_id,$offers->lp,$offers->provincial,$product);
+                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku,$product);
                     $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
                 }
                 else{
@@ -135,7 +137,7 @@ trait GreenlineICIntegration
                 $TotalUnitCostGet = $cleanSheetData['average_cost'];
                 /***************************************************************************/
                 $TotalPurchaseCostMake = (float)$TotalQuantityGet * (float)$TotalUnitCostGet;
-                $FinalDQIFEEMake = (float)trim($offers->data, '%') * 100;
+                $FinalDQIFEEMake = (float)trim($offer->data, '%') * 100;
                 $FinalFeeInDollar = (float)$TotalPurchaseCostMake * $FinalDQIFEEMake / 100;
                 $cleanSheetData['dqi_per'] = $FinalDQIFEEMake;
                 $cleanSheetData['dqi_fee'] = number_format($FinalFeeInDollar,2);
@@ -170,7 +172,7 @@ trait GreenlineICIntegration
                 $cleanSheetData['pos_report_id'] = $greenlineReport->id;
                 $cleanSheetData['lp_id'] = $offer->lp_id;
                 $cleanSheetData['retailer_name'] = $retailerName;
-                $cleanSheetData['lp_name'] = $lpName;
+                $cleanSheetData['lp_name'] = $offer->lp_name;
                 $cleanSheetData['thc_range'] = $offer->thc_range;
                 $cleanSheetData['cbd_range'] = $offer->cbd_range;
                 $cleanSheetData['size_in_gram'] = $offer->product_size;
@@ -184,7 +186,7 @@ trait GreenlineICIntegration
                 $cleanSheetData['sold'] = $greenlineReport->sold;
                 $cleanSheetData['purchase'] = $greenlineReport->purchased ?? '0';
                 if((int) $cleanSheet['purchase'] > 0){
-                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$lpName,$offer->provincial_sku);
+                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku);
                     $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
                 }
                 else{

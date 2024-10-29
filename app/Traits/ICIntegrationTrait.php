@@ -164,25 +164,25 @@ trait ICIntegrationTrait
         $sku = trim($sku);
 
         $offer = Offer::where('offer_date', $date)
-            ->where('provincial', $sku)
+            ->where('provincial_sku', $sku)
             ->where('province', $provinceName)
             ->where('retailer_id', $retailerId)
             ->first();
         if(empty($offer)){
             $offer = Offer::where('offer_date', $date)
-                ->where('provincial', $sku)
+                ->where('provincial_sku', $sku)
                 ->where('province', $provinceSlug)
                 ->where('retailer_id', $retailerId)
                 ->first();
         }
         if(empty($offer)) {
             $offer = Offer::where('offer_date', $date)
-                ->where('provincial', $sku)
+                ->where('provincial_sku', $sku)
                 ->where('province', $provinceName)
                 ->first();
             if (empty($offer)) {
                 $offer = Offer::where('offer_date', $date)
-                    ->where('provincial', $sku)
+                    ->where('provincial_sku', $sku)
                     ->where('province', $provinceSlug)
                     ->first();
             }
