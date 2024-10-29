@@ -7,49 +7,55 @@ use App\Models\Product;
 use App\Models\Province;
 use App\Models\Retailer;
 use App\Models\CleanSheet;
-use App\Models\BarnetPosReport;
+use App\Models\GlobalTillDiagnosticReport;
+use App\Models\GlobalTillSalesSummaryReport;
 use Illuminate\Support\Facades\Log;
-use App\Models\BarnetReport; // Adjust the model name based on your application
 
-trait BarnetIntegration
+trait GlobalTillIntegration
 {
     use ICIntegrationTrait;
 
     /**
-     * Process Barnet reports and save to CleanSheet.
+     * Process GlobalTill reports and save to CleanSheet.
      *
      * @param array $reports
      * @return void
      */
-    public function processBarnetReports($reports)
+    public function processGlobalTillReports($reports)
     {
-        Log::info('Processing Barnet reports:', ['reports' => $reports]);
+        Log::info('Processing GlobalTill reports:', ['reports' => $reports]);
 
         foreach ($reports as $report) {
-            // Retrieve the Barnet report by report_id
-            $barnetReport = BarnetPosReport::with('report')->find($report->id);
+            // Attempt to find the report in global_till_diagnostic_reports
+            $globalTillReport = GlobalTillDiagnosticReport::with('report')->find($report->id);
 
-            if (!$barnetReport) {
-                Log::warning('Barnet report not found:', ['report_id' => $report->id]);
+            // Check in sales summary reports if not found in diagnostic reports
+            // if (!$globalTillReport) {
+            //     $globalTillReport = GlobalTillSalesSummaryReport::with('report')->find($report->id);
+            // }
+
+            if (!$globalTillReport) {
+                Log::warning('GlobalTill report not found in both tables:', ['report_id' => $report->id]);
                 continue;
             }
 
-            $retailer_id = $barnetReport->report->retailer_id ?? null;
-            $location = $barnetReport->report->location ?? null;
+            $retailer_id = $globalTillReport->report->retailer_id ?? null;
+            $location = $globalTillReport->report->location ?? null;
 
             if (!$retailer_id) {
                 Log::warning('Retailer ID not found for report:', ['report_id' => $report->id]);
                 continue;
             }
 
-            $sku = $barnetReport->product_sku;
-            $gtin = $barnetReport->barcode;
+            $sku = $globalTillReport->supplier_sku;
+            $gtin = $globalTillReport->compliance_code;
 
+            // Initialize variables for product and retailer details
             $provinceName = null;
             $provinceSlug = null;
-            $product = null; 
-            $lpName = null; // Initialize LP Name variable
-            $retailerName = null; // Initialize Retailer Name variable
+            $product = null;
+            $lpName = null;
+            $retailerName = null;
 
             // Fetch Retailer Name
             $retailer = Retailer::find($retailer_id);
@@ -62,14 +68,12 @@ trait BarnetIntegration
             // Match the product using SKU and GTIN
             if (!empty($gtin) && !empty($sku)) {
                 $product = $this->matchICBarcodeSku($sku, $gtin);
-            } elseif (!empty($gtin) && empty($sku)) {
+            } elseif (!empty($gtin)) {
                 $product = $this->matchICBarcode($gtin);
-            } elseif (empty($gtin) && !empty($sku)) {
+            } elseif (!empty($sku)) {
                 $product = $this->matchICSku($sku);
-                
-            } elseif (!empty($techPOSReport->productname)) {
-                // If no SKU match, try to match product by name
-                $product = $this->matchICProductName($barnetReport->productname);
+            } else {
+                $product = $this->matchICProductName($globalTillReport->product);
             }
 
             if ($product) {
@@ -79,15 +83,14 @@ trait BarnetIntegration
                 $provinceSlug = $province->slug ?? null;
 
                 // Fetch LP name using lp_id
-                $lpName = Product::find($product->id)->lp->name ?? null; // Assuming you have a relationship set up in Product model
+                $lpName = Product::find($product->id)->lp->name ?? null;
 
                 // Calculate dqi_fee and dqi_per
-                $dqi_fee = $this->calculateDqiFee($barnetReport, $product);
-                $dqi_per = $this->calculateDqiPer($barnetReport, $product);
+                $dqi_fee = $this->calculateDqiFee($globalTillReport, $product);
+                $dqi_per = $this->calculateDqiPer($globalTillReport, $product);
 
                 $cleanSheetData = [
                     'retailer_id' => $retailer_id,
-                    // 'lp_id' => $product->lp_id,
                     'report_id' => $report->id,
                     'retailer_name' => $retailerName,
                     'lp_name' => $lpName,
@@ -98,28 +101,27 @@ trait BarnetIntegration
                     'province' => $provinceName,
                     'province_slug' => $provinceSlug,
                     'sku' => $sku,
-                    'product_name' => $barnetReport->name,
+                    'product_name' => $globalTillReport->productname,
                     'category' => $product->category,
                     'brand' => $product->brand,
-                    'sold' => $barnetReport->quantity_sold_units ?? '0',
-                    'purchase' => $barnetReport->quantity_purchased_units ?? '0',
+                    'sold' => $globalTillReport->sales_reductions ?? "0",
+                    'purchase' => $globalTillReport->purchases_from_suppliers_additions ?? "0",
                     'average_price' => $report->average_price,
                     'average_cost' => $report->average_cost,
                     'report_price_og' => $report->report_price_og,
                     'barcode' => $gtin,
-                    'transfer_in' => $barnetReport->other_additions_units ?? '0',
-                    'transfer_out' => $barnetReport->transfer_units ?? '0',
-                    'pos' => 'Barnet',
-                    'pos_report_id' => $barnetReport->id,
+                    'transfer_in' => $report->transfer_in,
+                    'transfer_out' => $report->transfer_out,
+                    'pos' => 'GlobalTill',
+                    'pos_report_id' => $globalTillReport->id,
                     'comment' => 'Record found in the Master Catalog',
-                    'opening_inventory_unit' =>$barnetReport->opening_inventory_units ?? '0',
-                    'closing_inventory_unit' => $barnetReport->closing_inventory_units ?? '0',
-                
-                    // 'dqi_fee' => $dqi_fee,
-                    // 'dqi_per' => $dqi_per,
+                    'opening_inventory_unit' => $globalTillReport->opening_inventory ?? "0",
+                    'closing_inventory_unit' => $globalTillReport->closing_inventory ?? "0",
                     'reconciliation_date' => now(),
                 ];
-                $offers =$this->DQISummaryFlag($barnetReport->product_sku,$barnetReport->barcode,$barnetReport->description); // Get the offers
+
+                // Check for DQI offers
+                $offers = $this->DQISummaryFlag($globalTillReport->supplier_sku, $globalTillReport->compliance_code, $globalTillReport->product);
 
                 if (!empty($offers)) {
                     $cleanSheetData['offer_id'] = $offers->id;
@@ -127,27 +129,23 @@ trait BarnetIntegration
                     $cleanSheetData['dqi_fee'] = $dqi_fee;
                     $cleanSheetData['dqi_per'] = $dqi_per;
                 }
+
                 $this->saveToCleanSheet($cleanSheetData);
             } else {
                 Log::warning('Product not found for SKU and GTIN:', ['sku' => $sku, 'gtin' => $gtin, 'report_data' => $report]);
 
-                // Match the offer using SKU and GTIN
-                $offer = null;
-                if (!empty($gtin) && !empty($sku)) {
-                    $offer = $this->matchOfferProduct($sku, $gtin); 
-                } elseif (!empty($gtin)) {
-                    $offer = $this->matchOfferBarcode($gtin); 
-                } elseif (!empty($sku)) {
-                    $offer = $this->matchOfferSku($sku); 
+                // Attempt to find an offer based on SKU or product name
+                $offer = !empty($sku) ? $this->matchOfferSku($sku) : null;
+
+                if (!$offer && !empty($globalTillReport->productname)) {
+                    $offer = $this->matchOfferProductName($globalTillReport->productname);
                 }
 
                 if ($offer) {
-                    // Fetch LP name using lp_id
                     $lpName = Offer::find($offer->id)->lp->name ?? null;
 
-                    // Handle offer data if product not found
-                    $dqi_fee = $this->calculateDqiFee($barnetReport, $offer);
-                    $dqi_per = $this->calculateDqiPer($barnetReport, $offer);
+                    $dqi_fee = $this->calculateDqiFee($globalTillReport, $offer);
+                    $dqi_per = $this->calculateDqiPer($globalTillReport, $offer);
 
                     $cleanSheetData = [
                         'retailer_id' => $retailer_id,
@@ -157,7 +155,7 @@ trait BarnetIntegration
                         'lp_name' => $lpName,
                         'thc_range' => $offer->thc_range,
                         'cbd_range' => $offer->cbd_range,
-                        'size_in_gram' => $offer->size_in_gram,
+                        'size_in_gram' => $offer->product_size,
                         'location' => $location,
                         'province' => $offer->province,
                         'province_slug' => $offer->province_slug,
@@ -165,20 +163,19 @@ trait BarnetIntegration
                         'product_name' => $offer->product_name,
                         'category' => $offer->category,
                         'brand' => $offer->brand,
-                        'sold' => $barnetReport->quantity_sold_units ?? '0',
-                        'purchase' => $barnetReport->quantity_purchased_units ?? '0',
+                        'sold' => $globalTillReport->sales_reductions ?? "0",
+                        'purchase' => $globalTillReport->purchases_from_suppliers_additions ?? "0",
                         'average_price' => $report->average_price,
                         'average_cost' => $report->average_cost,
                         'report_price_og' => $report->report_price_og,
                         'barcode' => $gtin,
-                        'transfer_in' =>$barnetReport->other_additions_units ?? '0',
-                        'transfer_out' =>$barnetReport->transfer_units ?? '0',
-                        'pos' => 'Barnet',
-                        'pos_report_id' => $barnetReport->id,
+                        'transfer_in' => $report->transfer_in,
+                        'transfer_out' => $report->transfer_out,
+                        'pos' => 'GlobalTill',
+                        'pos_report_id' => $globalTillReport->id,
                         'comment' => 'Record found in the Offers Table',
-                        'opening_inventory_unit' => $barnetReport->opening_inventory_units ?? '0',
-                        'closing_inventory_unit' => $barnetReport->closing_inventory_units ?? '0',
-                    
+                        'opening_inventory_unit' => $globalTillReport->opening_inventory ?? "0",
+                        'closing_inventory_unit' => $globalTillReport->closing_inventory ?? "0",
                         'dqi_fee' => $dqi_fee,
                         'dqi_per' => $dqi_per,
                         'reconciliation_date' => now(),
@@ -186,7 +183,6 @@ trait BarnetIntegration
 
                     $this->saveToCleanSheet($cleanSheetData);
                 } else {
-                    // If neither product nor offer is found, save report data as is
                     Log::info('No product or offer found, saving report data as is:', ['report_data' => $report]);
 
                     $cleanSheetData = [
@@ -194,7 +190,7 @@ trait BarnetIntegration
                         'lp_id' => null,
                         'report_id' => $report->id,
                         'retailer_name' => $retailerName,
-                        'lp_name' => $lpName,
+                        'lp_name' => null,
                         'thc_range' => null,
                         'cbd_range' => null,
                         'size_in_gram' => null,
@@ -202,25 +198,22 @@ trait BarnetIntegration
                         'province' => null,
                         'province_slug' => null,
                         'sku' => $sku,
-                        'product_name' => $barnetReport->name,
-                        'category' => null,
-                        'brand' => null,
-                        'sold' =>  $barnetReport->quantity_sold_units ?? '0',
-                        'purchase' => $barnetReport->quantity_purchased_units ?? '0',
+                        'product_name' => $globalTillReport->productname,
+                        'category' => $globalTillReport->category,
+                        'brand' => $globalTillReport->brand,
+                        'sold' => $globalTillReport->sales_reductions ?? "0",
+                        'purchase' => $globalTillReport->purchases_from_suppliers_additions ?? "0",
                         'average_price' => $report->average_price,
                         'average_cost' => $report->average_cost,
                         'report_price_og' => $report->report_price_og,
                         'barcode' => $gtin,
-                        'transfer_in' => $barnetReport->other_additions_units ?? '0',
-                        'transfer_out' =>$barnetReport->transfer_units ?? '0',
-                        'pos' => 'Barnet',
-                        'pos_report_id' => $barnetReport->id,
-                        'comment' => 'No product or offer found for this report',
-                        'opening_inventory_unit' =>  $barnetReport->opening_inventory_units ?? '0',
-                        'closing_inventory_unit' => $barnetReport->closing_inventory_units ?? '0',
-            
-                        'dqi_fee' => null,
-                        'dqi_per' => null,
+                        'transfer_in' => $report->transfer_in,
+                        'transfer_out' => $report->transfer_out,
+                        'pos' => 'GlobalTill',
+                        'pos_report_id' => $globalTillReport->id,
+                        'comment' => 'No matching product or offer found',
+                        'opening_inventory_unit' => $globalTillReport->opening_inventory ?? "0",
+                        'closing_inventory_unit' => $globalTillReport->closing_inventory ?? "0",
                         'reconciliation_date' => now(),
                     ];
 
@@ -228,23 +221,9 @@ trait BarnetIntegration
                 }
             }
         }
+
+        Log::info('Completed processing GlobalTill reports.');
     }
 
-    // Example method to save to CleanSheet
-    // protected function saveToCleanSheet(array $data)
-    // {
-    //     // Assuming you have a CleanSheet model to save the data
-    //     CleanSheet::create($data);
-    // }
-
-    // // Example methods for matching products and offers
-    // protected function matchICBarcodeSku($sku, $gtin)
-    // {
-    //     // Implement matching logic based on your application structure
-    // }
-
-    // protected function matchOfferProduct($sku, $gtin)
-    // {
-    //     // Implement matching logic based on your application structure
-    // }
+ 
 }

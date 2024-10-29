@@ -121,7 +121,7 @@ trait GreenlineICIntegration
                 $offers =$this->DQISummaryFlag($greenlineReport->sku,$greenlineReport->barcode,$greenlineReport->name); // Get the offers
 
                 if (!empty($offers)) {
-                    // Set DQI data in cleanSheetData
+                    $cleanSheetData['offer_id'] = $offers->id;
                     $cleanSheetData['lp_id'] = $product->lp_id;
                     $cleanSheetData['dqi_fee'] = $dqi_fee;
                     $cleanSheetData['dqi_per'] = $dqi_per;

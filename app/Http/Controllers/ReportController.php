@@ -185,7 +185,7 @@ class ReportController extends Controller
             }
         
         
-        } elseif ($request->pos === 'global') {
+        }elseif ($request->pos === 'global') {
             // Check for both diagnostic and sales summary report files
             if ($request->hasFile('diagnostic_report') && $request->hasFile('sales_summary_report')) {
                 $file1Path = $request->file('diagnostic_report')->store('uploads');
@@ -195,17 +195,20 @@ class ReportController extends Controller
                     // Import Global Till diagnostic report and check for errors
                     $diagnosticImport = new GlobalTillDiagnosticReportImport($request->location, $report->id);
                     Excel::import($diagnosticImport, $file1Path);
-                
+        
+                    // Get the ID of the imported diagnostic report
+                    $diagnosticReportId = $diagnosticImport->getId();
+        
                 } catch (\Exception $e) {
                     // Catch any exceptions (including missing headers) and display the error
                     return redirect()->back()->with('error', 'Diagnostic report errors: ' . $e->getMessage());
                 }
         
                 try {
-                    // Import Global Till sales summary report and check for errors
-                    $salesImport = new GlobalTillSalesSummaryReportImport($request->location, $report->id);
+                    // Import Global Till sales summary report and include diagnostic report ID
+                    $salesImport = new GlobalTillSalesSummaryReportImport($request->location, $report->id, $diagnosticReportId);
                     Excel::import($salesImport, $file2Path);
-                
+        
                 } catch (\Exception $e) {
                     // Catch any exceptions (including missing headers) and display the error
                     return redirect()->back()->with('error', 'Sales summary report errors: ' . $e->getMessage());
@@ -214,6 +217,7 @@ class ReportController extends Controller
             } else {
                 return redirect()->back()->withErrors('Both diagnostic and sales summary reports are required for GLOBAL TILL.');
             }
+        
         
         
         
@@ -234,8 +238,11 @@ class ReportController extends Controller
                     return redirect()->back()->with('error', $errorMessage);
                 }
         
+                // Retrieve the ID of the last inserted diagnostic report
+                // $diagnosticReportId = $diagnosticImport->getLastInsertedId();  // Assuming you added a method to retrieve the last inserted ID
+        
                 // Import Ideal sales summary report and check for errors
-                $salesImport = new IdealSalesSummaryReportImport($request->location, $report->id);
+                $salesImport = new IdealSalesSummaryReportImport($request->location, $report->id, $diagnosticImport->getId());
                 Excel::import($salesImport, $file2Path);
                 $salesImportErrors = $salesImport->getErrors();
         
@@ -248,6 +255,7 @@ class ReportController extends Controller
             } else {
                 return redirect()->back()->withErrors('Both diagnostic and sales summary reports are required for IDEAL.');
             }
+        
         
         
         }elseif ($request->pos === 'profittech') {
@@ -278,9 +286,7 @@ class ReportController extends Controller
                 return redirect()->back()->withErrors('The inventory log summary file is required for ProfitTech.');
             }
         
-        
-      
-        
+
         
         
         } elseif ($request->hasFile('inventory_log_summary')) {

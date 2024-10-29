@@ -80,7 +80,7 @@ trait TechPOSIntegration
 
                 $cleanSheetData = [
                     'retailer_id' => $retailer_id,
-                    'lp_id' => $product->lp_id,
+                    // 'lp_id' => $product->lp_id,
                     'report_id' => $report->id,
                     'retailer_name' => $retailerName, // Use fetched Retailer name
                     'lp_name' => $lpName, // Use fetched LP name
@@ -107,15 +107,15 @@ trait TechPOSIntegration
                     'comment' => 'Record found in the Master Catalog',
                     'opening_inventory_unit' => $techPOSReport->openinventoryunits ?? '0',
                     'closing_inventory_unit' => $techPOSReport->closinginventoryunits ?? '0',
-                    'purchase' => $techPOSReport->purchased ?? '0',
-                    'dqi_fee' => $dqi_fee,
-                    'dqi_per' => $dqi_per,
+                  
+                    // 'dqi_fee' => $dqi_fee,
+                    // 'dqi_per' => $dqi_per,
                     'reconciliation_date' => now(),
                 ];
                 $offers =$this->DQISummaryFlag($techPOSReport->sku,$techPOSReport->barcode,$techPOSReport->productname); // Get the offers
 
                 if (!empty($offers)) {
-                    // Set DQI data in cleanSheetData
+                    $cleanSheetData['offer_id'] = $offers->id;
                     $cleanSheetData['lp_id'] = $product->lp_id;
                     $cleanSheetData['dqi_fee'] = $dqi_fee;
                     $cleanSheetData['dqi_per'] = $dqi_per;

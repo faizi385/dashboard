@@ -81,7 +81,7 @@ trait ProfitTechIntegration
 
                 $cleanSheetData = [
                     'retailer_id' => $retailer_id,
-                    'lp_id' => $product->lp_id,
+                    // 'lp_id' => $product->lp_id,
                     'report_id' => $report->id,
                     'retailer_name' => $retailerName,
                     'lp_name' => $lpName,
@@ -108,9 +108,9 @@ trait ProfitTechIntegration
                     'comment' => 'Record found in the Master Catalog',
                     'opening_inventory_unit' =>$profittechReports->opening_inventory_units ?? '0',
                     'closing_inventory_unit' =>  $profittechReports->closing_inventory_units ?? '0',
-                    'purchase' => $profitTechReport->purchased ?? '0',
-                    'dqi_fee' => $dqi_fee,
-                    'dqi_per' => $dqi_per,
+    
+                    // 'dqi_fee' => $dqi_fee,
+                    // 'dqi_per' => $dqi_per,
                     'reconciliation_date' => now(),
                 ];
 

@@ -24,4 +24,9 @@ class IdealDiagnosticReport extends Model
         'net_sales_ex',
         'status',  
     ];
+
+    public function report()
+    {
+        return $this->belongsTo(Report::class, 'report_id'); // Adjust 'report_id' if your foreign key is named differently
+    }
 }

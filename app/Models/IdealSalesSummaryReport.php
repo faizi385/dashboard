@@ -19,5 +19,14 @@ class IdealSalesSummaryReport extends Model
         'return_quantity',
         'amount_return',
         'status',  
+        'ideal_diagnostic_report_id',
     ];
+
+    public function report()
+    {
+        return $this->belongsTo(Report::class, 'report_id'); // Adjust 'report_id' if your foreign key is named differently
+    }
 }
+
+
+

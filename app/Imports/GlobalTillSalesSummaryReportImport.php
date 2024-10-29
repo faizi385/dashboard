@@ -12,13 +12,29 @@ class GlobalTillSalesSummaryReportImport implements ToModel, WithHeadingRow
 {
     protected $location;
     protected $reportId;
+    protected $gbDiagnosticReportId; // Added gb_diagnostic_report_id
     protected $errors = []; // Array to store error messages
     protected $hasCheckedHeaders = false; // Flag to check if headers have been validated
 
-    public function __construct($location, $reportId)
+    public function __construct($location, $reportId, $gbDiagnosticReportId)
     {
         $this->location = $location; // Store location
         $this->reportId = $reportId; // Store report_id
+        $this->gbDiagnosticReportId = $gbDiagnosticReportId; // Store gb_diagnostic_report_id
+    }
+
+    /**
+     * Clean the value by checking for formulas or invalid numeric values.
+     */
+    private function cleanNumericValue($value)
+    {
+        // If the value starts with a formula (=), return null
+        if (is_string($value) && strpos($value, '=') === 0) {
+            return null;
+        }
+
+        // Return the numeric value if valid, otherwise return null
+        return is_numeric($value) ? $value : null;
     }
 
     public function model(array $row)
@@ -59,7 +75,7 @@ class GlobalTillSalesSummaryReportImport implements ToModel, WithHeadingRow
                     return str_replace('_', ' ', $header); // Replace underscores with spaces
                 }, $missingHeaders);
                 // Throw an exception for missing headers
-                throw new  \Exception('Missing header: ' . implode(', ', $formattedHeaders)); // Throwing the exception
+                throw new \Exception('Missing header: ' . implode(', ', $formattedHeaders)); // Throwing the exception
             }
         }
 
@@ -67,28 +83,29 @@ class GlobalTillSalesSummaryReportImport implements ToModel, WithHeadingRow
         return new GlobalTillSalesSummaryReport([
             'compliance_code' => $row['compliance_code'] ?? null,
             'supplier_sku' => $row['supplier_sku'] ?? null,
-            'opening_inventory' => $row['opening_inventory'] ?? null,
-            'opening_inventory_value' => $row['opening_inventory_value'] ?? null,
-            'purchases_from_suppliers_additions' => $row['purchases_from_suppliers_additions'] ?? null,
-            'purchases_from_suppliers_value' => $row['purchases_from_suppliers_value'] ?? null,
-            'returns_from_customers_additions' => $row['returns_from_customers_additions'] ?? null,
-            'customer_returns_retail_value' => $row['customer_returns_retail_value'] ?? null,
-            'other_additions_additions' => $row['other_additions_additions'] ?? null,
-            'other_additions_value' => $row['other_additions_value'] ?? null,
-            'sales_reductions' => $row['sales_reductions'] ?? null,
-            'sold_retail_value' => $row['sold_retail_value'] ?? null,
-            'destruction_reductions' => $row['destruction_reductions'] ?? null,
-            'destruction_value' => $row['destruction_value'] ?? null,
-            'theft_reductions' => $row['theft_reductions'] ?? null,
-            'theft_value' => $row['theft_value'] ?? null,
-            'returns_to_suppliers_reductions' => $row['returns_to_suppliers_reductions'] ?? null,
-            'supplier_return_value' => $row['supplier_return_value'] ?? null,
-            'other_reductions_reductions' => $row['other_reductions_reductions'] ?? null,
-            'other_reductions_value' => $row['other_reductions_value'] ?? null,
-            'closing_inventory' => $row['closing_inventory'] ?? null,
-            'closing_inventory_value' => $row['closing_inventory_value'] ?? null,
+            'opening_inventory' => $this->cleanNumericValue($row['opening_inventory']),
+            'opening_inventory_value' => $this->cleanNumericValue($row['opening_inventory_value']),
+            'purchases_from_suppliers_additions' => $this->cleanNumericValue($row['purchases_from_suppliers_additions']),
+            'purchases_from_suppliers_value' => $this->cleanNumericValue($row['purchases_from_suppliers_value']),
+            'returns_from_customers_additions' => $this->cleanNumericValue($row['returns_from_customers_additions']),
+            'customer_returns_retail_value' => $this->cleanNumericValue($row['customer_returns_retail_value']),
+            'other_additions_additions' => $this->cleanNumericValue($row['other_additions_additions']),
+            'other_additions_value' => $this->cleanNumericValue($row['other_additions_value']),
+            'sales_reductions' => $this->cleanNumericValue($row['sales_reductions']),
+            'sold_retail_value' => $this->cleanNumericValue($row['sold_retail_value']),
+            'destruction_reductions' => $this->cleanNumericValue($row['destruction_reductions']),
+            'destruction_value' => $this->cleanNumericValue($row['destruction_value']),
+            'theft_reductions' => $this->cleanNumericValue($row['theft_reductions']),
+            'theft_value' => $this->cleanNumericValue($row['theft_value']),
+            'returns_to_suppliers_reductions' => $this->cleanNumericValue($row['returns_to_suppliers_reductions']),
+            'supplier_return_value' => $this->cleanNumericValue($row['supplier_return_value']),
+            'other_reductions_reductions' => $this->cleanNumericValue($row['other_reductions_reductions']),
+            'other_reductions_value' => $this->cleanNumericValue($row['other_reductions_value']),
+            'closing_inventory' => $this->cleanNumericValue($row['closing_inventory']),
+            'closing_inventory_value' => $this->cleanNumericValue($row['closing_inventory_value']),
             'report_id' => $this->reportId,
             'location' => $this->location,
+            'gb_diagnostic_report_id' => $this->gbDiagnosticReportId, // Adding gb_diagnostic_report_id
         ]);
     }
 

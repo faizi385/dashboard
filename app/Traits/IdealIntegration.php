@@ -7,48 +7,54 @@ use App\Models\Product;
 use App\Models\Province;
 use App\Models\Retailer;
 use App\Models\CleanSheet;
-use App\Models\OtherPOSReport; // Assuming this is your Other POS report model
+use App\Models\IdealDiagnosticReport;
+use App\Models\IdealSalesSummaryReport;
 use Illuminate\Support\Facades\Log;
 
-trait OtherPOSIntegration
+trait IdealIntegration
 {
     use ICIntegrationTrait;
 
     /**
-     * Process Other POS reports and save to CleanSheet.
+     * Process IdealPOS reports and save to CleanSheet.
      *
      * @param array $reports
      * @return void
      */
-    public function processOtherPOSReports($reports)
+    public function processIdealPOSReports($reports)
     {
-        Log::info('Processing Other POS reports:', ['reports' => $reports]);
+        Log::info('Processing IdealPOS reports:', ['reports' => $reports]);
 
         foreach ($reports as $report) {
-            // Retrieve the Other POS report by report_id
-            $otherPOSReport = OtherPOSReport::with('report')->find($report->id);
+            // Attempt to find the report in ideal_diagnostic_reports or ideal_sales_summary_reports
+            $idealReport = IdealDiagnosticReport::with('report')->find($report->id);
 
-            if (!$otherPOSReport) {
-                Log::warning('Other POS report not found:', ['report_id' => $report->id]);
+            // if (!$idealReport) {
+            //     // If not found in diagnostic reports, check in sales summary reports
+            //     $idealReport = IdealSalesSummaryReport::with('report')->find($report->id);
+            // }
+
+            if (!$idealReport) {
+                Log::warning('IdealPOS report not found in both tables:', ['report_id' => $report->id]);
                 continue;
             }
 
-            $retailer_id = $otherPOSReport->report->retailer_id ?? null;
-            $location = $otherPOSReport->report->location ?? null;
+            $retailer_id = $idealReport->report->retailer_id ?? null;
+            $location = $idealReport->report->location ?? null;
 
             if (!$retailer_id) {
                 Log::warning('Retailer ID not found for report:', ['report_id' => $report->id]);
                 continue;
             }
 
-            $sku = $otherPOSReport->sku;
-            $gtin = $otherPOSReport->barcode;
+            $sku = $idealReport->sku;
+            $gtin = $idealReport->barcode;
 
             $provinceName = null;
             $provinceSlug = null;
             $product = null;
-            $lpName = null; // Initialize LP Name variable
-            $retailerName = null; // Initialize Retailer Name variable
+            $lpName = null;
+            $retailerName = null;
 
             // Fetch Retailer Name
             $retailer = Retailer::find($retailer_id);
@@ -61,9 +67,11 @@ trait OtherPOSIntegration
             // Match the product using SKU and GTIN
             if (!empty($sku)) {
                 $product = $this->matchICSku($sku);
-            } elseif (!empty($otherPOSReport->productname)) {
+            } elseif (!empty($idealReport->productname)) {
                 // If no SKU match, try to match product by name
-                $product = $this->matchICProductName($otherPOSReport->productname);
+                $product = $this->matchICProductName($idealReport->description);
+            }
+
             if ($product) {
                 // Fetch province information
                 $provinceName = $product->province;
@@ -71,46 +79,44 @@ trait OtherPOSIntegration
                 $provinceSlug = $province->slug ?? null;
 
                 // Fetch LP name using lp_id
-                $lpName = Product::find($product->id)->lp->name ?? null; // Assuming you have a relationship set up in Product model
-
+                $lpName = Product::find($product->id)->lp->name ?? null;
+                
                 // Calculate dqi_fee and dqi_per
-                $dqi_fee = $this->calculateDqiFee($otherPOSReport, $product);
-                $dqi_per = $this->calculateDqiPer($otherPOSReport, $product);
+                $dqi_fee = $this->calculateDqiFee($idealReport, $product);
+                $dqi_per = $this->calculateDqiPer($idealReport, $product);
 
                 $cleanSheetData = [
                     'retailer_id' => $retailer_id,
-                    'lp_id' => $product->lp_id,
                     'report_id' => $report->id,
-                    'retailer_name' => $retailerName, // Use fetched Retailer name
-                    'lp_name' => $lpName, // Use fetched LP name
+                    'retailer_name' => $retailerName,
+                    'lp_name' => $lpName,
                     'thc_range' => $product->thc_range,
                     'cbd_range' => $product->cbd_range,
-                    'size_in_gram' =>  $product->product_size,
+                    'size_in_gram' => $product->product_size,
                     'location' => $location,
                     'province' => $provinceName,
                     'province_slug' => $provinceSlug,
                     'sku' => $sku,
-                    'product_name' =>  $otherPOSReport->productname,
+                    'product_name' => $idealReport->productname,
                     'category' => $product->category,
                     'brand' => $product->brand,
-                    'sold' => $otherPOSReport->sold ?? '0',
-                    'purchase' => $otherPOSReport->purchased ?? '0',
+                    'sold' => $idealReport->unit_sold ?? "0",
+                    'purchase' => $idealReport->purchases,
                     'average_price' => $report->average_price,
                     'average_cost' => $report->average_cost,
                     'report_price_og' => $report->report_price_og,
                     'barcode' => $gtin,
                     'transfer_in' => $report->transfer_in,
                     'transfer_out' => $report->transfer_out,
-                    'pos' => 'Other POS',
-                    'pos_report_id' => $otherPOSReport->id,
+                    'pos' => 'IdealPOS',
+                    'pos_report_id' => $idealReport->id,
                     'comment' => 'Record found in the Master Catalog',
-                    'opening_inventory_unit' => $otherPOSReport->opening ?? '0',
-                    'closing_inventory_unit' => $otherPOSReport->closing ?? '0',
-                    'dqi_fee' => $dqi_fee,
-                    'dqi_per' => $dqi_per,
+                    'opening_inventory_unit' => $idealReport->opening ?? "0",
+                    'closing_inventory_unit' => $idealReport->closing ?? "0",
                     'reconciliation_date' => now(),
                 ];
-                $offers =$this->DQISummaryFlag($otherPOSReport->sku,$otherPOSReport->barcode,$otherPOSReport->name); // Get the offers
+
+                $offers = $this->DQISummaryFlag($idealReport->sku, $idealReport->barcode, $idealReport->productname);
 
                 if (!empty($offers)) {
                     $cleanSheetData['offer_id'] = $offers->id;
@@ -118,26 +124,22 @@ trait OtherPOSIntegration
                     $cleanSheetData['dqi_fee'] = $dqi_fee;
                     $cleanSheetData['dqi_per'] = $dqi_per;
                 }
+
                 $this->saveToCleanSheet($cleanSheetData);
             } else {
                 Log::warning('Product not found for SKU and GTIN:', ['sku' => $sku, 'gtin' => $gtin, 'report_data' => $report]);
 
-                // Match the offer using SKU and GTIN
-                $offer = null;
-                if (!empty($gtin) && !empty($sku)) {
-                    $offer = $this->matchOfferProduct($sku, $gtin); 
-                } elseif (!empty($gtin)) {
-                    $offer = $this->matchOfferBarcode($gtin); 
-                } elseif (!empty($sku)) {
-                    $offer = $this->matchOfferSku($sku); 
+                $offer = !empty($sku) ? $this->matchOfferSku($sku) : null;
+
+                if (!$offer && !empty($idealReport->productname)) {
+                    $offer = $this->matchOfferProductName($idealReport->productname);
                 }
+
                 if ($offer) {
-                    // Fetch LP name using lp_id
                     $lpName = Offer::find($offer->id)->lp->name ?? null;
 
-                    // Handle offer data if product not found
-                    $dqi_fee = $this->calculateDqiFee($otherPOSReport, $offer);
-                    $dqi_per = $this->calculateDqiPer($otherPOSReport, $offer);
+                    $dqi_fee = $this->calculateDqiFee($idealReport, $offer);
+                    $dqi_per = $this->calculateDqiPer($idealReport, $offer);
 
                     $cleanSheetData = [
                         'retailer_id' => $retailer_id,
@@ -155,20 +157,19 @@ trait OtherPOSIntegration
                         'product_name' => $offer->product_name,
                         'category' => $offer->category,
                         'brand' => $offer->brand,
-                        'sold' => $otherPOSReport->sold ?? '0',
-                        'purchase' => $otherPOSReport->purchased ?? '0',
+                        'sold' => $idealReport->unit_sold ?? "0",
+                        'purchase' => $idealReport->purchases,
                         'average_price' => $report->average_price,
                         'average_cost' => $report->average_cost,
                         'report_price_og' => $report->report_price_og,
                         'barcode' => $gtin,
                         'transfer_in' => $report->transfer_in,
                         'transfer_out' => $report->transfer_out,
-                        'pos' => 'Other POS',
-                        'pos_report_id' => $otherPOSReport->id,
+                        'pos' => 'IdealPOS',
+                        'pos_report_id' => $idealReport->id,
                         'comment' => 'Record found in the Offers Table',
-                        'opening_inventory_unit' =>$otherPOSReport->opening ?? '0',
-                        'closing_inventory_unit' => $otherPOSReport->closing ?? '0',
-                        
+                        'opening_inventory_unit' => $idealReport->opening ?? "0",
+                        'closing_inventory_unit' => $idealReport->closing ?? "0",
                         'dqi_fee' => $dqi_fee,
                         'dqi_per' => $dqi_per,
                         'reconciliation_date' => now(),
@@ -183,32 +184,30 @@ trait OtherPOSIntegration
                         'lp_id' => null,
                         'report_id' => $report->id,
                         'retailer_name' => $retailerName,
-                        'lp_name' => $lpName,
+                        'lp_name' => null,
                         'thc_range' => null,
                         'cbd_range' => null,
                         'size_in_gram' => null,
                         'location' => $location,
                         'province' => null,
                         'province_slug' => null,
-                        'sku' => $otherPOSReport->sku,
-                        'product_name' => $otherPOSReport->productname,
-                        'category' => $otherPOSReport->category,
-                        'brand' => $otherPOSReport->brand,
-                        'sold' => $otherPOSReport->sold ?? '0',
-                        'purchase' => $otherPOSReport->purchased ?? '0',
+                        'sku' => $sku,
+                        'product_name' => $idealReport->productname,
+                        'category' => $idealReport->category,
+                        'brand' => $idealReport->brand,
+                        'sold' => $idealReport->unit_sold ?? "0",
+                        'purchase' => $idealReport->purchases,
                         'average_price' => $report->average_price,
                         'average_cost' => $report->average_cost,
                         'report_price_og' => $report->report_price_og,
                         'barcode' => $gtin,
                         'transfer_in' => $report->transfer_in,
                         'transfer_out' => $report->transfer_out,
-                        'pos' => 'Other POS',
-                        'pos_report_id' => $otherPOSReport->id,
-                        'comment' => 'No matching product or offer found',
-                        'opening_inventory_unit' => $otherPOSReport->opening ?? '0',
-                        'closing_inventory_unit' => $otherPOSReport->closing ?? '0',
-                        'dqi_fee' => null,
-                        'dqi_per' => null,
+                        'pos' => 'IdealPOS',
+                        'pos_report_id' => $idealReport->id,
+                        'comment' => 'Record not found in the Catalog and Offers Table',
+                        'opening_inventory_unit' => $idealReport->opening ?? "0",
+                        'closing_inventory_unit' => $idealReport->closing ?? "0",
                         'reconciliation_date' => now(),
                     ];
 
@@ -217,7 +216,4 @@ trait OtherPOSIntegration
             }
         }
     }
-
-  
-}
 }
