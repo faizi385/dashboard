@@ -239,7 +239,7 @@ public function destroy($id)
      * @return array
      */
     private function prepareOfferData($request, $retailerId = null, $dataFee = null)
-    {
+    {  $lpName = LP::find($request->lp_id)->name; 
         return [
             'product_name' => $request->product_name,
             'provincial_sku' => $request->provincial_sku,
@@ -257,6 +257,7 @@ public function destroy($id)
             'comment' => $request->comment,
             'product_link' => $request->product_link,
             'lp_id' => $request->lp_id,
+            'lp_name' => $lpName,
             'offer_date' => $request->offer_date,
             'data_fee' => $dataFee, // General or exclusive data fee
             'retailer_id' => $retailerId, // Set retailer ID for exclusive offer, null for general offer
@@ -283,6 +284,7 @@ public function destroy($id)
                 'cbd_range' => $data['cbd_range'],
                 'comment' => $data['comment'],
                 'product_link' => $data['product_link'],
+                'unit_cost' => $data['unit_cost'],
             ]);
         } else {
             // If GTIN matches, set $product to the existing product
@@ -312,7 +314,7 @@ public function destroy($id)
                     'cbd_range' => $data['cbd_range'],
                     'comment' => $data['comment'],
                     'product_link' => $data['product_link'],
-                    // Add any additional fields as needed
+                    'price_per_unit' => $data['unit_cost'],
                 ]);
             }
             return; // SKU exists, no need to create a new product variation
@@ -332,6 +334,7 @@ public function destroy($id)
             'cbd_range' => $data['cbd_range'],
             'comment' => $data['comment'],
             'product_link' => $data['product_link'],
+            'price_per_unit' => $data['unit_cost'],
             // Add any additional fields as needed
         ]);
     }

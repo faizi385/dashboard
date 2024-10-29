@@ -28,6 +28,7 @@ class ProductVariation extends Model
         'cbd_range',
         'comment',
         'product_link',
+        'price_per_unit'
     ];
 
     public function lp()

@@ -35,7 +35,8 @@ class Offer extends Model
         'offer_date', 
         'retailer_id',
         'province_slug',
-        'source',// Include this field in fillable
+        'source',
+        'lp_name'
     ];
 
     // Define the relationship with the Lp model
