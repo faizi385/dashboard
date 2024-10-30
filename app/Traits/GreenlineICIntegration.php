@@ -51,10 +51,15 @@ trait GreenlineICIntegration
 
         if (!empty($gtin) && !empty($sku)) {
             $product = $this->matchICBarcodeSku($greenlineReport->barcode,$greenlineReport->sku,$provinceName,$provinceSlug,$provinceId);
-        } if (!empty($sku) && empty($product)) {
+        }
+        if (!empty($sku) && empty($product)) {
             $product = $this->matchICSku($greenlineReport->sku,$provinceName,$provinceSlug,$provinceId);
-        } if (!empty($gtin) && empty($product)) {
+        }
+        if (!empty($gtin) && empty($product)) {
             $product = $this->matchICBarcode($greenlineReport->barcode,$provinceName,$provinceSlug,$provinceId);
+        }
+        if (!empty($productName) && empty($product)){
+            $product = $this->matchICProductName($greenlineReport->name,$provinceName,$provinceSlug,$provinceId);
         }
         if ($product) {
             $lp = Lp::where('id',$product->lp_id)->first();

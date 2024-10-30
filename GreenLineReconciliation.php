@@ -1,6 +1,4 @@
 <?php
-// namespace App\Traits;
-
 use App\Traits\ICIntegrationTrait;
 use Illuminate\Support\Facades\DB;
 use App\Models\GreenlineReport;

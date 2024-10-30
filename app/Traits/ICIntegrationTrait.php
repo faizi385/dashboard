@@ -13,20 +13,25 @@ use App\Models\Offer;
 use App\Models\Carveout;
 use App\Models\CleanSheet;
 use App\Models\Retailer;
+use App\Traits\TechPosIntegration;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use App\Traits\GreenlineICIntegration;
 
 trait ICIntegrationTrait
 {
-    use CovaICIntegration, GreenlineICIntegration;
+    use CovaICIntegration, GreenlineICIntegration, TechPosIntegration;
     public function covaMasterCatalouge($covaDaignosticReport, $report)
     {
         return $this->mapCovaMasterCatalouge($covaDaignosticReport, $report);
     }
-    public function greenlineMasterCatalouge($greenlineReports, $report)
+    public function greenlineMasterCatalouge($greenlineReport, $report)
     {
-        return $this->mapGreenlineCatalouge($greenlineReports, $report);
+        return $this->mapGreenlineCatalouge($greenlineReport, $report);
+    }
+    public function techposMasterCatalouge($techPOSReport, $report)
+    {
+        return $this->mapTechPosCatalouge($techPOSReport, $report);
     }
     public function saveToCleanSheet(array $cleanSheetData)
     {
@@ -171,9 +176,13 @@ trait ICIntegrationTrait
         return null;
     }
 
-    protected function matchICProductName($productName)
+    public function matchICProductName($productName, $provinceName, $provinceSlug,$provinceId)
     {
-        return Product::where('product_name', 'LIKE', "%{$productName}%")->first();
+        $product = ProductVariation::where('product_name', $productName)->get();
+        if (!empty($product)) {
+            $product = $this->matchProvince($product, $provinceName, $provinceSlug,$provinceId);
+        }
+        return $product;
     }
 
     public function matchOfferProductName($date, $productName, $provinceName, $provinceSlug, $provinceId, $retailerId)
