@@ -22,9 +22,9 @@ class TechPOSReportImport implements ToModel, WithHeadingRow
     {
 
       
-        // List of required headers for TechPOS
+       //'branchname', 
         $requiredHeaders = [
-            'branchname', 'sku', 'productname', 'category', 'categoryparent', 'brand',
+            'sku', 'productname', 'category', 'categoryparent', 'brand',
             'costperunit', 'openinventoryunits', 'openinventorycost', 'openinventoryvalue',
             'quantitypurchasedunits', 'quantitypurchasedcost', 'quantitypurchasedvalue',
             'quantitytransferinunits', 'quantitytransferincost', 'quantitytransferinvalue',
@@ -57,7 +57,7 @@ class TechPOSReportImport implements ToModel, WithHeadingRow
         
         // If no headers are missing, proceed with creating the model
         return new TechPOSReport([
-            'branchname' => $row['branchname'],
+            // 'branchname' => $row['branchname'],
             'sku' => $row['sku'],
             'productname' => $row['productname'],
             'category' => $row['category'],

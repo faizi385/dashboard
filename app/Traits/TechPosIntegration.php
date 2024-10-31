@@ -53,7 +53,7 @@ trait TechPosIntegration
         $product = $this->matchICSku($techPOSReport->sku,$provinceName,$provinceSlug,$provinceId);
         }
         if (!empty($productName) && empty($product)){
-            $product = $this->matchICProductName($techPOSReport->name,$provinceName,$provinceSlug,$provinceId);
+            $product = $this->matchICProductName($techPOSReport->productname,$provinceName,$provinceSlug,$provinceId);
         }
         if ($product) {
             $lp = Lp::where('id',$product->lp_id)->first();
@@ -70,13 +70,13 @@ trait TechPosIntegration
             $cleanSheetData['province'] = $provinceName;
             $cleanSheetData['province_slug'] = $provinceSlug;
             $cleanSheetData['sku'] = $sku;
-            $cleanSheetData['product_name'] = $techPOSReport->productname;
+            $cleanSheetData['product_name'] = $productName;
             $cleanSheetData['category'] = $product->category;
             $cleanSheetData['brand'] = $product->brand;
             $cleanSheetData['sold'] = $techPOSReport->sold;
             $cleanSheetData['purchase'] = $techPOSReport->purchased ?? '0';
             $cleanSheetData['average_price'] = $this->techpos_averge_price($techPOSReport);
-            $techPOSAverageCost = \App\Helpers\GeneralFunctions::formatAmountValue($techposReport->costperunit) ?? '0';
+            $techPOSAverageCost = \App\Helpers\GeneralFunctions::formatAmountValue($techPOSReport->costperunit) ?? '0';
             if ($techPOSAverageCost != "0.00" && $techPOSAverageCost != '0' && (float)$techPOSAverageCost != 0.00) {
                 $cleanSheetData['average_cost'] = $techPOSAverageCost;
                 $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
@@ -134,7 +134,7 @@ trait TechPosIntegration
                 $cleanSheetData['dqi_fee'] = number_format($FinalFeeInDollar,2);
                 $cleanSheetData['comment'] = 'Record found in the Master Catalog and Offer';
                 if( $cleanSheetData['average_cost'] == '0.00' && (int) $cleanSheetData['average_cost'] == 0){
-                    $cleanSheetData['average_cost'] = \App\Helpers\GeneralFunctions::formatAmountValue($offers->unit_cost) ?? "0.00";
+                    $cleanSheetData['average_cost'] = \App\Helpers\GeneralFunctions::formatAmountValue($offer->unit_cost) ?? "0.00";
                 }
             }
             else{
@@ -181,7 +181,7 @@ trait TechPosIntegration
                 else{
                     $cleanSheetData['c_flag'] = '';
                 }
-                $techPOSAverageCost =\App\Helpers\GeneralFunctions::formatAmountValue($techposReport->costperunit) ?? '0';
+                $techPOSAverageCost =\App\Helpers\GeneralFunctions::formatAmountValue($techPOSReport->costperunit) ?? '0';
                 if ($techPOSAverageCost != "0.00" && $techPOSAverageCost != '0' && (float)$techPOSAverageCost != 0.00) {
                     $cleanSheetData['average_cost'] = $techPOSAverageCost;
                     $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
@@ -241,7 +241,7 @@ trait TechPosIntegration
                 $cleanSheetData['province'] = $provinceName;
                 $cleanSheetData['province_slug'] = $provinceSlug;
                 $cleanSheetData['sku'] = $sku;
-                $cleanSheetData['product_name'] = $techPOSReport->name;
+                $cleanSheetData['product_name'] = $productName;
                 $cleanSheetData['category'] = null;
                 $cleanSheetData['brand'] = null;
                 $cleanSheetData['sold'] = $techPOSReport->sold;
@@ -288,5 +288,17 @@ trait TechPosIntegration
         }
 
         return $cleanSheetData;
+    }
+
+    public function techpos_averge_price($techPOSReport){
+
+        $quantitysoldunits =  (double)trim($techPOSReport->quantitysoldunits);
+        $quantitysoldvalue =  \App\Helpers\GeneralFunctions::formatAmountValue($techPOSReport->quantitysoldvalue);
+        if ($quantitysoldunits == '0' || $quantitysoldunits == '0.00') {
+            $quantitysoldunits = 1;
+        }
+        $average_price = $quantitysoldvalue / $quantitysoldunits;
+
+        return $average_price;
     }
 }

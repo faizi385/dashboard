@@ -1,74 +1,55 @@
 <?php
 
-namespace App\Reconciliations;
-
-use App\Traits\BarnetIntegration; // Ensure this trait exists
+use App\Models\BarnetPosReport;
+use App\Models\BarnetInventoryLog;
+use App\Traits\ICIntegrationTrait;
 use Illuminate\Support\Facades\DB;
-use App\Models\BarnetPosReport; // Ensure you have this model set up
 use Illuminate\Support\Facades\Log;
 
-class BarnetReconciliation
-{
-    use BarnetIntegration; // Use the BarnetIntegration trait
+$report = DB::table('reports')->where('pos', 'barnet')->where('status', 'pending')->first();
 
-    /**
-     * Run the reconciliation process for Barnet reports.
-     */
-    public function runReconciliation()
-    {
-        // Set the limit for reports to process
-        $limit = 1; // You can adjust this limit
+if ($report) {
+    dump($report->id . '  -- ' . date('Y-m-d H:i:s'));
 
-        // Fetch pending Barnet reports from the 'reports' table
-        $reports = DB::table('reports')
-            ->where('pos', 'barnet')
-            ->where('status', 'pending')
-            ->limit($limit)
-            ->get();
+    try {
+        DB::beginTransaction();
+        DB::table('reports')->where('id', $report->id)->update(['status' => 'reconciliation_start']);
+        
+        $barnetReports = BarnetPosReport::where('report_id', $report->id)->where('status', 'pending')->get();
+        dump('BarnetReports fetched -- ' . date('Y-m-d H:i:s'));
 
-        foreach ($reports as $report) {
-            dump($report->id . '  -- ' . date('Y-m-d H:i:s'));
+        $cleanSheet = [];
+        $insertionCount = 1;
+        $insertionLimit = 500;
+        $totalReportCount = count($barnetReports);
 
-            try {
-                // Mark report as started
-                DB::table('reports')->where('id', $report->id)->update(['status' => 'reconciliation_start']);
+        foreach ($barnetReports as $key => $barnetReport) {
+            $cleanSheet[] = (new class {
+                use ICIntegrationTrait;
+            })->barnetMasterCatalog($barnetReport, $report); // Ensure barnetMasterCatalog exists in the trait
 
-                // Retrieve Barnet reports related to this report
-                $barnetReports = BarnetPosReport::where('report_id', $report->id)
-                    ->where(function ($query) {
-                        $query->where('status', 'pending')
-                              ->orWhere('status', 'error');
-                    })
-                    ->get();
+            $insertionCount++;
+            
+            if ($insertionCount == $insertionLimit || $key === $totalReportCount - 1) {
+                DB::table('clean_sheets')->insert($cleanSheet);
+                $insertionCount = 1;
+                $cleanSheet = [];
+            }
 
-                dump('Barnet reports fetched -- ' . date('Y-m-d H:i:s'));
-
-                // Process each Barnet report using the BarnetIntegration method
-                $this->processBarnetReports($barnetReports);
-
-                // Update the Barnet reports to mark them as 'done'
-                DB::table('barnet_pos_reports')
-                    ->where('report_id', $report->id)
-                    ->update(['status' => 'done']);
-
-                // Mark the report as completed
-                DB::table('reports')->where('id', $report->id)->update(['status' => 'retailer_statement_process']);
-
-            } catch (\Exception $e) {
-                // Log any errors encountered during processing
-                Log::error('Error in Barnet reconciliation: ' . $e->getMessage());
-
-                // Mark the report as failed if there's an error
-                DB::table('reports')->where('id', $report->id)->update(['status' => 'failed']);
-
-                continue; // Move on to the next report
+            if ($key === $totalReportCount - 1) {
+                DB::table('barnet_pos_reports')->where('report_id', $report->id)->update(['status' => 'done']);
             }
         }
+
+        DB::table('reports')->where('id', $report->id)->update(['status' => 'retailer_statement_process']);
+        DB::commit();
+    } catch (\Exception $e) {
+        Log::error('Error in Barnet reconciliation: ' . $e->getMessage());
+        DB::rollBack();
+        DB::table('reports')->where('id', $report->id)->update(['status' => 'failed']);
     }
+
+    print_r('Reconciliation process completed successfully.');
+} else {
+    print_r('No pending Barnet reports found.');
 }
-
-// Run the reconciliation process
-$barnetReconciliation = new BarnetReconciliation();
-$barnetReconciliation->runReconciliation();
-
-print_r('Barnet reconciliation process completed successfully.');

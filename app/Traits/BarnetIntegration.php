@@ -2,254 +2,342 @@
 
 namespace App\Traits;
 
+use App\Helpers\GeneralFunctions;
+use App\Models\Lp;
 use App\Models\Offer;
 use App\Models\Product;
+use App\Models\ProductVariation;
 use App\Models\Province;
 use App\Models\Retailer;
 use App\Models\CleanSheet;
-use App\Models\BarnetPosReport;
+use App\Models\GreenlineReport;
 use Illuminate\Support\Facades\Log;
-use App\Models\BarnetReport; 
+// use App\Traits\ICIntegrationTrait;
 
 trait BarnetIntegration
 {
-    use ICIntegrationTrait;
+    // use ICIntegrationTrait;
 
     /**
-     * Process Barnet reports and save to CleanSheet.
+     * Process Greenline reports and save to CleanSheet.
      *
      * @param array $reports
      * @return void
      */
-    public function processBarnetReports($reports)
+    public function mapBarnetCatalouge($barnetReport, $report)
     {
-        Log::info('Processing Barnet reports:', ['reports' => $reports]);
+        Log::info('Processing Barnet reports:', ['report' => $report]);
+        $cleanSheetData = []; $cleanSheetData['report_price_og'] = '0.00';
+        $retailer_id = $barnetReport->report->retailer_id ?? null;
+        $location = $barnetReport->report->location ?? null;
 
-        foreach ($reports as $report) {
-        
-            $barnetReport = BarnetPosReport::with('report')->find($report->id);
+        if (!$retailer_id) {
+            Log::warning('Retailer ID not found for report:', ['report_id' => $report->id]);
+        }
+        $sku = $barnetReport->product_sku;
+        $gtin = $barnetReport->barcode;
+        $productName = $barnetReport->name;
+        $provinceId = $report->province_id;
+        $provinceName = $report->province;
+        $provinceSlug = $report->province_slug;
+        $product = null;
 
-            if (!$barnetReport) {
-                Log::warning('Barnet report not found:', ['report_id' => $report->id]);
-                continue;
+        $retailer = Retailer::find($retailer_id);
+        if ($retailer) {
+            $retailerName = trim("{$retailer->first_name} {$retailer->last_name}");
+        } else {
+            Log::warning('Retailer not found:', ['retailer_id' => $retailer_id]);
+        }
+
+        if (!empty($gtin) && !empty($sku)) {
+            $product = $this->matchICBarcodeSku($barnetReport->barcode,$barnetReport->product_sku,$provinceName,$provinceSlug,$provinceId);
+        }
+        if (!empty($sku) && empty($product)) {
+            $product = $this->matchICSku($barnetReport->product_sku,$provinceName,$provinceSlug,$provinceId);
+        }
+        if (!empty($gtin) && empty($product)) {
+            $product = $this->matchICBarcode($barnetReport->barcode,$provinceName,$provinceSlug,$provinceId);
+        }
+        if (!empty($productName) && empty($product)){
+            $product = $this->matchICProductName($barnetReport->description,$provinceName,$provinceSlug,$provinceId);
+        }
+        if ($product) {
+            $lp = Lp::where('id',$product->lp_id)->first();
+            $lpName = $lp->name ?? null;
+            $lpId = $lp->id ?? null;
+
+            $cleanSheetData['retailer_id'] = $retailer_id;
+            $cleanSheetData['pos_report_id'] = $barnetReport->id;
+            $cleanSheetData['retailer_name'] = $retailerName ?? null;
+            $cleanSheetData['thc_range'] = $product->thc_range;
+            $cleanSheetData['cbd_range'] = $product->cbd_range;
+            $cleanSheetData['size_in_gram'] =  $product->product_size;
+            $cleanSheetData['location'] = $location;
+            $cleanSheetData['province'] = $provinceName;
+            $cleanSheetData['province_slug'] = $provinceSlug;
+            $cleanSheetData['sku'] = $sku;
+            $cleanSheetData['product_name'] = $barnetReport->product_name;
+            $cleanSheetData['category'] = $product->category;
+            $cleanSheetData['brand'] = $product->brand;
+            $cleanSheetData['sold'] = $barnetReport->quantity_sold_units ?? '0';
+            $cleanSheetData['purchase'] = $barnetReport->quantity_purchased_units ?? '0';
+            $barnetReportAveragePrice = trim(str_replace('$', '', trim($barnetReport->average_price)));
+            $barnetReportAveragePrice = trim($barnetReport->average_price);
+            if($barnetReportAveragePrice != "0.00" && ((float)$barnetReportAveragePrice > 0.00 || (float)$barnetReportAveragePrice < 0.00)) {
+                $cleanSheetData['average_price'] = $barnetReportAveragePrice;
             }
-
-            $retailer_id = $barnetReport->report->retailer_id ?? null;
-            $location = $barnetReport->report->location ?? null;
-
-            if (!$retailer_id) {
-                Log::warning('Retailer ID not found for report:', ['report_id' => $report->id]);
-                continue;
+            else{
+                $barnetReportAveragePrice = 0.00;
+                $cleanSheetData['average_price'] = 0.00;
             }
-
-            $sku = $barnetReport->product_sku;
-            $gtin = $barnetReport->barcode;
-
-            $provinceName = null;
-            $provinceSlug = null;
-            $product = null; 
-            $lpName = null; 
-            $retailerName = null; 
-    
-            $retailer = Retailer::find($retailer_id);
-            if ($retailer) {
-                $retailerName = trim("{$retailer->first_name} {$retailer->last_name}");
-            } else {
-                Log::warning('Retailer not found:', ['retailer_id' => $retailer_id]);
+            $barnetReportAverageCost = trim(str_replace('$', '', trim($barnetReport->average_cost)));
+            $barnetReportAverageCost = trim($barnetReport->average_cost);
+            if ($barnetReportAverageCost != "0.00" && ((float)$barnetReportAverageCost > 0.00 || (float)$barnetReportAverageCost < 0.00)) {
+                $cleanSheetData['average_cost'] = $barnetReportAverageCost;
+                $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
             }
-
-     
-            if (!empty($gtin) && !empty($sku)) {
-                $product = $this->matchICBarcodeSku($sku, $gtin);
-            } if (!empty($sku) && empty($product)) {
-                $product = $this->matchICSku($sku);
-            } if (!empty($gtin) && empty($product)) {
-                $product = $this->matchICBarcode($gtin);
-            } if(!empty($techPOSReport->productname) && empty($product)) {
-                $product = $this->matchICProductName($barnetReport->productname);
+            else{
+                if($product->price_per_unit != "0.00" && ((float)$product->price_per_unit > 0.00 || (float)$product->price_per_unit < 0.00)) {
+                    $cleanSheetData['average_cost'] = $product->price_per_unit;
+                }
+                else{
+                    $cleanSheetData['average_cost'] = "0.00";
+                }
             }
+            $cleanSheetData['barcode'] = $gtin;
+            $cleanSheetData['report_id'] = $report->id;
+            if($barnetReport->transfer > 0){
+                $cleanSheetData['transfer_in'] = $barnetReport->transfer;
+                $cleanSheetData['transfer_out'] = 0;
+            }
+            elseif($barnetReport->transfer < 0){
+                $cleanSheetData['transfer_in'] = 0;
+                $cleanSheetData['transfer_out'] = str_replace('-','',$barnetReport->transfer);
+            }
+            else{
+                $cleanSheetData['transfer_in'] = 0;
+                $cleanSheetData['transfer_out'] = 0;
+            }
+            $cleanSheetData['pos'] = $report->pos;
+            $cleanSheetData['reconciliation_date'] = $report->date;
+            $cleanSheetData['opening_inventory_unit'] = $barnetReport->opening ?? '0';
+            $cleanSheetData['closing_inventory_unit'] = $barnetReport->closing ?? '0';
+            $cleanSheetData['product_variation_id'] = $product->id;
+            $cleanSheetData['dqi_per'] = 0.00;
+            $cleanSheetData['dqi_fee'] = 0.00;
+            $offer = $this->DQISummaryFlag($report,$barnetReport->sku,$barnetReport->barcode,$barnetReport->name,$provinceName,$provinceSlug,$provinceId);
+            if (!empty($offer)) {
+                $cleanSheetData['offer_id'] = $offer->id;
+                $cleanSheetData['lp_id'] = $product->lp_id;
+                $cleanSheetData['lp_name'] = $offer->lp_name;
+                if((int) $cleanSheetData['purchase'] > 0){
+                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku,$product);
+                    $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
+                }
+                else{
+                    $cleanSheetData['c_flag'] = '';
+                }
+                $cleanSheetData['dqi_flag'] = 1;
+                $cleanSheetData['flag'] = '3';
+                $TotalQuantityGet = $cleanSheetData['purchase'];
+                $TotalUnitCostGet = $cleanSheetData['average_cost'];
+                $TotalPurchaseCostMake = (float)$TotalQuantityGet * (float)$TotalUnitCostGet;
+                $FinalDQIFEEMake = (float)trim($offer->data, '%') * 100;
+                $FinalFeeInDollar = (float)$TotalPurchaseCostMake * $FinalDQIFEEMake / 100;
+                $cleanSheetData['dqi_per'] = $FinalDQIFEEMake;
+                $cleanSheetData['dqi_fee'] = number_format($FinalFeeInDollar,2);
+                $cleanSheetData['comment'] = 'Record found in the Master Catalog and Offer';
+                if( $cleanSheetData['average_cost'] == '0.00' && (int)$cleanSheetData['average_cost'] == 0){
+                    $cleanSheetData['average_cost'] = $offers->unit_cost ?? "0.00";
+                }
+            }
+            else{
+                $cleanSheetData['offer_id'] = null;
+                $cleanSheetData['lp_id'] = $lpId;
+                $cleanSheetData['lp_name'] = $lpName;
+                $cleanSheetData['c_flag'] = '';
+                $cleanSheetData['dqi_flag'] = 0;
+                $cleanSheetData['flag'] = '1';
+                $cleanSheetData['comment'] = 'Record found in the Master Catalog';
+            }
+        } else {
+            Log::warning('Product not found for SKU and GTIN:', ['sku' => $sku, 'gtin' => $gtin, 'report_data' => $report]);
+            $offer = null;
+            if (!empty($sku)) {
+                $offer = $this->matchOfferSku($report->date,$sku,$provinceName,$provinceSlug,$provinceId,$report->retailer_id);
+            } if (!empty($gtin) && empty($offer)) {
+                $offer = $this->matchOfferBarcode($report->date,$gtin,$provinceName,$provinceSlug,$provinceId,$report->retailer_id);
+            } if (!empty($productName) && empty($offer)) {
+                $offer = $this->matchOfferProductName($report->date,$productName,$provinceName,$provinceSlug,$provinceId,$report->retailer_id);
+            }
+            if ($offer) {
+                $cleanSheetData['retailer_id'] = $retailer_id;
+                $cleanSheetData['offer_id'] = $offer->id;
+                $cleanSheetData['pos_report_id'] = $barnetReport->id;
+                $cleanSheetData['lp_id'] = $offer->lp_id;
+                $cleanSheetData['retailer_name'] = $retailerName;
+                $cleanSheetData['lp_name'] = $offer->lp_name;
+                $cleanSheetData['thc_range'] = $offer->thc_range;
+                $cleanSheetData['cbd_range'] = $offer->cbd_range;
+                $cleanSheetData['size_in_gram'] = $offer->product_size;
+                $cleanSheetData['location'] = $location;
+                $cleanSheetData['province'] = $offer->province;
+                $cleanSheetData['province_slug'] = $offer->province_slug;
+                $cleanSheetData['sku'] = $sku;
+                $cleanSheetData['product_name'] = $offer->product_name;
+                $cleanSheetData['category'] = $offer->category;
+                $cleanSheetData['brand'] = $offer->brand;
+                $cleanSheetData['sold'] = $barnetReport->quantity_sold_units ?? '0';
+                $cleanSheetData['purchase'] = $barnetReport->quantity_purchased_units ?? '0';
+                if((int) $cleanSheetData['purchase'] > 0){
+                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku,$product);
+                    $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
+                }
+                else{
+                    $cleanSheetData['c_flag'] = '';
+                }
 
-            if ($product) {
-       
-                $provinceName = $product->province;
-                $province = Province::where('name', $provinceName)->first();
-                $provinceSlug = $province->slug ?? null;
-
-              
-                $lpName = Product::find($product->id)->lp->name ?? null; 
-
-    
-                $dqi_fee = $this->calculateDqiFee($barnetReport, $product);
-                $dqi_per = $this->calculateDqiPer($barnetReport, $product);
-
-                $cleanSheetData = [
-                    'retailer_id' => $retailer_id,
-                    // 'lp_id' => $product->lp_id,
-                    'report_id' => $report->id,
-                    'retailer_name' => $retailerName,
-                    'lp_name' => $lpName,
-                    'thc_range' => $product->thc_range,
-                    'cbd_range' => $product->cbd_range,
-                    'size_in_gram' => $product->product_size,
-                    'location' => $location,
-                    'province' => $provinceName,
-                    'province_slug' => $provinceSlug,
-                    'sku' => $sku,
-                    'product_name' => $barnetReport->name,
-                    'category' => $product->category,
-                    'brand' => $product->brand,
-                    'sold' => $barnetReport->quantity_sold_units ?? '0',
-                    'purchase' => $barnetReport->quantity_purchased_units ?? '0',
-                    'average_price' => $report->average_price,
-                    'average_cost' => $report->average_cost,
-                    'report_price_og' => $report->report_price_og,
-                    'barcode' => $gtin,
-                    'transfer_in' => $barnetReport->other_additions_units ?? '0',
-                    'transfer_out' => $barnetReport->transfer_units ?? '0',
-                    'pos' => 'Barnet',
-                    'pos_report_id' => $barnetReport->id,
-                    'comment' => 'Record found in the Master Catalog',
-                    'opening_inventory_unit' =>$barnetReport->opening_inventory_units ?? '0',
-                    'closing_inventory_unit' => $barnetReport->closing_inventory_units ?? '0',
-                
-                    // 'dqi_fee' => $dqi_fee,
-                    // 'dqi_per' => $dqi_per,
-                    'reconciliation_date' => now(),
-                ];
-                $offers =$this->DQISummaryFlag($barnetReport->product_sku,$barnetReport->barcode,$barnetReport->description); // Get the offers
-
-                if (!empty($offers)) {
-                    if((int) $cleanSheetData['purchased'] > 0){
-                        $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offers->lp_id,$offers->lp,$offers->provincial,$product);
-                        $cleanSheet['c_flag'] = $checkCarveout ? 'yes' : 'no';
+                $barnetReportAveragePrice = trim(str_replace('$', '', trim($barnetReport->average_price)));
+                $barnetReportAveragePrice = trim($barnetReport->average_price);
+                if($barnetReportAveragePrice != "0.00" && ((float)$barnetReportAveragePrice > 0.00 || (float)$barnetReportAveragePrice < 0.00)) {
+                    $cleanSheetData['average_price'] = $barnetReportAveragePrice;
+                }
+                else{
+                    $barnetReportAveragePrice = "0.00";
+                    $cleanSheetData['average_price'] = "0.00";
+                }
+                $barnetReportAverageCost = trim(str_replace('$', '', trim($barnetReport->average_cost)));
+                $barnetReportAverageCost = trim($barnetReport->average_cost);
+                if ($barnetReportAverageCost != "0.00" && ((float)$barnetReportAverageCost > 0.00 || (float)$barnetReportAverageCost < 0.00)) {
+                    $cleanSheetData['average_cost'] = $barnetReportAverageCost;
+                    $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
+                }
+                else{
+                    $barnetReportAverageCost = trim(str_replace('$', '', trim($offer->unit_cost)));
+                    if($barnetReportAverageCost != "0.00" && ((float)$barnetReportAverageCost > 0.00 || (float)$barnetReportAverageCost < 0.00)) {
+                        $cleanSheetData['average_cost'] = $barnetReportAverageCost;
                     }
                     else{
-                        $cleanSheet['c_flag'] = '';
+                        $barnetReportAverageCost = "0.00";
+                        $cleanSheetData['average_cost'] = "0.00";
                     }
-                    $cleanSheetData['offer_id'] = $offers->id;
-                    $cleanSheetData['lp_id'] = $product->lp_id;
-                    $cleanSheetData['dqi_fee'] = $dqi_fee;
-                    $cleanSheetData['dqi_per'] = $dqi_per;
                 }
-                $this->saveToCleanSheet($cleanSheetData);
+                $cleanSheetData['barcode'] = $gtin;
+                $cleanSheetData['report_id'] = $report->id;
+                if($barnetReport->transfer > 0){
+                    $cleanSheetData['transfer_in'] = $barnetReport->transfer;
+                    $cleanSheetData['transfer_out'] = 0;
+                }
+                elseif($barnetReport->transfer < 0){
+                    $cleanSheetData['transfer_in'] = 0;
+                    $cleanSheetData['transfer_out'] = str_replace('-','',$barnetReport->transfer);
+                }
+                else{
+                    $cleanSheetData['transfer_in'] = 0;
+                    $cleanSheetData['transfer_out'] = 0;
+                }
+                $cleanSheetData['pos'] = $report->pos;
+                $cleanSheetData['reconciliation_date'] = $report->date;
+                $cleanSheetData['opening_inventory_unit'] = $barnetReport->opening ?? '0';
+                $cleanSheetData['closing_inventory_unit'] = $barnetReport->closing ?? '0';
+                $cleanSheetData['flag'] = '2';
+                $cleanSheetData['comment'] = 'Record found in the Offers';
+                $cleanSheetData['dqi_flag'] = 1;
+                $cleanSheetData['product_variation_id'] = null;
+                $TotalQuantityGet = $cleanSheetData['purchase'];
+                $TotalUnitCostGet = $cleanSheetData['average_cost'];
+                $TotalPurchaseCostMake = (float)$TotalQuantityGet * (float)$TotalUnitCostGet;
+                $FinalDQIFEEMake = (float)trim($offer->data, '%') * 100;
+                $FinalFeeInDollar = (float)$TotalPurchaseCostMake * $FinalDQIFEEMake / 100;
+                $cleanSheetData['dqi_per'] = $FinalDQIFEEMake;
+                $cleanSheetData['dqi_fee'] = number_format($FinalFeeInDollar,2);
             } else {
-                Log::warning('Product not found for SKU and GTIN:', ['sku' => $sku, 'gtin' => $gtin, 'report_data' => $report]);
-
-             
-                $offer = null;
-                if (!empty($gtin) && !empty($sku)) {
-                    $offer = $this->matchOfferProduct($sku, $gtin); 
-                } elseif (!empty($gtin)) {
-                    $offer = $this->matchOfferBarcode($gtin); 
-                } elseif (!empty($sku)) {
-                    $offer = $this->matchOfferSku($sku); 
+                Log::info('No product or offer found, saving report data as is:', ['report_data' => $report]);
+                $cleanSheetData['retailer_id'] = $retailer_id;
+                $cleanSheetData['offer_id'] = null;
+                $cleanSheetData['pos_report_id'] = $barnetReport->id;
+                $cleanSheetData['lp_id'] = null;
+                $cleanSheetData['retailer_name'] = $retailerName;
+                $cleanSheetData['lp_name'] = null;
+                $cleanSheetData['thc_range'] = null;
+                $cleanSheetData['cbd_range'] = null;
+                $cleanSheetData['size_in_gram'] = null;
+                $cleanSheetData['location'] = $location;
+                $cleanSheetData['province'] = $provinceName;
+                $cleanSheetData['province_slug'] = $provinceSlug;
+                $cleanSheetData['sku'] = $sku;
+                $cleanSheetData['product_name'] = $barnetReport->name;
+                $cleanSheetData['category'] = null;
+                $cleanSheetData['brand'] = null;
+                $cleanSheetData['sold'] = $barnetReport->quantity_sold_units ?? '0';
+                $cleanSheetData['purchase'] = $barnetReport->quantity_purchased_units ?? '0';
+                $cleanSheetData['average_price'] = $barnetReport->average_price;
+                $cleanSheetData['average_cost'] = $barnetReport->average_cost;
+                $cleanSheetData['report_price_og'] = $barnetReport->average_cost;
+                $cleanSheetData['barcode'] = $gtin;
+                $cleanSheetData['report_id'] = $report->id;
+                $cleanSheetData['c_flag'] = '';
+                if($barnetReport->transfer > 0){
+                    $cleanSheetData['transfer_in'] = $barnetReport->transfer;
+                    $cleanSheetData['transfer_out'] = 0;
                 }
-
-                if ($offer) {
-          
-                    $lpName = Offer::find($offer->id)->lp->name ?? null;
-
-         
-                    $dqi_fee = $this->calculateDqiFee($barnetReport, $offer);
-                    $dqi_per = $this->calculateDqiPer($barnetReport, $offer);
-
-                    $cleanSheetData = [
-                        'retailer_id' => $retailer_id,
-                        'lp_id' => $offer->lp_id,
-                        'report_id' => $report->id,
-                        'offer_id' => $offer->id,
-                        'retailer_name' => $retailerName,
-                        'lp_name' => $lpName,
-                        'thc_range' => $offer->thc_range,
-                        'cbd_range' => $offer->cbd_range,
-                        'size_in_gram' => $offer->size_in_gram,
-                        'location' => $location,
-                        'province' => $offer->province,
-                        'province_slug' => $offer->province_slug,
-                        'sku' => $sku,
-                        'product_name' => $offer->product_name,
-                        'category' => $offer->category,
-                        'brand' => $offer->brand,
-                        'sold' => $barnetReport->quantity_sold_units ?? '0',
-                        'purchase' => $barnetReport->quantity_purchased_units ?? '0',
-                        'average_price' => $report->average_price,
-                        'average_cost' => $report->average_cost,
-                        'report_price_og' => $report->report_price_og,
-                        'barcode' => $gtin,
-                        'transfer_in' =>$barnetReport->other_additions_units ?? '0',
-                        'transfer_out' =>$barnetReport->transfer_units ?? '0',
-                        'pos' => 'Barnet',
-                        'pos_report_id' => $barnetReport->id,
-                        'comment' => 'Record found in the Offers Table',
-                        'opening_inventory_unit' => $barnetReport->opening_inventory_units ?? '0',
-                        'closing_inventory_unit' => $barnetReport->closing_inventory_units ?? '0',
-                    
-                        'dqi_fee' => $dqi_fee,
-                        'dqi_per' => $dqi_per,
-                        'reconciliation_date' => now(),
-                    ];
-
-                    $this->saveToCleanSheet($cleanSheetData);
-                } else {
-           
-                    Log::info('No product or offer found, saving report data as is:', ['report_data' => $report]);
-
-                    $cleanSheetData = [
-                        'retailer_id' => $retailer_id,
-                        'lp_id' => null,
-                        'report_id' => $report->id,
-                        'retailer_name' => $retailerName,
-                        'lp_name' => $lpName,
-                        'thc_range' => null,
-                        'cbd_range' => null,
-                        'size_in_gram' => null,
-                        'location' => $location,
-                        'province' => null,
-                        'province_slug' => null,
-                        'sku' => $sku,
-                        'product_name' => $barnetReport->name,
-                        'category' => null,
-                        'brand' => null,
-                        'sold' =>  $barnetReport->quantity_sold_units ?? '0',
-                        'purchase' => $barnetReport->quantity_purchased_units ?? '0',
-                        'average_price' => $report->average_price,
-                        'average_cost' => $report->average_cost,
-                        'report_price_og' => $report->report_price_og,
-                        'barcode' => $gtin,
-                        'transfer_in' => $barnetReport->other_additions_units ?? '0',
-                        'transfer_out' =>$barnetReport->transfer_units ?? '0',
-                        'pos' => 'Barnet',
-                        'pos_report_id' => $barnetReport->id,
-                        'comment' => 'No product or offer found for this report',
-                        'opening_inventory_unit' =>  $barnetReport->opening_inventory_units ?? '0',
-                        'closing_inventory_unit' => $barnetReport->closing_inventory_units ?? '0',
-            
-                        'dqi_fee' => null,
-                        'dqi_per' => null,
-                        'reconciliation_date' => now(),
-                    ];
-
-                    $this->saveToCleanSheet($cleanSheetData);
+                elseif($barnetReport->transfer < 0){
+                    $cleanSheetData['transfer_in'] = 0;
+                    $cleanSheetData['transfer_out'] = str_replace('-','',$barnetReport->transfer);
                 }
+                else{
+                    $cleanSheetData['transfer_in'] = 0;
+                    $cleanSheetData['transfer_out'] = 0;
+                }
+                $cleanSheetData['pos'] = $report->pos;
+                $cleanSheetData['reconciliation_date'] = $report->date;
+                $cleanSheetData['opening_inventory_unit'] = $barnetReport->opening ?? '0';
+                $cleanSheetData['closing_inventory_unit'] = $barnetReport->closing ?? '0';
+                $cleanSheetData['flag'] = '0';
+                $cleanSheetData['comment'] = 'No matching product or offer found.';
+                $cleanSheetData['dqi_flag'] = 0;
+                $cleanSheetData['product_variation_id'] = null;
+                $cleanSheetData['dqi_per'] = 0.00;
+                $cleanSheetData['dqi_fee'] = 0.00;
             }
         }
+        $cleanSheetData['sold'] = $this->sanitizeNumeric($cleanSheetData['sold']);
+        $cleanSheetData['purchase'] = $this->sanitizeNumeric($cleanSheetData['purchase']);
+        $cleanSheetData['average_price'] = $this->sanitizeNumeric($cleanSheetData['average_price']);
+        $cleanSheetData['report_price_og'] = $this->sanitizeNumeric($cleanSheetData['report_price_og']);
+        $cleanSheetData['average_cost'] = $this->sanitizeNumeric($cleanSheetData['average_cost']);
+
+        if ($cleanSheetData['average_cost'] === 0.0 || $cleanSheetData['average_cost'] === 0) {
+            $cleanSheetData['average_cost'] = GeneralFunctions::checkAvgCostCleanSheet($cleanSheetData['sku'],$cleanSheetData['province']);
+        }
+
+        return $cleanSheetData;
+    }
+    public function barnetAveragePrice ($quantity_sold_value,$quantity_sold_units){
+        $quantity_sold_value = GeneralFunctions::formatAmountValue($quantity_sold_value);
+        $quantity_sold_units = (double)trim($quantity_sold_units);
+        if(!empty($quantity_sold_value) && (int)$quantity_sold_units > 0 && $quantity_sold_value != '0' && $quantity_sold_value != '0.00' && $quantity_sold_units != '0'){
+            $barnetAveragePrice = ($quantity_sold_value/$quantity_sold_units);
+        }
+        else{
+            $barnetAveragePrice = "0.00";
+        }
+        return $barnetAveragePrice;
     }
 
-    // Example method to save to CleanSheet
-    // protected function saveToCleanSheet(array $data)
-    // {
-    //     // Assuming you have a CleanSheet model to save the data
-    //     CleanSheet::create($data);
-    // }
+    public function barnetAverageCost ($opening_inventory_value,$opening_inventory_units){
+        $opening_inventory_value = GeneralFunctions::formatAmountValue($opening_inventory_value);
+        $opening_inventory_units = (double)trim($opening_inventory_units);
+        if(!empty($opening_inventory_value) && (int)$opening_inventory_units > 0 && $opening_inventory_value != '0' && $opening_inventory_value != '0.00' && $opening_inventory_units != '0'){
+            $barnetAverageCost = ($opening_inventory_value/$opening_inventory_units);
+        } elseif(!empty($opening_inventory_value) && (int)$opening_inventory_units < 0 && $opening_inventory_value < 0){
+            $barnetAverageCost = ($opening_inventory_value/$opening_inventory_units);
+        }
+        else{
+            $barnetAverageCost = "0.00";
+        }
+        return $barnetAverageCost;
+    }
 
-    // // Example methods for matching products and offers
-    // protected function matchICBarcodeSku($sku, $gtin)
-    // {
-    //     // Implement matching logic based on your application structure
-    // }
 
-    // protected function matchOfferProduct($sku, $gtin)
-    // {
-    //     // Implement matching logic based on your application structure
-    // }
 }

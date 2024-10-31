@@ -1,79 +1,54 @@
 <?php
-namespace App\Traits;
 
+use App\Models\OtherPOSReport;
+use App\Traits\ICIntegrationTrait;
 use Illuminate\Support\Facades\DB;
-use App\Traits\OtherPOSIntegration;
 use Illuminate\Support\Facades\Log;
-use App\Models\OtherPOSReport; // Import your OtherPOSReport model
 
-class OtherPOSReconciliation
-{
-    use OtherPOSIntegration; // Trait for Other POS specific integration
+$report = DB::table('reports')->where('pos', 'otherpos')->where('status', 'pending')->first();
 
-    /**
-     * Run the reconciliation process for Other POS reports.
-     */
-    public function runReconciliation()
-    {
-        // Set the limit for reports to process
-        $limit = 1; // You can adjust this limit
+if ($report) {
+    dump($report->id . '  -- ' . date('Y-m-d H:i:s'));
 
-        // Fetch pending Other POS reports from the 'reports' table
-        $reports = DB::table('reports')
-            ->where('pos', 'otherpos')
-            ->where('status', 'pending')
-            ->limit($limit)
-            ->get();
+    try {
+        DB::beginTransaction();
+        DB::table('reports')->where('id', $report->id)->update(['status' => 'reconciliation_start']);
+        
+        $otherPOSReports = OtherPOSReport::where('report_id', $report->id)->where('status', 'pending')->get();
+        dump('OtherPOS reports fetched -- ' . date('Y-m-d H:i:s'));
 
-        foreach ($reports as $report) {
-            dump($report->id . '  -- ' . date('Y-m-d H:i:s'));
+        $cleanSheet = [];
+        $insertionCount = 1;
+        $insertionLimit = 500;
+        $totalReportCount = count($otherPOSReports);
 
-            try {
-                // Mark report as started
-                DB::table('reports')->where('id', $report->id)->update(['status' => 'reconciliation_start']);
+        foreach ($otherPOSReports as $key => $otherPOSReport) {
+            $cleanSheet[] = (new class {
+                use ICIntegrationTrait;
+            })->otherPOSMasterCatalog($otherPOSReport, $report); // Ensure otherPOSMasterCatalog exists in the trait
 
-                // Retrieve Other POS reports related to this report
-                $otherPOSReports = OtherPOSReport::where('report_id', $report->id)
-                    ->where(function ($query) {
-                        $query->where('status', 'pending')
-                              ->orWhere('status', 'error');
-                    })
-                    ->get();
+            $insertionCount++;
+            
+            if ($insertionCount == $insertionLimit || $key === $totalReportCount - 1) {
+                DB::table('clean_sheets')->insert($cleanSheet);
+                $insertionCount = 1;
+                $cleanSheet = [];
+            }
 
-                dump('Other POS reports fetched -- ' . date('Y-m-d H:i:s'));
-
-                // Process each Other POS report
-                $this->processOtherPOSReports($otherPOSReports);
-
-                // Update the Other POS reports to mark them as 'done'
-                DB::table('other_pos_reports')
-                    ->where('report_id', $report->id)
-                    ->update(['status' => 'done']);
-
-                // Mark the report as completed
-                DB::table('reports')->where('id', $report->id)->update(['status' => 'retailer_statement_process']);
-
-            } catch (\Exception $e) {
-                // Log any errors encountered during processing
-                Log::error('Error in Other POS reconciliation: ' . $e->getMessage());
-
-                // Mark the report as failed if there's an error
-                DB::table('reports')->where('id', $report->id)->update(['status' => 'failed']);
+            if ($key === $totalReportCount - 1) {
+                DB::table('other_pos_reports')->where('report_id', $report->id)->update(['status' => 'done']);
             }
         }
+
+        DB::table('reports')->where('id', $report->id)->update(['status' => 'retailer_statement_process']);
+        DB::commit();
+    } catch (\Exception $e) {
+        Log::error('Error in OtherPOS reconciliation: ' . $e->getMessage());
+        DB::rollBack();
+        DB::table('reports')->where('id', $report->id)->update(['status' => 'failed']);
     }
 
-    /**
-     * Process Other POS reports.
-     *
-     * @param \Illuminate\Support\Collection $otherPOSReports
-     * @return void
-     */
- 
+    print_r('Reconciliation process completed successfully.');
+} else {
+    print_r('No pending OtherPOS reports found.');
 }
-
-// Run the reconciliation process
-$reconciliation = new OtherPOSReconciliation();
-$reconciliation->runReconciliation();
-
-print_r('Reconciliation process for Other POS completed successfully.');
