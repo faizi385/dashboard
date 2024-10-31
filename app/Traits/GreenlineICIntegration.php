@@ -315,19 +315,5 @@ trait GreenlineICIntegration
     }
 
 
-    /**
-     * Save data to CleanSheet.
-     *
-     * @param array $cleanSheetData
-     * @return void
-     */
-    public function saveToCleanSheet($cleanSheetData)
-    {
-        try {
-            CleanSheet::insert($cleanSheetData);
-            Log::info('Data saved to CleanSheet successfully.');
-        } catch (\Exception $e) {
-            Log::error('Error saving data to CleanSheet:', ['error' => $e->getMessage()]);
-        }
-    }
+
 }

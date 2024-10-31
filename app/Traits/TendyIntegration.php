@@ -2,236 +2,300 @@
 
 namespace App\Traits;
 
+use App\Helpers\GeneralFunctions;
+use App\Models\Lp;
 use App\Models\Offer;
 use App\Models\Product;
+use App\Models\ProductVariation;
 use App\Models\Province;
 use App\Models\Retailer;
 use App\Models\CleanSheet;
+use App\Models\tendyDaignosticReport;
 use Illuminate\Support\Facades\Log;
-use App\Models\TendyDiagnosticReport;
-use App\Models\TendySalesSummaryReport; 
+// use App\Traits\ICIntegrationTrait;
 
 trait TendyIntegration
 {
-    use ICIntegrationTrait;
+    // use ICIntegrationTrait;
 
     /**
-     * Process Tendy reports and save to CleanSheet.
+     * Process TechPos reports and save to CleanSheet.
      *
-     * @param array 
+     * @param array $reports
      * @return void
      */
-    public function processTendyReports($reports)
+    public function mapTendyPosCatalouge($tendyDaignosticReport,$report)
     {
-        Log::info('Processing Tendy reports:', ['reports' => $reports]);
-        
-        foreach ($reports as $report) {
- 
-            $tendyReport = TendyDiagnosticReport::find($report->id);
-        
-            if (!$tendyReport) {
-                Log::warning('Tendy report not found:', ['report_id' => $report->id]);
-                continue;
+        Log::info('Processing TechPos reports:', ['report' => $report]);
+        $cleanSheetData = []; $cleanSheetData['report_price_og'] = '0.00';
+        $retailer_id = $tendyDaignosticReport->report->retailer_id ?? null;
+        $location = $tendyDaignosticReport->report->location ?? null;
+
+        if (!$retailer_id) {
+            Log::warning('Retailer ID not found for report:', ['report_id' => $report->id]);
+        }
+        $sku = $tendyDaignosticReport->product_sku;
+        $gtin = '';
+        $productName = $tendyDaignosticReport->productname;
+        $provinceId = $report->province_id;
+        $provinceName = $report->province;
+        $provinceSlug = $report->province_slug;
+        $product = null;
+
+        $retailer = Retailer::find($retailer_id);
+        if ($retailer) {
+            $retailerName = trim("{$retailer->first_name} {$retailer->last_name}");
+        } else {
+            Log::warning('Retailer not found:', ['retailer_id' => $retailer_id]);
+        }
+
+        if (!empty($sku)) {
+        $product = $this->matchICSku($tendyDaignosticReport->sku,$provinceName,$provinceSlug,$provinceId);
+        }
+        if (empty($sku) && empty($product)){
+            $product = $this->matchICProductName($tendyDaignosticReport->TendySalesSummaryReport->product,$provinceName,$provinceSlug,$provinceId);
+        }
+        if ($product) {
+            $lp = Lp::where('id',$product->lp_id)->first();
+            $lpName = $lp->name ?? null;
+            $lpId = $lp->id ?? null;
+
+            $cleanSheetData['retailer_id'] = $retailer_id;
+            $cleanSheetData['pos_report_id'] = $tendyDaignosticReport->id;
+            $cleanSheetData['retailer_name'] = $retailerName ?? null;
+            $cleanSheetData['thc_range'] = $product->thc_range;
+            $cleanSheetData['cbd_range'] = $product->cbd_range;
+            $cleanSheetData['size_in_gram'] =  $product->product_size;
+            $cleanSheetData['location'] = $location;
+            $cleanSheetData['province'] = $provinceName;
+            $cleanSheetData['province_slug'] = $provinceSlug;
+            $cleanSheetData['sku'] = $sku;
+            $cleanSheetData['product_name'] = $productName;
+            $cleanSheetData['category'] = $product->category;
+            $cleanSheetData['brand'] = $product->brand;
+            $cleanSheetData['sold'] = $tendyDaignosticReport->sold;
+            $cleanSheetData['purchase'] = $tendyDaignosticReport->purchased ?? '0';
+            $cleanSheetData['average_price'] = isset($tendyDaignosticReport->TendySalesSummaryReport->avg_retail_price) ? $tendyDaignosticReport->TendySalesSummaryReport->avg_retail_price: '0';
+            if ($tendyDaignosticReport && $tendyDaignosticReport->TendySalesSummaryReport) {
+                $tendyAverageCost = $this->tendyAverageCost($tendyDaignosticReport->TendySalesSummaryReport->cost_of_goods_sold,$tendyDaignosticReport->TendySalesSummaryReport->net_qty_sold);
+                if($tendyAverageCost == "0.00"){
+                    $tendyAverageCost = $product->price_per_unit;
+                }
+                }else{
+                    $tendyAverageCost = '0';
+                }
+                $cleanSheetData['average_cost'] = $tendyAverageCost;
+            $cleanSheetData['report_id'] = $report->id;
+            if($tendyDaignosticReport->quantitytransferinunits > 0 || $tendyDaignosticReport->otheradditionsunits){
+                $cleanSheetData['transfer_in'] = $tendyDaignosticReport->quantitytransferinunits + $tendyDaignosticReport->otheradditionsunits ;
             }
-        
-            $retailer_id = $tendyReport->report->retailer_id ?? null;
-            $location = $tendyReport->report->location ?? null;
-
-            if (!$retailer_id) {
-                Log::warning('Retailer ID not found for report:', ['report_id' => $report->id]);
-                continue;
+            else{
+                $cleanSheetData['transfer_in'] = 0;
             }
 
-            $sku = $tendyReport->product_sku;
-            $gtin = $tendyReport->barcode;
-
-            $provinceName = null;
-            $provinceSlug = null;
-            $product = null; 
-            $lpName = null;
-            $retailerName = null;
-
-            $retailer = Retailer::find($retailer_id);
-            if ($retailer) {
-                $retailerName = trim("{$retailer->first_name} {$retailer->last_name}");
-            } else {
-                Log::warning('Retailer not found:', ['retailer_id' => $retailer_id]);
+            if($tendyDaignosticReport->quantitytransferoutunits > 0 || $tendyDaignosticReport->otherreductionsunits > 0){
+                $cleanSheetData['transfer_out'] = $tendyDaignosticReport->quantitytransferoutunits + $tendyDaignosticReport->otherreductionsunits ;
             }
-
-          
-            if (!empty($sku)) {
-                $product = $this->matchICSku($sku);
+            else{
+                $cleanSheetData['transfer_out'] = 0 ;
             }
-
-            // // If no product found, try matching by product name from TendyDiagnosticReport
-            // if (!$product && !empty($tendyReport->productname)) {
-            //     $product = $this->matchICProductName($tendyReport->product);
-            // }
-
-            if (empty($sku) && empty($product)) {
-                $tendySalesReport = TendySalesSummaryReport::where('diagnostic_report_id ', $tendyReport->id)->first();
-                if ($tendySalesReport) {
-                    $product = $this->matchICProductName($tendySalesReport->product);
+            $cleanSheetData['pos'] = $report->pos;
+            $cleanSheetData['reconciliation_date'] = $report->date;
+            $cleanSheetData['opening_inventory_unit'] = $tendyDaignosticReport->opening ?? '0';
+            $cleanSheetData['closing_inventory_unit'] = $tendyDaignosticReport->closing ?? '0';
+            $cleanSheetData['product_variation_id'] = $product->id;
+            $cleanSheetData['dqi_per'] = 0.00;
+            $cleanSheetData['dqi_fee'] = 0.00;
+            $offer = $this->DQISummaryFlag($report,$tendyDaignosticReport->sku,'',$tendyDaignosticReport->productname,$provinceName,$provinceSlug,$provinceId);
+            if (!empty($offer)) {
+                $cleanSheetData['offer_id'] = $offer->id;
+                $cleanSheetData['lp_id'] = $product->lp_id;
+                $cleanSheetData['lp_name'] = $offer->lp_name;
+                if((int) $cleanSheetData['purchase'] > 0){
+                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku,$product);
+                    $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
+                }
+                else{
+                    $cleanSheetData['c_flag'] = '';
+                }
+                $cleanSheetData['dqi_flag'] = 1;
+                $cleanSheetData['flag'] = '3';
+                $TotalQuantityGet = $cleanSheetData['purchase'];
+                $TotalUnitCostGet = $cleanSheetData['average_cost'];
+                $TotalPurchaseCostMake = (float)$TotalQuantityGet * (float)$TotalUnitCostGet;
+                $FinalDQIFEEMake = (float)trim($offer->data, '%') * 100;
+                $FinalFeeInDollar = (float)$TotalPurchaseCostMake * $FinalDQIFEEMake / 100;
+                $cleanSheetData['dqi_per'] = $FinalDQIFEEMake;
+                $cleanSheetData['dqi_fee'] = number_format($FinalFeeInDollar,2);
+                $cleanSheetData['comment'] = 'Record found in the Master Catalog and Offer';
+                if( $cleanSheetData['average_cost'] == '0.00' && (int) $cleanSheetData['average_cost'] == 0){
+                    $cleanSheetData['average_cost'] = \App\Helpers\GeneralFunctions::formatAmountValue($offer->unit_cost) ?? "0.00";
                 }
             }
-            if ($product) {
-                $provinceName = $product->province;
-                $province = Province::where('name', $provinceName)->first();
-                $provinceSlug = $province->slug ?? null;
-
-                $lpName = Product::find($product->id)->lp->name ?? null;
-
-                $dqi_fee = $this->calculateDqiFee($tendyReport, $product);
-                $dqi_per = $this->calculateDqiPer($tendyReport, $product);
-        
-                $cleanSheetData = [
-                    'retailer_id' => $retailer_id,
-                    'report_id' => $report->id,
-                    'retailer_name' => $retailerName,
-                    'lp_name' => $lpName,
-                    'thc_range' => $product->thc_range,
-                    'cbd_range' => $product->cbd_range,
-                    'size_in_gram' => $product->product_size,
-                    'location' => $location,
-                    'province' => $provinceName,
-                    'province_slug' => $provinceSlug,
-                    'sku' => $sku,
-                    'product_name' => $tendyReport->product,
-                    'category' => $product->category,
-                    'brand' => $product->brand,
-                    'sold' => isset($tendyReport->net_qty_sold) ? $tendySalesReport->net_qty_sold : '0',
-                    'purchase' => $tendyReport->quantity_purchased_units ?? '0',
-                    'average_price' =>       isset($tendyReport->avg_retail_price) ? $tendySalesReport->avg_retail_price: '0',
-                    'average_cost' => $report->average_cost,
-                    'report_price_og' => $report->report_price_og,
-                    'barcode' => $gtin,
-                    'transfer_in' => $tendyReport->quantity_purchased_units_transfer ?? '0',
-                    'transfer_out' => $tendyReport->quantity_sold_units_transfer ?? '0',
-                    'pos' => 'Tendy',
-                    'pos_report_id' => $tendyReport->id,
-                    'comment' => 'Record found in the Master Catalog',
-                    'opening_inventory_unit' => $tendyReport->opening_inventory_units ?? '0',
-                    'closing_inventory_unit' => $tendyReport->closing_inventory_units ?? '0',
-                    // 'dqi_fee' => $dqi_fee,
-                    // 'dqi_per' => $dqi_per,
-                    'reconciliation_date' => now(),
-                ];
-    
-
-                $offers = $this->DQISummaryFlag($tendyReport->product_sku, null, $product); // Get the offers
-
-                if (!empty($offers)) {
-                    if((int) $cleanSheetData['purchased'] > 0){
-                        $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offers->lp_id,$offers->lp,$offers->provincial,$product);
-                        $cleanSheet['c_flag'] = $checkCarveout ? 'yes' : 'no';
+            else{
+                $cleanSheetData['offer_id'] = null;
+                $cleanSheetData['lp_id'] = $lpId;
+                $cleanSheetData['lp_name'] = $lpName;
+                $cleanSheetData['c_flag'] = '';
+                $cleanSheetData['dqi_flag'] = 0;
+                $cleanSheetData['flag'] = '1';
+                $cleanSheetData['comment'] = 'Record found in the Master Catalog';
+            }
+        } else {
+            $offer = null;
+            if (!empty($sku)) {
+                $offer = $this->matchOfferSku($report->date,$sku,$provinceName,$provinceSlug,$provinceId,$report->retailer_id);
+            }
+            if (!empty($productName) && empty($offer)) {
+                $offer = $this->matchOfferProductName($report->date,$productName,$provinceName,$provinceSlug,$provinceId,$report->retailer_id);
+            }
+            if ($offer) {
+                $cleanSheetData['retailer_id'] = $retailer_id;
+                $cleanSheetData['offer_id'] = $offer->id;
+                $cleanSheetData['pos_report_id'] = $tendyDaignosticReport->id;
+                $cleanSheetData['lp_id'] = $offer->lp_id;
+                $cleanSheetData['retailer_name'] = $retailerName;
+                $cleanSheetData['lp_name'] = $offer->lp_name;
+                $cleanSheetData['thc_range'] = $offer->thc_range;
+                $cleanSheetData['cbd_range'] = $offer->cbd_range;
+                $cleanSheetData['size_in_gram'] = $offer->product_size;
+                $cleanSheetData['location'] = $location;
+                $cleanSheetData['province'] = $offer->province;
+                $cleanSheetData['province_slug'] = $offer->province_slug;
+                $cleanSheetData['sku'] = $sku;
+                $cleanSheetData['product_name'] = $offer->product_name;
+                $cleanSheetData['category'] = $offer->category;
+                $cleanSheetData['brand'] = $offer->brand;
+                $cleanSheetData['sold'] = $tendyDaignosticReport->sold;
+                $cleanSheetData['purchase'] = $tendyDaignosticReport->purchased ?? '0';
+                $cleanSheetData['average_price'] = $this->techpos_averge_price($tendyDaignosticReport);
+                if((int) $cleanSheetData['purchase'] > 0){
+                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku,$product);
+                    $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
+                }
+                else{
+                    $cleanSheetData['c_flag'] = '';
+                }
+                $techPOSAverageCost =\App\Helpers\GeneralFunctions::formatAmountValue($tendyDaignosticReport->costperunit) ?? '0';
+                if ($techPOSAverageCost != "0.00" && $techPOSAverageCost != '0' && (float)$techPOSAverageCost != 0.00) {
+                    $cleanSheetData['average_cost'] = $techPOSAverageCost;
+                    $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
+                }
+                else{
+                    $techPOSAverageCost =\App\Helpers\GeneralFunctions::formatAmountValue($offer->unit_cost);
+                    if($offer->unit_cost != "0.00" && $offer->unit_cost != "0" && (float)$offer->unit_cost != 0.00) {
+                        $cleanSheetData['average_cost'] = $offer->unit_cost;
                     }
                     else{
-                        $cleanSheet['c_flag'] = '';
-                    }
-                    $cleanSheetData['offer_id'] = $offers->id;
-                    $cleanSheetData['lp_id'] = $product->lp_id;
-                    $cleanSheetData['dqi_fee'] = $dqi_fee;
-                    $cleanSheetData['dqi_per'] = $dqi_per;
-
-                    $this->saveToCleanSheet($cleanSheetData);
-                } else {
-                    Log::warning('Product not found for SKU and GTIN:', ['sku' => $sku, 'gtin' => $gtin, 'report_data' => $report]);
-
-                    $offer = null;
-                    if (!empty($gtin) && !empty($sku)) {
-                        $offer = $this->matchOfferProduct($sku, $gtin);
-                    } elseif (!empty($gtin)) {
-                        $offer = $this->matchOfferBarcode($gtin);
-                    } elseif (!empty($sku)) {
-                        $offer = $this->matchOfferSku($sku);
-                    }
-
-                    if ($offer) {
-                        $lpName = Offer::find($offer->id)->lp->name ?? null;
-                        $dqi_fee = $this->calculateDqiFee($tendyReport, $offer);
-                        $dqi_per = $this->calculateDqiPer($tendyReport, $offer);
-
-                        $cleanSheetData = [
-                            'retailer_id' => $retailer_id,
-                            'lp_id' => $offer->lp_id,
-                            'report_id' => $report->id,
-                            'offer_id' => $offer->id,
-                            'retailer_name' => $retailerName,
-                            'lp_name' => $lpName,
-                            'thc_range' => $offer->thc_range,
-                            'cbd_range' => $offer->cbd_range,
-                            'size_in_gram' => $offer->product_size,
-                            'location' => $location,
-                            'province' => $offer->province,
-                            'province_slug' => $offer->province_slug,
-                            'sku' => $sku,
-                            'product_name' => $offer->product_name,
-                            'category' => $offer->category,
-                            'brand' => $offer->brand,
-                            'sold' => isset($tendyReport->net_qty_sold) ? $tendySalesReport->net_qty_sold : '0',
-                            'purchase' =>$tendyReport->quantity_purchased_units ?? '0',
-                            'average_price' =>  isset($tendyReport->avg_retail_price) ? $tendySalesReport->avg_retail_price: '0',
-                            'average_cost' => $report->average_cost,
-                            'report_price_og' => $report->report_price_og,
-                            'barcode' => $gtin,
-                            'transfer_in' => $tendyReport->quantity_purchased_units_transfer ?? '0',
-                            'transfer_out' => $tendyReport->quantity_sold_units_transfer ?? '0',
-                            'pos' => 'Tendy',
-                            'pos_report_id' => $tendyReport->id,
-                            'comment' => 'Record found in the Offers Table',
-                            'opening_inventory_unit' =>  $tendyReport->opening_inventory_units ?? '0',
-                            'closing_inventory_unit' => $tendyReport->closing_inventory_units ?? '0',
-                            'purchase' => $tendyReport->purchased ?? '0',
-                            'dqi_fee' => $dqi_fee,
-                            'dqi_per' => $dqi_per,
-                            'reconciliation_date' => now(),
-                        ];
-
-                        $this->saveToCleanSheet($cleanSheetData);
-                    } else {
-                        Log::info('No product or offer found, saving report data as is:', ['report_data' => $report]);
-
-                        $cleanSheetData = [
-                            'retailer_id' => $retailer_id,
-                            'lp_id' => null,
-                            'report_id' => $report->id,
-                            'retailer_name' => $retailerName,
-                            'lp_name' => $lpName,
-                            'thc_range' => null,
-                            'cbd_range' => null,
-                            'size_in_gram' => null,
-                            'location' => $location,
-                            'province' => null,
-                            'province_slug' => null,
-                            'sku' => $sku,
-                            'product_name' => $tendyReport->name,
-                            'category' => null,
-                            'brand' => null,
-                            'sold' =>isset($tendyReport->net_qty_sold) ? $tendySalesReport->net_qty_sold : '0',
-                            'purchase' => $tendyReport->quantity_purchased_units ?? '0',
-                            'average_price' => $report->average_price,
-                            'average_cost' => $report->average_cost,
-                            'report_price_og' => $report->report_price_og,
-                            'barcode' => $gtin,
-                            'transfer_in' => $tendyReport->quantity_purchased_units_transfer ?? '0',
-                            'transfer_out' => $report->transfer_out,
-                            'pos' => 'Tendy',
-                            'pos_report_id' => $tendyReport->id,
-                            'comment' => 'No match found in the Master Catalog or Offers Table',
-                            'opening_inventory_unit' =>  $tendyReport->opening_inventory_units ?? '0',
-                            'closing_inventory_unit' => $tendyReport->closing ?? '0',
-                            'purchase' => $tendyReport->purchased ?? '0',
-                            'dqi_fee' => null,
-                            'dqi_per' => null,
-                            'reconciliation_date' => now(),
-                        ];
-
-                        $this->saveToCleanSheet($cleanSheetData);
+                        $techPOSAverageCost = "0.00";
+                        $cleanSheetData['average_cost'] = "0.00";
                     }
                 }
+                $cleanSheetData['barcode'] = $gtin;
+                $cleanSheetData['report_id'] = $report->id;
+                if($tendyDaignosticReport->quantitytransferinunits > 0 || $tendyDaignosticReport->otheradditionsunits){
+                    $cleanSheetData['transfer_in'] = $tendyDaignosticReport->quantitytransferinunits + $tendyDaignosticReport->otheradditionsunits ;
+                }
+                else{
+                    $cleanSheetData['transfer_in'] = 0;
+                }
+
+                if($tendyDaignosticReport->quantitytransferoutunits > 0 || $tendyDaignosticReport->otherreductionsunits > 0){
+                    $cleanSheetData['transfer_out'] = $tendyDaignosticReport->quantitytransferoutunits + $tendyDaignosticReport->otherreductionsunits ;
+                }
+                else{
+                    $cleanSheetData['transfer_out'] = 0 ;
+                }
+                $cleanSheetData['pos'] = $report->pos;
+                $cleanSheetData['reconciliation_date'] = $report->date;
+                $cleanSheetData['opening_inventory_unit'] = $tendyDaignosticReport->opening ?? '0';
+                $cleanSheetData['closing_inventory_unit'] = $tendyDaignosticReport->closing ?? '0';
+                $cleanSheetData['flag'] = '2';
+                $cleanSheetData['comment'] = 'Record found in the Offers';
+                $cleanSheetData['dqi_flag'] = 1;
+                $cleanSheetData['product_variation_id'] = null;
+                $TotalQuantityGet = $cleanSheetData['purchase'];
+                $TotalUnitCostGet = $cleanSheetData['average_cost'];
+                $TotalPurchaseCostMake = (float)$TotalQuantityGet * (float)$TotalUnitCostGet;
+                $FinalDQIFEEMake = (float)trim($offer->data, '%') * 100;
+                $FinalFeeInDollar = (float)$TotalPurchaseCostMake * $FinalDQIFEEMake / 100;
+                $cleanSheetData['dqi_per'] = $FinalDQIFEEMake;
+                $cleanSheetData['dqi_fee'] = number_format($FinalFeeInDollar,2);
             } else {
-                Log::warning('SKU is empty for report:', ['report_id' => $report->id]);
+                Log::info('No product or offer found, saving report data as is:', ['report_data' => $report]);
+                $cleanSheetData['retailer_id'] = $retailer_id;
+                $cleanSheetData['offer_id'] = null;
+                $cleanSheetData['pos_report_id'] = $tendyDaignosticReport->id;
+                $cleanSheetData['lp_id'] = null;
+                $cleanSheetData['retailer_name'] = $retailerName;
+                $cleanSheetData['lp_name'] = null;
+                $cleanSheetData['thc_range'] = null;
+                $cleanSheetData['cbd_range'] = null;
+                $cleanSheetData['size_in_gram'] = null;
+                $cleanSheetData['location'] = $location;
+                $cleanSheetData['province'] = $provinceName;
+                $cleanSheetData['province_slug'] = $provinceSlug;
+                $cleanSheetData['sku'] = $sku;
+                $cleanSheetData['product_name'] = $productName;
+                $cleanSheetData['category'] = null;
+                $cleanSheetData['brand'] = null;
+                $cleanSheetData['sold'] = $tendyDaignosticReport->sold;
+                $cleanSheetData['purchase'] = $tendyDaignosticReport->purchased ?? '0';
+                $cleanSheetData['average_price'] = $tendyDaignosticReport->average_price;
+                $cleanSheetData['average_cost'] = $tendyDaignosticReport->average_cost;
+                $cleanSheetData['report_price_og'] = $tendyDaignosticReport->average_cost;
+                $cleanSheetData['barcode'] = null;
+                $cleanSheetData['c_flag'] = '';
+                $cleanSheetData['report_id'] = $report->id;
+                if($tendyDaignosticReport->quantitytransferinunits > 0 || $tendyDaignosticReport->otheradditionsunits){
+                    $cleanSheetData['transfer_in'] = $tendyDaignosticReport->quantitytransferinunits + $tendyDaignosticReport->otheradditionsunits ;
+                }
+                else{
+                    $cleanSheetData['transfer_in'] = 0;
+                }
+
+                if($tendyDaignosticReport->quantitytransferoutunits > 0 || $tendyDaignosticReport->otherreductionsunits > 0){
+                    $cleanSheetData['transfer_out'] = $tendyDaignosticReport->quantitytransferoutunits + $tendyDaignosticReport->otherreductionsunits ;
+                }
+                else{
+                    $cleanSheetData['transfer_out'] = 0 ;
+                }
+                $cleanSheetData['pos'] = $report->pos;
+                $cleanSheetData['reconciliation_date'] = $report->date;
+                $cleanSheetData['opening_inventory_unit'] = $tendyDaignosticReport->opening ?? '0';
+                $cleanSheetData['closing_inventory_unit'] = $tendyDaignosticReport->closing ?? '0';
+                $cleanSheetData['flag'] = '0';
+                $cleanSheetData['comment'] = 'No matching product or offer found.';
+                $cleanSheetData['dqi_flag'] = 0;
+                $cleanSheetData['product_variation_id'] = null;
+                $cleanSheetData['dqi_per'] = 0.00;
+                $cleanSheetData['dqi_fee'] = 0.00;
             }
         }
+        $cleanSheetData['sold'] = $this->sanitizeNumeric($cleanSheetData['sold']);
+        $cleanSheetData['purchase'] = $this->sanitizeNumeric($cleanSheetData['purchase']);
+        $cleanSheetData['average_price'] = $this->sanitizeNumeric($cleanSheetData['average_price']);
+        $cleanSheetData['report_price_og'] = $this->sanitizeNumeric($cleanSheetData['report_price_og']);
+        $cleanSheetData['average_cost'] = $this->sanitizeNumeric($cleanSheetData['average_cost']);
+
+        if ($cleanSheetData['average_cost'] === 0.0 || $cleanSheetData['average_cost'] === 0) {
+            $cleanSheetData['average_cost'] = GeneralFunctions::checkAvgCostCleanSheet($cleanSheetData['sku'],$cleanSheetData['province']);
+        }
+
+        return $cleanSheetData;
+    }
+
+    public function tendyAverageCost ($cost_of_goods_sold,$net_qty_sold){
+        $cost_of_goods_sold = GeneralFunctions::formatAmountValue($cost_of_goods_sold);
+        $net_qty_sold = (double)trim($net_qty_sold);
+        if(!empty($cost_of_goods_sold) && (int)$net_qty_sold > 0 && $cost_of_goods_sold != '0' && $cost_of_goods_sold != '0.00' && $net_qty_sold != '0'){
+            $tendyAverageCost = ($cost_of_goods_sold/$net_qty_sold);
+        } elseif(!empty($cost_of_goods_sold) && (int)$net_qty_sold < 0 && $cost_of_goods_sold < 0){
+            $tendyAverageCost = ($cost_of_goods_sold/$net_qty_sold);
+        }
+        else{
+            $tendyAverageCost = "0.00";
+        }
+        return $tendyAverageCost;
     }
 }

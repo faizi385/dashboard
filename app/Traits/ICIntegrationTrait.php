@@ -20,7 +20,7 @@ use App\Traits\GreenlineICIntegration;
 
 trait ICIntegrationTrait
 {
-    use CovaICIntegration, GreenlineICIntegration, TechPosIntegration;
+    use CovaICIntegration, GreenlineICIntegration, TechPosIntegration,ProfitTechIntegration,BarnetIntegration,OtherPOSIntegration;
     public function covaMasterCatalouge($covaDaignosticReport, $report)
     {
         return $this->mapCovaCatalouge($covaDaignosticReport, $report);
@@ -33,6 +33,19 @@ trait ICIntegrationTrait
     {
         return $this->mapTechPosCatalouge($techPOSReport, $report);
     }
+    public function profitTechMasterCatalouge($profitTechReport, $report)
+    {
+        return $this->mapProfitTechCatalouge($profitTechReport, $report);
+    }
+    public function barnetMasterCatalog($barnetReport,$report)
+    {
+        return $this->mapBarnetCatalouge($barnetReport,$report);
+    }
+    public function otherPOSMasterCatalog($OtherPOSReport,$report)
+    {
+        return $this->  mapOtherPosCatalouge($OtherPOSReport,$report);
+    }
+ 
     public function saveToCleanSheet(array $cleanSheetData)
     {
         try {
