@@ -1,72 +1,55 @@
 <?php
 
-namespace App\Traits;
-
 use App\Models\TendyDiagnosticReport;
+use App\Traits\ICIntegrationTrait;
 use Illuminate\Support\Facades\DB;
+use App\Models\TendyReport;
 use Illuminate\Support\Facades\Log;
 
-class TendyReconciliation
-{
-    use TendyIntegration; // Use TendyIntegration trait for Tendy-specific methods
+$report = DB::table('reports')->where('pos', 'tendy')->where('status', 'pending')->first();
 
-    /**
-     * Run the reconciliation process for Tendy reports.
-     */
-    public function runReconciliation()
-    {
-        // Set the limit for reports to process
-        $limit = 1; // You can adjust this limit
+if ($report) {
+    dump($report->id . '  -- ' . date('Y-m-d H:i:s'));
 
-        // Fetch pending Tendy reports from the 'reports' table
-        $reports = DB::table('reports')
-            ->where('pos', 'tendy')
-            ->where('status', 'pending')
-            ->limit($limit)
-            ->get();
+    try {
+        DB::beginTransaction();
+        DB::table('reports')->where('id', $report->id)->update(['status' => 'reconciliation_start']);
+        
+        $tendyDaignosticReport = TendyDiagnosticReport::where('report_id', $report->id)->where('status', 'pending')->get();
+        dump('Tendy reports fetched -- ' . date('Y-m-d H:i:s'));
 
-        foreach ($reports as $report) {
-            dump($report->id . '  -- ' . date('Y-m-d H:i:s'));
+        $cleanSheet = [];
+        $insertionCount = 1;
+        $insertionLimit = 500;
+        $totalReportCount = count($tendyDaignosticReport);
 
-            try {
-                // Mark report as started
-                DB::table('reports')->where('id', $report->id)->update(['status' => 'reconciliation_start']);
+        foreach ($tendyDaignosticReport as $key => $tendyDaignosticReport) {
+            $cleanSheet[] = (new class {
+                use ICIntegrationTrait;
+            })->tendyMasterCatalog($tendyDaignosticReport,$report); // Ensure tendyMasterCatalog exists in the trait
 
-                // Retrieve Tendy reports related to this report
-                $tendyReports = TendyDiagnosticReport::where('report_id', $report->id)
-                    ->where(function ($query) {
-                        $query->where('status', 'pending')
-                              ->orWhere('status', 'error');
-                    })
-                    ->get();
+            $insertionCount++;
+            
+            if ($insertionCount == $insertionLimit || $key === $totalReportCount - 1) {
+                DB::table('clean_sheets')->insert($cleanSheet);
+                $insertionCount = 1;
+                $cleanSheet = [];
+            }
 
-                dump('tendyReports fetched -- ' . date('Y-m-d H:i:s'));
-
-                // Process each Tendy report using the TendyIntegration method
-                $this->processTendyReports($tendyReports);
-
-                // Update the Tendy reports to mark them as 'done'
-                DB::table('tendy_diagnostic_reports')
-                    ->where('report_id', $report->id)
-                    ->update(['status' => 'done']);
-
-                // Mark the report as completed
-                DB::table('reports')->where('id', $report->id)->update(['status' => 'retailer_statement_process']);
-
-            } catch (\Exception $e) {
-                // Log any errors encountered during processing
-                Log::error('Error in Tendy reconciliation: ' . $e->getMessage());
-
-                // Mark the report as failed if there's an error
-                DB::table('reports')->where('id', $report->id)->update(['status' => 'failed']);
+            if ($key === $totalReportCount - 1) {
+                DB::table('tendy_diagnostic_reports')->where('report_id', $report->id)->update(['status' => 'done']);
             }
         }
 
-        print_r('Reconciliation process completed successfully.');
+        DB::table('reports')->where('id', $report->id)->update(['status' => 'retailer_statement_process']);
+        DB::commit();
+    } catch (\Exception $e) {
+        Log::error('Error in Tendy reconciliation: ' . $e->getMessage());
+        DB::rollBack();
+        DB::table('reports')->where('id', $report->id)->update(['status' => 'failed']);
     }
 
+    print_r('Reconciliation process completed successfully.');
+} else {
+    print_r('No pending Tendy reports found.');
 }
-
-// Run the reconciliation process
-$reconciliation = new TendyReconciliation();
-$reconciliation->runReconciliation();

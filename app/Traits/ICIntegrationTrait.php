@@ -20,7 +20,7 @@ use App\Traits\GreenlineICIntegration;
 
 trait ICIntegrationTrait
 {
-    use CovaICIntegration, GreenlineICIntegration, TechPosIntegration,ProfitTechIntegration,BarnetIntegration,OtherPOSIntegration;
+    use CovaICIntegration, GreenlineICIntegration, TechPosIntegration,ProfitTechIntegration,BarnetIntegration,OtherPOSIntegration,TendyIntegration;
     public function covaMasterCatalouge($covaDaignosticReport, $report)
     {
         return $this->mapCovaCatalouge($covaDaignosticReport, $report);
@@ -45,7 +45,10 @@ trait ICIntegrationTrait
     {
         return $this->  mapOtherPosCatalouge($OtherPOSReport,$report);
     }
-
+    public function tendyMasterCatalog($tendyDaignosticReport,$report)
+    {
+        return $this-> mapTendyPosCatalouge($tendyDaignosticReport,$report);
+    }
     public function saveToCleanSheet(array $cleanSheetData)
     {
         try {
@@ -79,9 +82,9 @@ trait ICIntegrationTrait
     public function matchICSku($sku, $provinceName, $provinceSlug, $provinceId)
     {
         $product = ProductVariation::where('provincial_sku', trim($sku))->get();
-        if (!empty($product)) {
-            $product = $this->matchProvince($product, $provinceName, $provinceSlug, $provinceId);
-        }
+        // if (!empty($product)) {
+        //     $product = $this->matchProvince($product, $provinceName, $provinceSlug, $provinceId);
+        // }
         return $product;
     }
     public function matchProvince($product, $provinceName, $provinceSlug, $provinceId)

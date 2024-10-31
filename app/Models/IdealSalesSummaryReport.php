@@ -26,6 +26,8 @@ class IdealSalesSummaryReport extends Model
     {
         return $this->belongsTo(Report::class, 'report_id'); // Adjust 'report_id' if your foreign key is named differently
     }
+
+    
 }
 
 
