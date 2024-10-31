@@ -66,6 +66,7 @@ trait TechPosIntegration
             $cleanSheetData['location'] = $location;
             $cleanSheetData['province'] = $provinceName;
             $cleanSheetData['province_slug'] = $provinceSlug;
+            $cleanSheetData['province_id'] =  $provinceId ;
             $cleanSheetData['sku'] = $sku;
             $cleanSheetData['product_name'] = $productName;
             $cleanSheetData['category'] = $product->category;
@@ -164,6 +165,7 @@ trait TechPosIntegration
                 $cleanSheetData['location'] = $location;
                 $cleanSheetData['province'] = $offer->province;
                 $cleanSheetData['province_slug'] = $offer->province_slug;
+                $cleanSheetData['province_id'] =  $provinceId ;
                 $cleanSheetData['sku'] = $sku;
                 $cleanSheetData['product_name'] = $offer->product_name;
                 $cleanSheetData['category'] = $offer->category;
@@ -237,6 +239,7 @@ trait TechPosIntegration
                 $cleanSheetData['location'] = $location;
                 $cleanSheetData['province'] = $provinceName;
                 $cleanSheetData['province_slug'] = $provinceSlug;
+                $cleanSheetData['province_id'] =  $provinceId ;
                 $cleanSheetData['sku'] = $sku;
                 $cleanSheetData['product_name'] = $productName;
                 $cleanSheetData['category'] = null;

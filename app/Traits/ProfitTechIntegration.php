@@ -48,10 +48,10 @@ trait ProfitTechIntegration
             Log::warning('Retailer not found:', ['retailer_id' => $retailer_id]);
         }
 
-        if (!empty($sku) && empty($product)) {
+       
+        if (!empty($sku)) {
             $product = $this->matchICSku($profitTechReport->product_sku, $provinceName, $provinceSlug, $provinceId);
-        }
-
+        } 
         if ($product) {
             $lp = Lp::where('id', $product->lp_id)->first();
             $lpName = $lp->name ?? null;
@@ -66,46 +66,36 @@ trait ProfitTechIntegration
             $cleanSheetData['location'] = $location;
             $cleanSheetData['province'] = $provinceName;
             $cleanSheetData['province_slug'] = $provinceSlug;
+            $cleanSheetData['province_id'] =  $provinceId ;
             $cleanSheetData['sku'] = $sku;
             $cleanSheetData['product_name'] =  $productName;
             $cleanSheetData['category'] = $product->category;
             $cleanSheetData['brand'] = $product->brand;
             $cleanSheetData['sold'] = $profitTechReport->quantity_sold_instore_units ?? '0';
             $cleanSheetData['purchase'] = $profitTechReport->quantity_purchased_units ?? '0';
-
-            $profitTechAveragePrice = trim(str_replace('$', '', trim($profitTechReport->average_price)));
-            if ($profitTechAveragePrice != "0.00" && ((float)$profitTechAveragePrice > 0.00 || (float)$profitTechAveragePrice < 0.00)) {
-                $cleanSheetData['average_price'] = $profitTechAveragePrice;
-            } else {
-                $cleanSheetData['average_price'] = "0.00";
-            }
-
-            $profitTechAverageCost = trim(str_replace('$', '', trim($profitTechReport->average_cost)));
-            if ($profitTechAverageCost != "0.00" && ((float)$profitTechAverageCost > 0.00 || (float)$profitTechAverageCost < 0.00)) {
-                $cleanSheetData['average_cost'] = $profitTechAverageCost;
-                $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
-            } else {
-                $cleanSheetData['average_cost'] = "0.00";
-            }
-
+            $cleanSheetData['average_price'] = $this->profitech_averge_price($profitTechReport, $provinceName);
+            $cleanSheetData['average_cost'] = $this->profitech_averge_cost($product,$report->date,$provinceName,$provinceSlug);
+   
             $cleanSheetData['barcode'] = $gtin;
             $cleanSheetData['report_id'] = $report->id;
 
-            if ($profitTechReport->transfer > 0) {
-                $cleanSheetData['transfer_in'] = $profitTechReport->transfer;
-                $cleanSheetData['transfer_out'] = 0;
-            } elseif ($profitTechReport->transfer < 0) {
-                $cleanSheetData['transfer_in'] = 0;
-                $cleanSheetData['transfer_out'] = str_replace('-', '', $profitTechReport->transfer);
-            } else {
-                $cleanSheetData['transfer_in'] = 0;
+            if($profitTechReport->quantity_purchased_units_transfer > 0 || $profitTechReport->other_additions_units){
+                $cleanSheetData['transfer_in'] = $profitTechReport->quantity_purchased_units_transfer + $profitTechReport->other_additions_units ;
+            }
+            else{
+                $cleanSheetData['transfer_in'] = 0 ;
+            }
+            if($profitTechReport->quantity_sold_units_transfer> 0 || $profitTechReport->other_reductions_units >0){
+                $cleanSheetData['transfer_out'] = $profitTechReport->quantity_sold_units_transfer + $profitTechReport->other_reductions_units ;
+            }
+            else{
                 $cleanSheetData['transfer_out'] = 0;
             }
 
             $cleanSheetData['pos'] = $report->pos;
             $cleanSheetData['reconciliation_date'] = $report->date;
-            $cleanSheetData['opening_inventory_unit'] = $profitTechReport->opening ?? '0';
-            $cleanSheetData['closing_inventory_unit'] = $profitTechReport->closing ?? '0';
+            $cleanSheetData['opening_inventory_unit'] = $profitTechReport->opening_inventory_units ?? '0';
+            $cleanSheetData['closing_inventory_unit'] = $profitTechReport->closing_inventory_units ?? '0';
             $cleanSheetData['product_variation_id'] = $product->id;
             $cleanSheetData['dqi_per'] = 0.00;
             $cleanSheetData['dqi_fee'] = 0.00;
@@ -160,6 +150,7 @@ trait ProfitTechIntegration
                 $cleanSheetData['location'] = $location;
                 $cleanSheetData['province'] = $offer->province;
                 $cleanSheetData['province_slug'] = $offer->province_slug;
+                $cleanSheetData['province_id'] =  $provinceId ;
                 $cleanSheetData['sku'] = $sku;
                 $cleanSheetData['product_name'] = $offer->product_name;
                 $cleanSheetData['category'] = $offer->category;
@@ -174,48 +165,28 @@ trait ProfitTechIntegration
                     $cleanSheetData['c_flag'] = '';
                 }
 
-                $profitTechAveragePrice = trim(str_replace('$', '', trim($profitTechReport->average_price)));
-                if($profitTechAveragePrice  != "0.00" && ((float)$profitTechAveragePrice > 0.00 || (float)      $profitTechAveragePrice  < 0.00)) {
-                    $cleanSheetData['average_price'] =       $profitTechAveragePrice ;
-                }
-                else{
-                    $profitTechAveragePrice = "0.00";
-                    $cleanSheetData['average_price'] = "0.00";
-                }
-
-                $profitTechAverageCost = trim(str_replace('$', '', trim($profitTechReport->average_cost)));
-                if (  $profitTechAverageCost != "0.00" && ((float)  $profitTechAverageCost > 0.00 || (float)  $profitTechAverageCost < 0.00)) {
-                    $cleanSheetData['average_cost'] =  $profitTechAverageCost;
-                    $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
-                }
-                else{
-                    $profitTechAverageCost = trim(str_replace('$', '', trim($offer->unit_cost)));
-                    if(    $profitTechAverageCost!= "0.00" && ((float)    $profitTechAverageCost> 0.00 || (float)    $profitTechAverageCost< 0.00)) {
-                        $cleanSheetData['average_cost'] =     $profitTechAverageCost;
-                    }
-                    else{
-                        $profitTechAverageCost = "0.00";
-                        $cleanSheetData['average_cost'] = "0.00";
-                    }
-                }
+                $cleanSheetData['average_price'] = $this->profitech_averge_price($profitTechReport, $provinceName);
+                $profitechAverageCost = trim(str_replace('$', '', trim($offer->unit_cost)));
+                $cleanSheetData['average_cost'] = $profitechAverageCost;
+                $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
                 $cleanSheetData['barcode'] = $gtin;
                 $cleanSheetData['report_id'] = $report->id;
-                if($profitTechReport->transfer > 0){
-                    $cleanSheetData['transfer_in'] = $profitTechReport->transfer;
-                    $cleanSheetData['transfer_out'] = 0;
-                }
-                elseif($profitTechReport->transfer < 0){
-                    $cleanSheetData['transfer_in'] = 0;
-                    $cleanSheetData['transfer_out'] = str_replace('-','',$profitTechReport->transfer);
+                if($profitTechReport->quantity_purchased_units_transfer > 0 || $profitTechReport->other_additions_units){
+                    $cleanSheetData['transfer_in'] = $profitTechReport->quantity_purchased_units_transfer + $profitTechReport->other_additions_units ;
                 }
                 else{
-                    $cleanSheetData['transfer_in'] = 0;
+                    $cleanSheetData['transfer_in'] = 0 ;
+                }
+                if($profitTechReport->quantity_sold_units_transfer> 0 || $profitTechReport->other_reductions_units >0){
+                    $cleanSheetData['transfer_out'] = $profitTechReport->quantity_sold_units_transfer + $profitTechReport->other_reductions_units ;
+                }
+                else{
                     $cleanSheetData['transfer_out'] = 0;
                 }
                 $cleanSheetData['pos'] = $report->pos;
                 $cleanSheetData['reconciliation_date'] = $report->date;
-                $cleanSheetData['opening_inventory_unit'] = $profitTechReport->opening ?? '0';
-                $cleanSheetData['closing_inventory_unit'] = $profitTechReport->closing ?? '0';
+                $cleanSheetData['opening_inventory_unit'] = $profitTechReport->opening_inventory_units ?? '0';
+                $cleanSheetData['closing_inventory_unit'] = $profitTechReport->closing_inventory_units ?? '0';
                 $cleanSheetData['flag'] = '2';
                 $cleanSheetData['comment'] = 'Record found in the Offers';
                 $cleanSheetData['dqi_flag'] = 1;
@@ -241,6 +212,7 @@ trait ProfitTechIntegration
                 $cleanSheetData['location'] = $location;
                 $cleanSheetData['province'] = $provinceName;
                 $cleanSheetData['province_slug'] = $provinceSlug;
+                $cleanSheetData['province_id'] =  $provinceId ;
                 $cleanSheetData['sku'] = $sku;
                 $cleanSheetData['product_name'] =  $productName;
                 $cleanSheetData['category'] = null;
@@ -267,8 +239,8 @@ trait ProfitTechIntegration
                 }
                 $cleanSheetData['pos'] = $report->pos;
                 $cleanSheetData['reconciliation_date'] = $report->date;
-                $cleanSheetData['opening_inventory_unit'] = $profitTechReport->opening ?? '0';
-                $cleanSheetData['closing_inventory_unit'] = $profitTechReport->closing ?? '0';
+                $cleanSheetData['opening_inventory_unit'] = $profitTechReport->opening_inventory_units ?? '0';
+                $cleanSheetData['closing_inventory_unit'] = $profitTechReport->closing_inventory_units ?? '0';
                 $cleanSheetData['flag'] = '0';
                 $cleanSheetData['comment'] = 'No matching product or offer found.';
                 $cleanSheetData['dqi_flag'] = 0;
@@ -306,10 +278,10 @@ trait ProfitTechIntegration
             Log::error('Error saving data to CleanSheet:', ['error' => $e->getMessage()]);
         }
     }
-    public function profitech_averge_price($profittechReports, $provinceName){
+    public function profitech_averge_price($profitTechReport, $provinceName){
 
-        $quantitysoldunits =  (double)trim($profittechReports->opening_inventory_units);
-        $quantitysoldvalue = \App\Helpers\GeneralFunctions::formatAmountValue($profittechReports->opening_inventory_value);;
+        $quantitysoldunits =  (double)trim($profitTechReport->opening_inventory_units);
+        $quantitysoldvalue = \App\Helpers\GeneralFunctions::formatAmountValue($profitTechReport->opening_inventory_value);;
         if ($quantitysoldunits == '0' || $quantitysoldunits == '0.00') {
             $quantitysoldunits = 1;
         }

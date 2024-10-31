@@ -53,6 +53,7 @@ trait TendyIntegration
             $product = $this->matchICProductName($tendyDaignosticReport->TendySalesSummaryReport->product,$provinceName,$provinceSlug,$provinceId);
         }
         if ($product) {
+          
             $lp = Lp::where('id',$product->lp_id)->first();
             $lpName = $lp->name ?? null;
             $lpId = $lp->id ?? null;
@@ -66,6 +67,7 @@ trait TendyIntegration
             $cleanSheetData['location'] = $location;
             $cleanSheetData['province'] = $provinceName;
             $cleanSheetData['province_slug'] = $provinceSlug;
+            $cleanSheetData['province_id'] =  $provinceId ;
             $cleanSheetData['sku'] = $sku;
             $cleanSheetData['product_name'] = $productName;
             $cleanSheetData['category'] = $product->category;
@@ -83,6 +85,7 @@ trait TendyIntegration
                 }
                 $cleanSheetData['average_cost'] = $tendyAverageCost;
                 $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
+                $cleanSheetData['barcode'] = null;
             $cleanSheetData['report_id'] = $report->id;
             $cleanSheetData['transfer_in'] = $tendyDaignosticReport->quantity_purchased_units_transfer ?? '0';
             $cleanSheetData['transfer_out'] = $tendyDaignosticReport->quantity_sold_units_transfer ?? '0';
@@ -150,6 +153,7 @@ trait TendyIntegration
                 $cleanSheetData['location'] = $location;
                 $cleanSheetData['province'] = $offer->province;
                 $cleanSheetData['province_slug'] = $offer->province_slug;
+                $cleanSheetData['province_id'] =  $provinceId ;
                 $cleanSheetData['sku'] = $sku;
                 $cleanSheetData['product_name'] = $offer->product_name;
                 $cleanSheetData['category'] = $offer->category;
@@ -207,6 +211,7 @@ trait TendyIntegration
                 $cleanSheetData['location'] = $location;
                 $cleanSheetData['province'] = $provinceName;
                 $cleanSheetData['province_slug'] = $provinceSlug;
+                $cleanSheetData['province_id'] =  $provinceId ;
                 $cleanSheetData['sku'] = $sku;
                 $cleanSheetData['product_name'] = $productName;
                 $cleanSheetData['category'] = null;

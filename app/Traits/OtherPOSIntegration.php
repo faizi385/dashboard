@@ -76,19 +76,17 @@ trait OtherPOSIntegration
             $cleanSheetData['product_name'] = $OtherPOSReport->name;
             $cleanSheetData['category'] = $product->category;
             $cleanSheetData['brand'] = $product->brand;
-            $cleanSheetData['sold'] = $OtherPOSReport->sold;
+            $cleanSheetData['sold'] = $OtherPOSReport->sold ?? '0';
             $cleanSheetData['purchase'] = $OtherPOSReport->purchased ?? '0';
-           $OtherPOSReportAveragePrice = trim(str_replace('$', '', trim($OtherPOSReport->average_price)));
-            if($OtherPOSReportAveragePrice != "0.00" && ((float)$OtherPOSReportAveragePrice > 0.00 || (float)$OtherPOSReportAveragePrice < 0.00)) {
-                $cleanSheetData['average_price'] =$OtherPOSReportAveragePrice;
+            if(trim(str_replace('$', '', trim($OtherPOSReport->average_price))) != "0.00" && ((float)trim(str_replace('$', '', trim($OtherPOSReport->average_price))) > 0.00 || (float)trim(str_replace('$', '', trim($OtherPOSReport->average_price))) < 0.00)) {
+                $cleanSheet['average_price'] = trim(str_replace('$', '', trim($OtherPOSReport->average_price)));
             }
             else{
-               $OtherPOSReportAveragePrice = 0.00;
-                $cleanSheetData['average_price'] = 0.00;
+                $cleanSheet['average_price'] = "0.00";
             }
-           $OtherPOSReportAverageCost = trim(str_replace('$', '', trim($OtherPOSReport->average_cost)));
-            if ($OtherPOSReportAverageCost != "0.00" && ((float)$OtherPOSReportAverageCost > 0.00 || (float)$OtherPOSReportAverageCost < 0.00)) {
-                $cleanSheetData['average_cost'] =$OtherPOSReportAverageCost;
+            $eposAverageCost = trim(str_replace('$', '', trim($OtherPOSReport->average_cost)));
+            if ($eposAverageCost != "0.00" && ((float)$eposAverageCost > 0.00 || (float)$eposAverageCost < 0.00)) {
+                $cleanSheetData['average_cost'] = $eposAverageCost;
                 $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
             }
             else{
@@ -192,26 +190,24 @@ trait OtherPOSIntegration
                     $cleanSheetData['c_flag'] = '';
                 }
 
-               $OtherPOSReportAveragePrice = trim(str_replace('$', '', trim($OtherPOSReport->average_price)));
-                if($OtherPOSReportAveragePrice != "0.00" && ((float)$OtherPOSReportAveragePrice > 0.00 || (float)$OtherPOSReportAveragePrice < 0.00)) {
-                    $cleanSheetData['average_price'] =$OtherPOSReportAveragePrice;
+                if(trim(str_replace('$', '', trim($OtherPOSReport->average_price))) != "0.00" && ((float)trim(str_replace('$', '', trim($OtherPOSReport->average_price))) > 0.00 || (float)trim(str_replace('$', '', trim($OtherPOSReport->average_price))) < 0.00)) {
+                    $cleanSheetData['average_price'] = trim(str_replace('$', '', trim($OtherPOSReport->average_price)));
                 }
                 else{
-                   $OtherPOSReportAveragePrice = "0.00";
                     $cleanSheetData['average_price'] = "0.00";
                 }
-               $OtherPOSReportAverageCost = trim(str_replace('$', '', trim($OtherPOSReport->average_cost)));
+                $OtherPOSReportAverageCost = trim(str_replace('$', '', trim($OtherPOSReport->average_cost)));
                 if ($OtherPOSReportAverageCost != "0.00" && ((float)$OtherPOSReportAverageCost > 0.00 || (float)$OtherPOSReportAverageCost < 0.00)) {
-                    $cleanSheetData['average_cost'] =$OtherPOSReportAverageCost;
+                    $cleanSheetData['average_cost'] = $OtherPOSReportAverageCost;
                     $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
                 }
                 else{
-                   $OtherPOSReportAverageCost = trim(str_replace('$', '', trim($offer->unit_cost)));
-                    if($OtherPOSReportAverageCost != "0.00" && ((float)$OtherPOSReportAverageCost > 0.00 || (float)$OtherPOSReportAverageCost < 0.00)) {
+                    $OtherPOSReportAverageCost = trim(str_replace('$', '', trim($offer->unit_cost)));
+                    if( $OtherPOSReportAverageCost != "0.00" && ((float)$OtherPOSReportAverageCost > 0.00 || (float) $OtherPOSReportAverageCost  < 0.00)) {
                         $cleanSheetData['average_cost'] =$OtherPOSReportAverageCost;
                     }
                     else{
-                       $OtherPOSReportAverageCost = "0.00";
+                        $OtherPOSReportAverageCost = "0.00";
                         $cleanSheetData['average_cost'] = "0.00";
                     }
                 }
@@ -264,9 +260,15 @@ trait OtherPOSIntegration
                 $cleanSheetData['brand'] = null;
                 $cleanSheetData['sold'] = $OtherPOSReport->sold;
                 $cleanSheetData['purchase'] = $OtherPOSReport->purchased ?? '0';
-                $cleanSheetData['average_price'] = $OtherPOSReport->average_price;
-                $cleanSheetData['average_cost'] = $OtherPOSReport->average_cost;
-                $cleanSheetData['report_price_og'] = $OtherPOSReport->average_cost;
+                if(trim(str_replace('$','',trim($OtherPOSReport->average_price))) != "0.00" && ((float)trim(str_replace('$','',trim($OtherPOSReport->average_price))) > 0.00 || (float)trim(str_replace('$','',trim($OtherPOSReport->average_price))) < 0.00)) {
+                    $cleanSheetData['average_price'] = trim(str_replace('$','',trim($OtherPOSReport->average_price)));
+                }
+                else{
+                    $cleanSheetData['average_price'] = "0.00";
+                }
+//                $cleanSheet['average_price'] = trim(str_replace('$','',trim($eposReport->average_price)));
+                $cleanSheetData['average_cost'] = trim(str_replace('$','',trim($OtherPOSReport->average_cost)));
+                $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
                 $cleanSheetData['barcode'] = $gtin;
                 $cleanSheetData['report_id'] = $report->id;
                 $cleanSheetData['c_flag'] = '';

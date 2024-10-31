@@ -80,11 +80,18 @@ trait ICIntegrationTrait
     }
 
     public function matchICSku($sku, $provinceName, $provinceSlug, $provinceId)
-    {
+    {  
+      
         $product = ProductVariation::where('provincial_sku', trim($sku))->get();
-        // if (!empty($product)) {
-        //     $product = $this->matchProvince($product, $provinceName, $provinceSlug, $provinceId);
-        // }
+      
+        if (!empty($product)) {
+            $product = $this->matchProvince($product, $provinceName, $provinceSlug, $provinceId);
+           
+            //  if (!empty($product)) {
+            //     return null;
+            // }
+            //  dump(  $product);
+        }
         return $product;
     }
     public function matchProvince($product, $provinceName, $provinceSlug, $provinceId)

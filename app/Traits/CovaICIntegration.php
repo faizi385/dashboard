@@ -185,7 +185,7 @@ trait CovaICIntegration
                 else{
                     $cleanSheetData['c_flag'] = '';
                 }
-                $cleanSheetData['pos_report_id'] = $greenlineReport->id;
+                $cleanSheetData['pos_report_id'] = $covaDaignosticReport->id;
                 if ($CovaSalesSummaryReport && !empty($CovaSalesSummaryReport->average_retail_price)) {
                     $cleanSheetData['average_price']  = $CovaSalesSummaryReport->average_retail_price ?? "0.00";
                 } else {

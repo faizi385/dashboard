@@ -33,7 +33,7 @@ trait BarnetIntegration
         }
         $sku = $barnetReport->product_sku;
         $gtin = $barnetReport->barcode;
-        $productName = $barnetReport->name;
+        $productName = $barnetReport->description;
         $provinceId = $report->province_id;
         $provinceName = $report->province;
         $provinceSlug = $report->province_slug;
@@ -78,45 +78,22 @@ trait BarnetIntegration
             $cleanSheetData['brand'] = $product->brand;
             $cleanSheetData['sold'] = $barnetReport->quantity_sold_units ?? '0';
             $cleanSheetData['purchase'] = $barnetReport->quantity_purchased_units ?? '0';
-            $barnetReportAveragePrice = trim(str_replace('$', '', trim($barnetReport->average_price)));
-            if($barnetReportAveragePrice != "0.00" && ((float)$barnetReportAveragePrice > 0.00 || (float)$barnetReportAveragePrice < 0.00)) {
-                $cleanSheetData['average_price'] = $barnetReportAveragePrice;
+            $barnetAveragePrice = $this->barnetAveragePrice($barnetReport->quantity_sold_value,$barnetReport->quantity_sold_units);
+            $cleanSheetData['average_price'] = $barnetAveragePrice;
+            $barnetAverageCost = $this->barnetAverageCost($barnetReport->opening_inventory_value,$barnetReport->opening_inventory_units);
+            $cleanSheetData['report_price_og'] = $barnetAverageCost;
+            if($barnetAverageCost == "0.00"){
+                $barnetAverageCost = $product->price_per_unit;
             }
-            else{
-                $barnetReportAveragePrice = 0.00;
-                $cleanSheetData['average_price'] = 0.00;
-            }
-            $barnetReportAverageCost = trim(str_replace('$', '', trim($barnetReport->average_cost)));
-            if ($barnetReportAverageCost != "0.00" && ((float)$barnetReportAverageCost > 0.00 || (float)$barnetReportAverageCost < 0.00)) {
-                $cleanSheetData['average_cost'] = $barnetReportAverageCost;
-                $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
-            }
-            else{
-                if($product->price_per_unit != "0.00" && ((float)$product->price_per_unit > 0.00 || (float)$product->price_per_unit < 0.00)) {
-                    $cleanSheetData['average_cost'] = $product->price_per_unit;
-                }
-                else{
-                    $cleanSheetData['average_cost'] = "0.00";
-                }
-            }
+            $cleanSheetData['average_cost'] = $barnetAverageCost;
             $cleanSheetData['barcode'] = $gtin;
             $cleanSheetData['report_id'] = $report->id;
-            if($barnetReport->transfer > 0){
-                $cleanSheetData['transfer_in'] = $barnetReport->transfer;
-                $cleanSheetData['transfer_out'] = 0;
-            }
-            elseif($barnetReport->transfer < 0){
-                $cleanSheetData['transfer_in'] = 0;
-                $cleanSheetData['transfer_out'] = str_replace('-','',$barnetReport->transfer);
-            }
-            else{
-                $cleanSheetData['transfer_in'] = 0;
-                $cleanSheetData['transfer_out'] = 0;
-            }
+            $cleanSheetData['transfer_in'] = $barnetReport->other_additions_units ?? '0';
+            $cleanSheetData['transfer_out'] = $barnetReport->transfer_units ?? '0';
             $cleanSheetData['pos'] = $report->pos;
             $cleanSheetData['reconciliation_date'] = $report->date;
-            $cleanSheetData['opening_inventory_unit'] = $barnetReport->opening ?? '0';
-            $cleanSheetData['closing_inventory_unit'] = $barnetReport->closing ?? '0';
+            $cleanSheetData['opening_inventory_unit'] = $barnetReport->opening_inventory_units ?? '0';
+            $cleanSheetData['closing_inventory_unit'] = $barnetReport->closing_inventory_units ?? '0';
             $cleanSheetData['product_variation_id'] = $product->id;
             $cleanSheetData['dqi_per'] = 0.00;
             $cleanSheetData['dqi_fee'] = 0.00;
@@ -192,47 +169,22 @@ trait BarnetIntegration
                     $cleanSheetData['c_flag'] = '';
                 }
 
-                $barnetReportAveragePrice = trim(str_replace('$', '', trim($barnetReport->average_price)));
-                if($barnetReportAveragePrice != "0.00" && ((float)$barnetReportAveragePrice > 0.00 || (float)$barnetReportAveragePrice < 0.00)) {
-                    $cleanSheetData['average_price'] = $barnetReportAveragePrice;
+                $barnetAveragePrice = $this->barnetAveragePrice($barnetReport->quantity_sold_value,$barnetReport->quantity_sold_units);
+                $cleanSheetData['average_price'] = $barnetAveragePrice;
+                $barnetAverageCost = $this->barnetAverageCost($barnetReport->opening_inventory_value,$barnetReport->opening_inventory_units);
+                $cleanSheetData['report_price_og'] = $barnetAverageCost;
+                if($barnetAverageCost == "0.00"){
+                    $barnetAverageCost = GeneralFunctions::formatAmountValue($offer->unit_cost);
                 }
-                else{
-                    $barnetReportAveragePrice = "0.00";
-                    $cleanSheetData['average_price'] = "0.00";
-                }
-                $barnetReportAverageCost = trim(str_replace('$', '', trim($barnetReport->average_cost)));
-                if ($barnetReportAverageCost != "0.00" && ((float)$barnetReportAverageCost > 0.00 || (float)$barnetReportAverageCost < 0.00)) {
-                    $cleanSheetData['average_cost'] = $barnetReportAverageCost;
-                    $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
-                }
-                else{
-                    $barnetReportAverageCost = trim(str_replace('$', '', trim($offer->unit_cost)));
-                    if($barnetReportAverageCost != "0.00" && ((float)$barnetReportAverageCost > 0.00 || (float)$barnetReportAverageCost < 0.00)) {
-                        $cleanSheetData['average_cost'] = $barnetReportAverageCost;
-                    }
-                    else{
-                        $barnetReportAverageCost = "0.00";
-                        $cleanSheetData['average_cost'] = "0.00";
-                    }
-                }
+                $cleanSheet['average_cost'] = $barnetAverageCost;
                 $cleanSheetData['barcode'] = $gtin;
                 $cleanSheetData['report_id'] = $report->id;
-                if($barnetReport->transfer > 0){
-                    $cleanSheetData['transfer_in'] = $barnetReport->transfer;
-                    $cleanSheetData['transfer_out'] = 0;
-                }
-                elseif($barnetReport->transfer < 0){
-                    $cleanSheetData['transfer_in'] = 0;
-                    $cleanSheetData['transfer_out'] = str_replace('-','',$barnetReport->transfer);
-                }
-                else{
-                    $cleanSheetData['transfer_in'] = 0;
-                    $cleanSheetData['transfer_out'] = 0;
-                }
+                $cleanSheetData['transfer_in'] = $barnetReport->other_additions_units ?? '0';
+                $cleanSheetData['transfer_out'] = $barnetReport->transfer_units ?? '0';
                 $cleanSheetData['pos'] = $report->pos;
                 $cleanSheetData['reconciliation_date'] = $report->date;
-                $cleanSheetData['opening_inventory_unit'] = $barnetReport->opening ?? '0';
-                $cleanSheetData['closing_inventory_unit'] = $barnetReport->closing ?? '0';
+                $cleanSheetData['opening_inventory_unit'] = $barnetReport->opening_inventory_units ?? '0';
+                $cleanSheetData['closing_inventory_unit'] = $barnetReport->closing_inventory_units ?? '0';
                 $cleanSheetData['flag'] = '2';
                 $cleanSheetData['comment'] = 'Record found in the Offers';
                 $cleanSheetData['dqi_flag'] = 1;
@@ -270,22 +222,12 @@ trait BarnetIntegration
                 $cleanSheetData['barcode'] = $gtin;
                 $cleanSheetData['report_id'] = $report->id;
                 $cleanSheetData['c_flag'] = '';
-                if($barnetReport->transfer > 0){
-                    $cleanSheetData['transfer_in'] = $barnetReport->transfer;
-                    $cleanSheetData['transfer_out'] = 0;
-                }
-                elseif($barnetReport->transfer < 0){
-                    $cleanSheetData['transfer_in'] = 0;
-                    $cleanSheetData['transfer_out'] = str_replace('-','',$barnetReport->transfer);
-                }
-                else{
-                    $cleanSheetData['transfer_in'] = 0;
-                    $cleanSheetData['transfer_out'] = 0;
-                }
+                  $cleanSheetData['transfer_in'] = $barnetReport->other_additions_units ?? '0';
+                $cleanSheetData['transfer_out'] = $barnetReport->transfer_units ?? '0';
                 $cleanSheetData['pos'] = $report->pos;
                 $cleanSheetData['reconciliation_date'] = $report->date;
-                $cleanSheetData['opening_inventory_unit'] = $barnetReport->opening ?? '0';
-                $cleanSheetData['closing_inventory_unit'] = $barnetReport->closing ?? '0';
+                $cleanSheetData['opening_inventory_unit'] = $barnetReport->opening_inventory_units ?? '0';
+                $cleanSheetData['closing_inventory_unit'] = $barnetReport->closing_inventory_units ?? '0';
                 $cleanSheetData['flag'] = '0';
                 $cleanSheetData['comment'] = 'No matching product or offer found.';
                 $cleanSheetData['dqi_flag'] = 0;

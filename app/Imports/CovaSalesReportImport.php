@@ -72,7 +72,7 @@ class CovaSalesReportImport implements ToModel, WithHeadingRow
                 // Set the flag to prevent further header checks
                 $this->hasCheckedHeaders = true;
                 return null; // Stop processing this row
-            }
+            } 
         }
 
         // Proceed with creating the model if headers are valid

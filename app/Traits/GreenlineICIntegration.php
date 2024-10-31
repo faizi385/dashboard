@@ -72,6 +72,7 @@ trait GreenlineICIntegration
             $cleanSheetData['location'] = $location;
             $cleanSheetData['province'] = $provinceName;
             $cleanSheetData['province_slug'] = $provinceSlug;
+            $cleanSheetData['province_id'] =  $provinceId ;
             $cleanSheetData['sku'] = $sku;
             $cleanSheetData['product_name'] = $greenlineReport->name;
             $cleanSheetData['category'] = $product->category;
@@ -180,6 +181,7 @@ trait GreenlineICIntegration
                 $cleanSheetData['location'] = $location;
                 $cleanSheetData['province'] = $offer->province;
                 $cleanSheetData['province_slug'] = $offer->province_slug;
+                $cleanSheetData['province_id'] =  $provinceId ;
                 $cleanSheetData['sku'] = $sku;
                 $cleanSheetData['product_name'] = $offer->product_name;
                 $cleanSheetData['category'] = $offer->category;
@@ -262,6 +264,7 @@ trait GreenlineICIntegration
                 $cleanSheetData['location'] = $location;
                 $cleanSheetData['province'] = $provinceName;
                 $cleanSheetData['province_slug'] = $provinceSlug;
+                $cleanSheetData['province_id'] =  $provinceId ;
                 $cleanSheetData['sku'] = $sku;
                 $cleanSheetData['product_name'] = $greenlineReport->name;
                 $cleanSheetData['category'] = null;
