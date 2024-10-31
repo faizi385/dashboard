@@ -23,7 +23,7 @@ trait ICIntegrationTrait
     use CovaICIntegration, GreenlineICIntegration, TechPosIntegration;
     public function covaMasterCatalouge($covaDaignosticReport, $report)
     {
-        return $this->mapCovaMasterCatalouge($covaDaignosticReport, $report);
+        return $this->mapCovaCatalouge($covaDaignosticReport, $report);
     }
     public function greenlineMasterCatalouge($greenlineReport, $report)
     {

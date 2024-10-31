@@ -36,8 +36,13 @@ class CovaDiagnosticReport extends Model
         'returns_to_supplier_units',
         'other_reductions_units',
         'closing_inventory_units',
-        'status',  
+        'status',
     ];
+
+    public function CovaSalesSummaryReport()
+    {
+        return $this->hasOne(CovaSalesReport::class, 'cova_diagnostic_report_id', 'id');
+    }
 
     // Define relationships if necessary, for example, a report belongs to a parent Report
     public function report()

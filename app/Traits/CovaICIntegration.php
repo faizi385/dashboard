@@ -6,7 +6,9 @@ use App\Helpers\GeneralFunctions;
 use App\Models\CleanSheet;
 use App\Models\CovaSalesReport;
 use App\Models\InternalMasterCatalouge;
+use App\Models\Lp;
 use App\Models\LpVariableFeeStructure;
+use App\Models\Retailer;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -14,298 +16,285 @@ use Illuminate\Support\Facades\Log;
 trait CovaICIntegration
 {
 
-    public function mapCovaMasterCatalouge($covaDaignosticReport, $retailerReportSubmission)
+    public function mapCovaMasterCatalouge($covaDaignosticReport, $report)
     {
-        $provinceDetails = $this->getRetailerProvince($retailerReportSubmission);
-        $provinceName = $provinceDetails['province_name'];
-        $provinceSlug = $provinceDetails['province_slug'];
-        $retailerName = $this->getRetailerName($retailerReportSubmission->retailer_id);
-        $cleanSheet = [];
-        $cleanSheet['report_price_og'] = '0.00';
-        if ($retailerReportSubmission->province == 'ON' || $retailerReportSubmission->province == 'Ontario') {
-            $CovaGtinMatchedData =  $this->getICMatchedData('ocs_sku', trim($covaDaignosticReport->ocs_sku) ?? '', 'ontario_barcode_upc', trim($covaDaignosticReport->ontario_barcode_upc) ?? '', 'product_name', $covaDaignosticReport->product_name ?? '', $provinceName, $provinceSlug);
-            if(!empty($CovaGtinMatchedData) && empty($covaDaignosticReport->ocs_sku)){
-                $CovaSalesSummaryReport =  CovaSalesReport::where('cova_diagnostic_report_id', $covaDaignosticReport->id)->whereRaw("FIND_IN_SET(?, sku)", [$CovaGtinMatchedData->sku])->first();
+        $cleanSheetData = []; $cleanSheetData['report_price_og'] = '0.00';
+        $retailer_id = $greenlineReport->report->retailer_id ?? null;
+        $location = $greenlineReport->report->location ?? null;
+
+        if (!$retailer_id) {
+            Log::warning('Retailer ID not found for report:', ['report_id' => $report->id]);
+        }
+
+        $provinceId = $report->province_id;
+        $provinceName = $report->province;
+        $provinceSlug = $report->province_slug;
+        $product = null;
+        $retailer = Retailer::find($retailer_id);
+        if ($retailer) {
+            $retailerName = trim("{$retailer->first_name} {$retailer->last_name}");
+        } else {
+            Log::warning('Retailer not found:', ['retailer_id' => $retailer_id]);
+        }
+
+        if ($report->province == 'ON' || $report->province == 'Ontario') {
+            $product =  $this->getICMatchedData('ocs_sku', trim($covaDaignosticReport->ocs_sku) ?? '', 'ontario_barcode_upc', trim($covaDaignosticReport->ontario_barcode_upc) ?? '', 'product_name', $covaDaignosticReport->product_name ?? '', $provinceName, $provinceSlug);
+            if(!empty($product) && empty($covaDaignosticReport->ocs_sku)){
+                $CovaSalesSummaryReport =  CovaSalesReport::where('cova_diagnostic_report_id', $covaDaignosticReport->id)->first();
             } else {
-                $CovaSalesSummaryReport =  CovaSalesReport::where('cova_diagnostic_report_id', $covaDaignosticReport->id)->whereRaw("FIND_IN_SET(?, sku)", [$covaDaignosticReport->ocs_sku])->first();
+                $CovaSalesSummaryReport =  CovaSalesReport::where('cova_diagnostic_report_id', $covaDaignosticReport->id)->first();
             }
-        } elseif ($retailerReportSubmission->province == 'AB' || $retailerReportSubmission->province == 'Alberta') {
-            $CovaGtinMatchedData =  $this->getICMatchedData('aglc_sku', trim($covaDaignosticReport->aglc_sku) ?? '', 'manitoba_barcode_upc', trim($covaDaignosticReport->manitoba_barcode_upc) ?? '', 'product_name', $covaDaignosticReport->product_name ?? '', $provinceName, $provinceSlug);
-            if(!empty($CovaGtinMatchedData) && empty($covaDaignosticReport->aglc_sku)){
-                $CovaSalesSummaryReport =  CovaSalesReport::where('cova_diagnostic_report_id', $covaDaignosticReport->id)->whereRaw("FIND_IN_SET(?, sku)", [$CovaGtinMatchedData->sku])->first();
+        } elseif ($report->province == 'AB' || $report->province == 'Alberta') {
+            $product =  $this->getICMatchedData('aglc_sku', trim($covaDaignosticReport->aglc_sku) ?? '', 'manitoba_barcode_upc', trim($covaDaignosticReport->manitoba_barcode_upc) ?? '', 'product_name', $covaDaignosticReport->product_name ?? '', $provinceName, $provinceSlug);
+            if(!empty($product) && empty($covaDaignosticReport->aglc_sku)){
+                $CovaSalesSummaryReport =  CovaSalesReport::where('cova_diagnostic_report_id', $covaDaignosticReport->id)->first();
             } else {
-                $CovaSalesSummaryReport =  CovaSalesReport::where('cova_diagnostic_report_id', $covaDaignosticReport->id)->whereRaw("FIND_IN_SET(?, sku)", [$covaDaignosticReport->aglc_sku])->first();
+                $CovaSalesSummaryReport =  CovaSalesReport::where('cova_diagnostic_report_id', $covaDaignosticReport->id)->first();
             }
-        } elseif ($retailerReportSubmission->province == 'MB' || $retailerReportSubmission->province == 'Manitoba') {
-            $CovaGtinMatchedData =  $this->getICMatchedData('new_brunswick_sku', trim($covaDaignosticReport->new_brunswick_sku) ?? '', 'manitoba_barcode_upc', trim($covaDaignosticReport->manitoba_barcode_upc) ?? '', 'product_name', $covaDaignosticReport->product_name ?? '', $provinceName, $provinceSlug);
-            if(!empty($CovaGtinMatchedData) && empty($covaDaignosticReport->new_brunswick_sku)){
-                $CovaSalesSummaryReport =  CovaSalesReport::where('cova_diagnostic_report_id', $covaDaignosticReport->id)->whereRaw("FIND_IN_SET(?, sku)", [$CovaGtinMatchedData->sku])->first();
+        } elseif ($report->province == 'MB' || $report->province == 'Manitoba') {
+            $product =  $this->getICMatchedData('new_brunswick_sku', trim($covaDaignosticReport->new_brunswick_sku) ?? '', 'manitoba_barcode_upc', trim($covaDaignosticReport->manitoba_barcode_upc) ?? '', 'product_name', $covaDaignosticReport->product_name ?? '', $provinceName, $provinceSlug);
+            if(!empty($product) && empty($covaDaignosticReport->new_brunswick_sku)){
+                $CovaSalesSummaryReport =  CovaSalesReport::where('cova_diagnostic_report_id', $covaDaignosticReport->id)->first();
             } else{
-                $CovaSalesSummaryReport =  CovaSalesReport::where('cova_diagnostic_report_id', $covaDaignosticReport->id)->whereRaw("FIND_IN_SET(?, sku)", [$covaDaignosticReport->new_brunswick_sku])->first();
+                $CovaSalesSummaryReport =  CovaSalesReport::where('cova_diagnostic_report_id', $covaDaignosticReport->id)->first();
             }
-        } elseif ($retailerReportSubmission->province == 'BC' || $retailerReportSubmission->province == 'British Columbia') {
-            $CovaGtinMatchedData =  $this->getICMatchedData('new_brunswick_sku', trim($covaDaignosticReport->new_brunswick_sku) ?? '', 'manitoba_barcode_upc', trim($covaDaignosticReport->manitoba_barcode_upc) ?? '', 'product_name', $covaDaignosticReport->product_name ?? '', $provinceName, $provinceSlug);
-            if(!empty($CovaGtinMatchedData) && empty($covaDaignosticReport->new_brunswick_sku)){
-                $CovaSalesSummaryReport =  CovaSalesReport::where('cova_diagnostic_report_id', $covaDaignosticReport->id)->whereRaw("FIND_IN_SET(?, sku)", [$CovaGtinMatchedData->sku])->first();
+        } elseif ($report->province == 'BC' || $report->province == 'British Columbia') {
+            $product =  $this->getICMatchedData('new_brunswick_sku', trim($covaDaignosticReport->new_brunswick_sku) ?? '', 'manitoba_barcode_upc', trim($covaDaignosticReport->manitoba_barcode_upc) ?? '', 'product_name', $covaDaignosticReport->product_name ?? '', $provinceName, $provinceSlug);
+            if(!empty($product) && empty($covaDaignosticReport->new_brunswick_sku)){
+                $CovaSalesSummaryReport =  CovaSalesReport::where('cova_diagnostic_report_id', $covaDaignosticReport->id)->first();
             } else {
-                $CovaSalesSummaryReport =  CovaSalesReport::where('cova_diagnostic_report_id', $covaDaignosticReport->id)->whereRaw("FIND_IN_SET(?, sku)", [$covaDaignosticReport->new_brunswick_sku])->first();
+                $CovaSalesSummaryReport =  CovaSalesReport::where('cova_diagnostic_report_id', $covaDaignosticReport->id)->first();
             }
-        } elseif ($retailerReportSubmission->province == 'SK' || $retailerReportSubmission->province == 'Saskatchewan') {
-            $CovaGtinMatchedData =  $this->getICMatchedData('new_brunswick_sku', trim($covaDaignosticReport->new_brunswick_sku) ?? '', 'saskatchewan_barcode_upc', trim($covaDaignosticReport->saskatchewan_barcode_upc) ?? '', 'product_name', $covaDaignosticReport->product_name ?? '', $provinceName, $provinceSlug);
-            if(!empty($CovaGtinMatchedData) && empty($covaDaignosticReport->new_brunswick_sku)){
-                $CovaSalesSummaryReport =  CovaSalesReport::where('cova_diagnostic_report_id', $covaDaignosticReport->id)->whereRaw("FIND_IN_SET(?, sku)", [$CovaGtinMatchedData->sku])->first();
+        } elseif ($report->province == 'SK' || $report->province == 'Saskatchewan') {
+            $product =  $this->getICMatchedData('new_brunswick_sku', trim($covaDaignosticReport->new_brunswick_sku) ?? '', 'saskatchewan_barcode_upc', trim($covaDaignosticReport->saskatchewan_barcode_upc) ?? '', 'product_name', $covaDaignosticReport->product_name ?? '', $provinceName, $provinceSlug);
+            if(!empty($product) && empty($covaDaignosticReport->new_brunswick_sku)){
+                $CovaSalesSummaryReport =  CovaSalesReport::where('cova_diagnostic_report_id', $covaDaignosticReport->id)->first();
             } else {
-                $CovaSalesSummaryReport =  CovaSalesReport::where('cova_diagnostic_report_id', $covaDaignosticReport->id)->whereRaw("FIND_IN_SET(?, sku)", [$covaDaignosticReport->new_brunswick_sku])->first();
+                $CovaSalesSummaryReport =  CovaSalesReport::where('cova_diagnostic_report_id', $covaDaignosticReport->id)->first();
             }
         }
-        if (!empty($CovaGtinMatchedData)) {
-            $lpId = $this->getlpID($CovaGtinMatchedData->lp_name);
-            $cleanSheet['retailer_id'] = $retailerReportSubmission->retailer_id;
-            $cleanSheet['retailer_name'] = $retailerName;
-            $cleanSheet['thc_range'] = $CovaGtinMatchedData->thc_range;
-            $cleanSheet['cbd_range'] = $CovaGtinMatchedData->cbd_range;
-            $cleanSheet['size_in_grams_g'] = $CovaGtinMatchedData->size_in_grams_g;
-            $cleanSheet['location'] = $retailerReportSubmission->location;
-            $cleanSheet['province'] = $provinceName;
-            $cleanSheet['province_slug'] = $provinceSlug;
-            $cleanSheet['sku'] = $CovaGtinMatchedData->sku;
-            $cleanSheet['product_name'] = $CovaGtinMatchedData->product_name;
-            $cleanSheet['category'] = $CovaGtinMatchedData->category;
-            $cleanSheet['brand'] = $CovaGtinMatchedData->brand_name ?? "0";
-            $cleanSheet['sold'] = $covaDaignosticReport->quantity_sold_units ?? "0";
-            $cleanSheet['purchased'] = $covaDaignosticReport->quantity_purchased_units;
-            $cleanSheet['report_id'] = $covaDaignosticReport->id;
+        if (!empty($product)) {
+            $lp = Lp::where('id',$product->lp_id)->first();
+            $lpName = $lp->name ?? null;
+            $lpId = $lp->id ?? null;
+
+            $cleanSheetData['retailer_id'] = $report->retailer_id;
+            $cleanSheetData['retailer_name'] = $retailerName ?? null;
+            $cleanSheetData['thc_range'] = $product->thc_range;
+            $cleanSheetData['cbd_range'] = $product->cbd_range;
+            $cleanSheetData['size_in_gram'] = $product->product_size;
+            $cleanSheetData['location'] = $report->location;
+            $cleanSheetData['province'] = $provinceName;
+            $cleanSheetData['province_slug'] = $provinceSlug;
+            $cleanSheetData['sku'] = $product->sku;
+            $cleanSheetData['product_name'] = $product->product_name;
+            $cleanSheetData['category'] = $product->category;
+            $cleanSheetData['brand'] = $product->brand_name ?? "0";
+            $cleanSheetData['sold'] = $covaDaignosticReport->quantity_sold_units ?? "0";
+            $cleanSheetData['purchase'] = $covaDaignosticReport->quantity_purchased_units;
+            $cleanSheetData['pos_report_id'] = $covaDaignosticReport->id;
             if ($CovaSalesSummaryReport && !empty($CovaSalesSummaryReport->average_retail_price)) {
-                $cleanSheet['average_price']  = $CovaSalesSummaryReport->average_retail_price ?? "0.00";
+                $cleanSheetData['average_price']  = $CovaSalesSummaryReport->average_retail_price ?? "0.00";
             } else {
-                $cleanSheet['average_price'] = "0.00";
+                $cleanSheetData['average_price'] = "0.00";
             }
-            $cleanSheet['average_cost'] = "0.00";
-            if ($CovaGtinMatchedData !== null && isset($CovaSalesSummaryReport->total_Cost) && !empty((double)$CovaSalesSummaryReport->net_sold)) {
-                $cleanSheet['average_cost'] = $this->avgCostForCova($CovaSalesSummaryReport);
-                $cleanSheet['report_price_og'] = $cleanSheet['average_cost'];
-//            } elseif ((!empty((double)$CovaSalesSummaryReport->total_Cost) && !empty((int)$CovaSalesSummaryReport->net_sold)) &&   $cleanSheet['average_cost'] == 0) {
+            $cleanSheetData['average_cost'] = "0.00";
+            if ($product !== null && isset($CovaSalesSummaryReport->total_Cost) && !empty((double)$CovaSalesSummaryReport->net_sold)) {
+                $cleanSheetData['average_cost'] = $this->avgCostForCova($CovaSalesSummaryReport);
+                $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
             }
-            if (isset($CovaGtinMatchedData->price_per_unit) && (double)$CovaGtinMatchedData->price_per_unit != 0 &&  $cleanSheet['average_cost'] == 0) {
-                $cleanSheet['average_cost'] = GeneralFunctions::formatAmountValue($CovaGtinMatchedData->price_per_unit);
+            if (isset($product->price_per_unit) && (double)$product->price_per_unit != 0 &&  $cleanSheetData['average_cost'] == 0) {
+                $cleanSheetData['average_cost'] = GeneralFunctions::formatAmountValue($product->price_per_unit);
             }
-            $cleanSheet['barcode'] = $CovaGtinMatchedData->gtin;
-            $cleanSheet['variable'] = null;
-            $cleanSheet['retailerReportSubmission_id'] = $covaDaignosticReport->retailerReportSubmission_id;
+            $cleanSheetData['barcode'] = $product->gtin;
+            $cleanSheetData['report_id'] = $report->id;
             if ($covaDaignosticReport->other_additions_units > 0) {
-                $cleanSheet['transfer_in'] = $covaDaignosticReport->other_additions_units;
+                $cleanSheetData['transfer_in'] = $covaDaignosticReport->other_additions_units;
             } else {
-                $cleanSheet['transfer_in'] = 0;
+                $cleanSheetData['transfer_in'] = 0;
             }
             if ($covaDaignosticReport->other_reductions_units < 0) {
-                $cleanSheet['transfer_out'] = str_replace('-', '', $covaDaignosticReport->other_reductions_units);
+                $cleanSheetData['transfer_out'] = str_replace('-', '', $covaDaignosticReport->other_reductions_units);
             } else {
-                $cleanSheet['transfer_out'] = 0;
+                $cleanSheetData['transfer_out'] = 0;
             }
-            $cleanSheet['pos'] = $retailerReportSubmission->pos;
-            $cleanSheet['reconciliation_date'] = $retailerReportSubmission->date;
-            $cleanSheet['opening_inventory_units'] = $covaDaignosticReport->opening_inventory_units ?? "0";
-            $cleanSheet['closing_inventory_units'] = $covaDaignosticReport->closing_inventory_units ?? "0";
-            $cleanSheet['ic_id'] = $CovaGtinMatchedData->internal_id;
-            $cleanSheet['dqi_per'] = '';
-            $cleanSheet['dqi_fee'] = '';
-            $offers = $this->getDQIMatchedData($retailerReportSubmission, $covaDaignosticReport, $provinceName, $provinceSlug);
-            if (!empty($offers)) {
-                $cleanSheet['offer_id'] = $offers->id;
-                $cleanSheet['lp_id'] = $offers->lp_id;
-                $cleanSheet['lp_name'] = $offers->lp;
-                if((int) $cleanSheet['purchased'] > 0){
-                    $checkCarveout = $this->checkCarveOuts($retailerReportSubmission, $provinceSlug, $provinceName,$offers->lp_id,$offers->lp,$offers->provincial);
-                    $cleanSheet['c_flag'] = $checkCarveout ? 'yes' : 'no';
+            $cleanSheetData['pos'] = $report->pos;
+            $cleanSheetData['reconciliation_date'] = $report->date;
+            $cleanSheetData['opening_inventory_units'] = $covaDaignosticReport->opening_inventory_units ?? "0";
+            $cleanSheetData['closing_inventory_units'] = $covaDaignosticReport->closing_inventory_units ?? "0";
+            $cleanSheetData['product_variation_id'] = $product->id;
+            $cleanSheetData['dqi_per'] = '';
+            $cleanSheetData['dqi_fee'] = '';
+            $offer = $this->getDQIMatchedData($report, $covaDaignosticReport, $provinceName, $provinceSlug,$provinceId);
+            if (!empty($offer)) {
+                $cleanSheetData['offer_id'] = $offer->id;
+                $cleanSheetData['lp_id'] = $offer->lp_id;
+                $cleanSheetData['lp_name'] = $offer->lp_name;
+                if((int) $cleanSheetData['purchase'] > 0){
+                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku,$product);
+                    $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
                 }
                 else{
-                    $cleanSheet['c_flag'] = '';
+                    $cleanSheetData['c_flag'] = '';
                 }
-                $cleanSheet['dqi_flag'] = 1;
-                $cleanSheet['flag'] = '3';
-                /**************************************************************************/
-                $TotalQuantityGet = $cleanSheet['purchased'];
-                $TotalUnitCostGet = $cleanSheet['average_cost'];
-                /***************************************************************************/
+                $cleanSheetData['dqi_flag'] = 1;
+                $cleanSheetData['flag'] = '3';
+                $TotalQuantityGet = $cleanSheetData['purchase'];
+                $TotalUnitCostGet = $cleanSheetData['average_cost'];
                 $TotalPurchaseCostMake = (float)$TotalQuantityGet * (float)$TotalUnitCostGet;
-                $FinalDQIFEEMake = (float)trim($offers->data, '%') * 100;
+                $FinalDQIFEEMake = (float)trim($offer->data, '%') * 100;
                 $FinalFeeInDollar = (float)$TotalPurchaseCostMake * $FinalDQIFEEMake / 100;
-                $cleanSheet['dqi_per'] = $FinalDQIFEEMake;
-                $cleanSheet['dqi_fee'] = number_format($FinalFeeInDollar,2);
-                /**************************************************************************/
-                $cleanSheet['comments'] = 'Record found in the Master Catalog and Offer';
-                if ($cleanSheet['average_cost'] == '0.00') {
-                    $cleanSheet['average_cost'] = GeneralFunctions::formatAmountValue($offers->unit_cost) ?? "0.00";
+                $cleanSheetData['dqi_per'] = $FinalDQIFEEMake;
+                $cleanSheetData['dqi_fee'] = number_format($FinalFeeInDollar,2);
+                $cleanSheetData['comment'] = 'Record found in the Master Catalog and Offer';
+                if ($cleanSheetData['average_cost'] == '0.00') {
+                    $cleanSheetData['average_cost'] = GeneralFunctions::formatAmountValue($offer->unit_cost) ?? "0.00";
                 }
             } else {
-                $cleanSheet['offer_id'] = null;
-                $cleanSheet['lp_id'] = $lpId;
-                $cleanSheet['lp_name'] = $CovaGtinMatchedData->lp_name;
-                $cleanSheet['c_flag'] = '';
-                $cleanSheet['dqi_flag'] = 0;
-                $cleanSheet['flag'] = '1';
-                $cleanSheet['comments'] = 'Record found in the Master Catalog';
+                $cleanSheetData['offer_id'] = null;
+                $cleanSheetData['lp_id'] = $lpId;
+                $cleanSheetData['lp_name'] = $lpName;
+                $cleanSheetData['c_flag'] = '';
+                $cleanSheetData['dqi_flag'] = 0;
+                $cleanSheetData['flag'] = '1';
+                $cleanSheetData['comments'] = 'Record found in the Master Catalog';
             }
         } else {
-            $lpOffer = $this->getMatchedOffer($retailerReportSubmission, $covaDaignosticReport, $provinceName, $provinceSlug);
-            if (!empty($lpOffer)) {
-                $cleanSheet['retailer_id'] = $retailerReportSubmission->retailer_id;
-                $cleanSheet['offer_id'] = $lpOffer->id;
-                $cleanSheet['lp_id'] = $lpOffer->lp_id;
-                $cleanSheet['retailer_name'] = $retailerName;
-                $cleanSheet['lp_name'] = $lpOffer->lp;
-                $cleanSheet['thc_range'] = $lpOffer->thc;
-                $cleanSheet['cbd_range'] = $lpOffer->cbd;
-                $cleanSheet['size_in_grams_g'] = null;
-                $cleanSheet['location'] = $retailerReportSubmission->location;
-                $cleanSheet['province'] = $provinceName;
-                $cleanSheet['province_slug'] = $provinceSlug;
-                $cleanSheet['sku'] = $lpOffer->provincial;
-                $cleanSheet['product_name'] = $lpOffer->product_name;
-                $cleanSheet['category'] = $lpOffer->category;
-                $cleanSheet['brand'] = $lpOffer->brand;
-                $cleanSheet['sold'] = $covaDaignosticReport->quantity_sold_units ?? "0";
-                $cleanSheet['purchased'] = $covaDaignosticReport->quantity_purchased_units;
-                if((int) $cleanSheet['purchased'] > 0){
-                    $checkCarveout = $this->checkCarveOuts($retailerReportSubmission, $provinceSlug, $provinceName,$lpOffer->lp_id,$lpOffer->lp,$lpOffer->provincial);
-                    $cleanSheet['c_flag'] = $checkCarveout ? 'yes' : 'no';
+            $offer = $this->getMatchedOffer($report, $covaDaignosticReport, $provinceName, $provinceSlug, $provinceId);
+            if (!empty($offer)) {
+                $cleanSheetData['retailer_id'] = $retailer_id;
+                $cleanSheetData['offer_id'] = $offer->id;
+                $cleanSheetData['lp_id'] = $offer->lp_id;
+                $cleanSheetData['retailer_name'] = $retailerName;
+                $cleanSheetData['lp_name'] = $offer->lp_name;
+                $cleanSheetData['thc_range'] = $offer->thc;
+                $cleanSheetData['cbd_range'] = $offer->cbd;
+                $cleanSheetData['size_in_gram'] = $offer->product_size;
+                $cleanSheetData['location'] = $location;
+                $cleanSheetData['province'] = $provinceName;
+                $cleanSheetData['province_slug'] = $provinceSlug;
+                $cleanSheetData['sku'] = $offer->provincial_sku;
+                $cleanSheetData['product_name'] = $offer->product_name;
+                $cleanSheetData['category'] = $offer->category;
+                $cleanSheetData['brand'] = $offer->brand;
+                $cleanSheetData['sold'] = $covaDaignosticReport->quantity_sold_units ?? "0";
+                $cleanSheetData['purchase'] = $covaDaignosticReport->quantity_purchased_units;
+                if((int) $cleanSheetData['purchase'] > 0){
+                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku,$product);
+                    $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
                 }
                 else{
-                    $cleanSheet['c_flag'] = '';
+                    $cleanSheetData['c_flag'] = '';
                 }
-                $cleanSheet['report_id'] = $covaDaignosticReport->id;
+                $cleanSheetData['pos_report_id'] = $greenlineReport->id;
                 if ($CovaSalesSummaryReport && !empty($CovaSalesSummaryReport->average_retail_price)) {
-                    $cleanSheet['average_price']  = $CovaSalesSummaryReport->average_retail_price ?? "0.00";
+                    $cleanSheetData['average_price']  = $CovaSalesSummaryReport->average_retail_price ?? "0.00";
                 } else {
-                    $cleanSheet['average_price'] = "0.00";
+                    $cleanSheetData['average_price'] = "0.00";
                 }
-                $cleanSheet['average_cost'] = "0.00";
+                $cleanSheetData['average_cost'] = "0.00";
                 if (isset($CovaSalesSummaryReport->total_Cost) && $CovaSalesSummaryReport->total_Cost != null && isset($CovaSalesSummaryReport->net_sold) && $CovaSalesSummaryReport->net_sold != null) {
                     if (!empty((double)$CovaSalesSummaryReport->total_Cost) && !empty((double)$CovaSalesSummaryReport->net_sold)) {
-                        $cleanSheet['average_cost'] = $this->avgCostForCova($CovaSalesSummaryReport);
-                        $cleanSheet['report_price_og'] = $cleanSheet['average_cost'];
+                        $cleanSheetData['average_cost'] = $this->avgCostForCova($CovaSalesSummaryReport);
+                        $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
                     }
                 }
-                if (isset($lpOffer->unit_cost) && (double)$lpOffer->unit_cost != 0 &&  $cleanSheet['average_cost'] == 0) {
-                    $cleanSheet['average_cost'] = GeneralFunctions::formatAmountValue($lpOffer->unit_cost);
+                if (isset($offer->unit_cost) && (double)$offer->unit_cost != 0 &&  $cleanSheetData['average_cost'] == 0) {
+                    $cleanSheetData['average_cost'] = GeneralFunctions::formatAmountValue($offer->unit_cost);
                 }
-                $cleanSheet['barcode'] = $lpOffer->GTin;
-                $cleanSheet['variable'] = null;
-                $cleanSheet['retailerReportSubmission_id'] = $retailerReportSubmission->id;
+                $cleanSheetData['barcode'] = $offer->gtin;
+                $cleanSheetData['report_id'] = $report->id;
                 if ($covaDaignosticReport->other_additions_units > 0) {
-                    $cleanSheet['transfer_in'] = $covaDaignosticReport->other_additions_units;
+                    $cleanSheetData['transfer_in'] = $covaDaignosticReport->other_additions_units;
                 } else {
-                    $cleanSheet['transfer_in'] = 0;
+                    $cleanSheetData['transfer_in'] = 0;
                 }
 
                 if ($covaDaignosticReport->other_reductions_units < 0) {
-                    $cleanSheet['transfer_out'] = str_replace('-', '', $covaDaignosticReport->other_reductions_units);
+                    $cleanSheetData['transfer_out'] = str_replace('-', '', $covaDaignosticReport->other_reductions_units);
                 } else {
-                    $cleanSheet['transfer_out'] = 0;
+                    $cleanSheetData['transfer_out'] = 0;
                 }
-                $cleanSheet['pos'] = $retailerReportSubmission->pos;
-                $cleanSheet['reconciliation_date'] = $retailerReportSubmission->date;
-                $cleanSheet['opening_inventory_units'] = $covaDaignosticReport->opening_inventory_units ?? "0";
-                $cleanSheet['closing_inventory_units'] = $covaDaignosticReport->closing_inventory_units ?? "0";
-                $cleanSheet['flag'] = '2';
-                $cleanSheet['comments'] = 'Record found in the Offers';
-                $cleanSheet['dqi_flag'] = 1;
-                $cleanSheet['ic_id'] = null;
-                /**************************************************************************/
-                $TotalQuantityGet = $cleanSheet['purchased'];
-                $TotalUnitCostGet = $cleanSheet['average_cost'];
-                /***************************************************************************/
+                $cleanSheetData['pos'] = $report->pos;
+                $cleanSheetData['reconciliation_date'] = $report->date;
+                $cleanSheetData['opening_inventory_units'] = $covaDaignosticReport->opening_inventory_units ?? "0";
+                $cleanSheetData['closing_inventory_units'] = $covaDaignosticReport->closing_inventory_units ?? "0";
+                $cleanSheetData['flag'] = '2';
+                $cleanSheetData['comment'] = 'Record found in the Offers';
+                $cleanSheetData['dqi_flag'] = 1;
+                $cleanSheetData['product_variation_id'] = null;
+                $TotalQuantityGet = $cleanSheetData['purchase'];
+                $TotalUnitCostGet = $cleanSheetData['average_cost'];
                 $TotalPurchaseCostMake = (float)$TotalQuantityGet * (float)$TotalUnitCostGet;
-                $FinalDQIFEEMake = (float)trim($lpOffer->data, '%') * 100;
+                $FinalDQIFEEMake = (float)trim($offer->data, '%') * 100;
                 $FinalFeeInDollar = (float)$TotalPurchaseCostMake * $FinalDQIFEEMake / 100;
-                $cleanSheet['dqi_per'] = $FinalDQIFEEMake;
-                $cleanSheet['dqi_fee'] = number_format($FinalFeeInDollar,2);
-                /**************************************************************************/
-
-                $this->insertOfferInInternalCatalouge($lpOffer, $this->avgCostForCova($CovaSalesSummaryReport), $provinceName);
+                $cleanSheetData['dqi_per'] = $FinalDQIFEEMake;
+                $cleanSheetData['dqi_fee'] = number_format($FinalFeeInDollar,2);
             } else {
-                $this->addDataCleansheet($retailerReportSubmission, $covaDaignosticReport,  $cleanSheet);
-                $cleanSheet['retailer_id'] = $retailerReportSubmission->retailer_id;
-                $cleanSheet['offer_id'] = null;
-                $cleanSheet['lp_id'] = null;
-                $cleanSheet['retailer_name'] = $retailerName;
-                $cleanSheet['lp_name'] = null;
-                $cleanSheet['thc_range'] = null;
-                $cleanSheet['cbd_range'] = null;
-                $cleanSheet['size_in_grams_g'] = null;
-                $cleanSheet['location'] = $retailerReportSubmission->location;
-                $cleanSheet['province'] = $provinceName;
-                $cleanSheet['province_slug'] = $provinceSlug;
-                $cleanSheet['product_name'] = $covaDaignosticReport->product_name;
-                $cleanSheet['category'] = $CovaSalesSummaryReport->category ?? '';
-                $cleanSheet['brand'] =  $CovaSalesSummaryReport->brand ?? '';
-                $cleanSheet['sold'] = $covaDaignosticReport->quantity_sold_units ?? "0";
-                $cleanSheet['purchased'] = $covaDaignosticReport->quantity_purchased_units;
-//                if((int) $cleanSheet['purchased'] > 0){
-//                    $checkCarveout = $this->checkCarveOuts($retailerReportSubmission, $provinceSlug, $provinceName,null,null,null);
-//                    $cleanSheet['c_flag'] = $checkCarveout ? 'yes' : 'no';
-//                }
-//                else{
-                $cleanSheet['c_flag'] = '';
-//                }
-                $cleanSheet['report_id'] = $covaDaignosticReport->id;
+                $this->addDataCleansheet($report, $covaDaignosticReport,  $cleanSheetData);
+                $cleanSheetData['retailer_id'] = $report->retailer_id;
+                $cleanSheetData['offer_id'] = null;
+                $cleanSheetData['lp_id'] = null;
+                $cleanSheetData['retailer_name'] = $retailerName;
+                $cleanSheetData['lp_name'] = null;
+                $cleanSheetData['thc_range'] = null;
+                $cleanSheetData['cbd_range'] = null;
+                $cleanSheetData['size_in_gram'] = null;
+                $cleanSheetData['location'] = $report->location;
+                $cleanSheetData['province'] = $provinceName;
+                $cleanSheetData['province_slug'] = $provinceSlug;
+                $cleanSheetData['product_name'] = $covaDaignosticReport->product_name;
+                $cleanSheetData['category'] = $CovaSalesSummaryReport->category ?? '';
+                $cleanSheetData['brand'] =  $CovaSalesSummaryReport->brand ?? '';
+                $cleanSheetData['sold'] = $covaDaignosticReport->quantity_sold_units ?? "0";
+                $cleanSheetData['purchase'] = $covaDaignosticReport->quantity_purchased_units;
+                $cleanSheetData['c_flag'] = '';
+                $cleanSheetData['pos_report_id'] = $covaDaignosticReport->id;
                 if ($CovaSalesSummaryReport && !empty($CovaSalesSummaryReport->average_retail_price)) {
-                    $cleanSheet['average_price']  = $CovaSalesSummaryReport->average_retail_price ?? "0.00";
+                    $cleanSheetData['average_price']  = $CovaSalesSummaryReport->average_retail_price ?? "0.00";
                 } else {
-                    $cleanSheet['average_price'] = "0.00";
+                    $cleanSheetData['average_price'] = "0.00";
                 }
-                $cleanSheet['average_cost'] = $this->avgCostForCova($CovaSalesSummaryReport);
-                $cleanSheet['report_price_og'] = $cleanSheet['average_cost'];
-                $cleanSheet['variable'] = null;
-                $cleanSheet['retailerReportSubmission_id'] = $retailerReportSubmission->id;
+                $cleanSheetData['average_cost'] = $this->avgCostForCova($CovaSalesSummaryReport);
+                $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
+                $cleanSheetData['report_id'] = $report->id;
                 if ($covaDaignosticReport->other_additions_units > 0) {
-                    $cleanSheet['transfer_in'] = $covaDaignosticReport->other_additions_units;
+                    $cleanSheetData['transfer_in'] = $covaDaignosticReport->other_additions_units;
                 } else {
-                    $cleanSheet['transfer_in'] = 0;
+                    $cleanSheetData['transfer_in'] = 0;
                 }
 
                 if ($covaDaignosticReport->other_reductions_units < 0) {
-                    $cleanSheet['transfer_out'] = str_replace('-', '', $covaDaignosticReport->other_reductions_units);
+                    $cleanSheetData['transfer_out'] = str_replace('-', '', $covaDaignosticReport->other_reductions_units);
                 } else {
-                    $cleanSheet['transfer_out'] = 0;
+                    $cleanSheetData['transfer_out'] = 0;
                 }
-                $cleanSheet['pos'] = $retailerReportSubmission->pos;
-                $cleanSheet['reconciliation_date'] = $retailerReportSubmission->date;
-                $cleanSheet['opening_inventory_units'] = $covaDaignosticReport->opening_inventory_units ?? "0";
-                $cleanSheet['closing_inventory_units'] = $covaDaignosticReport->closing_inventory_units ?? "0";
-                $cleanSheet['flag'] = '0';
-                $cleanSheet['comments'] = 'Record not found in the Master Catalog And Offer';
-                $cleanSheet['dqi_flag'] = 0;
-                $cleanSheet['ic_id'] = null;
-                $cleanSheet['dqi_per'] = '';
-                $cleanSheet['dqi_fee'] = '';
+                $cleanSheetData['pos'] = $report->pos;
+                $cleanSheetData['reconciliation_date'] = $report->date;
+                $cleanSheetData['opening_inventory_units'] = $covaDaignosticReport->opening_inventory_units ?? "0";
+                $cleanSheetData['closing_inventory_units'] = $covaDaignosticReport->closing_inventory_units ?? "0";
+                $cleanSheetData['flag'] = '0';
+                $cleanSheetData['comments'] = 'Record not found in the Master Catalog And Offer';
+                $cleanSheetData['dqi_flag'] = 0;
+                $cleanSheetData['product_variation_id'] = null;
+                $cleanSheetData['dqi_per'] = '';
+                $cleanSheetData['dqi_fee'] = '';
             }
         }
-//        $cleanSheet->save();
-//        $updateCleanSheetID = DB::table('cova_diagnostic_reports')->where('id', $covaDaignosticReport->id)->update(['clean_sheet_id' => $cleanSheet->id, 'entry_status' => 'done']);
+        $cleanSheetData['sold'] = $this->sanitizeNumeric($cleanSheetData['sold']);
+        $cleanSheetData['purchase'] = $this->sanitizeNumeric($cleanSheetData['purchase']);
+        $cleanSheetData['average_price'] = $this->sanitizeNumeric($cleanSheetData['average_price']);
+        $cleanSheetData['report_price_og'] = $this->sanitizeNumeric($cleanSheetData['report_price_og']);
+        $cleanSheetData['average_cost'] = $this->sanitizeNumeric($cleanSheetData['average_cost']);
 
-        $cleanSheet['sold'] = $this->sanitizeNumeric($cleanSheet['sold']);
-        $cleanSheet['purchased'] = $this->sanitizeNumeric($cleanSheet['purchased']);
-        $cleanSheet['average_price'] = $this->sanitizeNumeric($cleanSheet['average_price']);
-        $cleanSheet['report_price_og'] = $this->sanitizeNumeric($cleanSheet['report_price_og']);
-        $cleanSheet['average_cost'] = $this->sanitizeNumeric($cleanSheet['average_cost']);
-
-        if ($cleanSheet['average_cost'] === 0.0 || $cleanSheet['average_cost'] === 0) {
-            $cleanSheet['average_cost'] = GeneralFunctions::checkAvgCostCleanSheet($cleanSheet['sku'],$cleanSheet['province']);
+        if ($cleanSheetData['average_cost'] === 0.0 || $cleanSheetData['average_cost'] === 0) {
+            $cleanSheetData['average_cost'] = GeneralFunctions::checkAvgCostCleanSheet($cleanSheetData['sku'],$cleanSheetData['province']);
         }
 
-        return $cleanSheet;
+        return $cleanSheetData;
     }
     private function avgCostForCova($CovaSalesSummaryReport)
     {
-        //        if (!empty($CovaSalesSummaryReport->total_Cost) && !empty($CovaSalesSummaryReport->net_sold) && $CovaSalesSummaryReport->net_sold != 0) {
-        //            $net_sold = str_replace('$', '', trim($CovaSalesSummaryReport->net_sold));
-        //            $total_Cost = str_replace('$', '', trim($CovaSalesSummaryReport->total_Cost));
-        //        } else {
-        //            $net_sold = 1;
-        //            $total_Cost = 0;
-        //        }
-        //        return ($total_Cost != 0) ? (float)$total_Cost / (float)$net_sold : "0.00";
         $total_Cost = GeneralFunctions::formatAmountValue($CovaSalesSummaryReport->total_Cost ?? 0);
         $net_sold = (double)trim($CovaSalesSummaryReport->net_sold ?? 0);
 
@@ -323,79 +312,77 @@ trait CovaICIntegration
     private function getICMatchedData($sku_key, $sku_value, $barcode_key, $barcode_value, $product_key, $product_value, $provinceName, $provinceSlug)
     {
         if (!empty($barcode_value) && !empty($sku_value)) {
-            $CovaGtinMatchedData = $this->matchICBarcodeSku($barcode_value, $sku_value, $provinceName, $provinceSlug);
+            $product = $this->matchICBarcodeSku($barcode_value, $sku_value, $provinceName, $provinceSlug);
         } elseif (!empty($barcode_value) && empty($sku_value)) {
-            $CovaGtinMatchedData = $this->matchICBarcode($barcode_value, $provinceName, $provinceSlug);
+            $product = $this->matchICBarcode($barcode_value, $provinceName, $provinceSlug);
         } elseif (!empty($sku_value)) {
-            $CovaGtinMatchedData = $this->matchICSku($sku_value, $provinceName, $provinceSlug);
+            $product = $this->matchICSku($sku_value, $provinceName, $provinceSlug);
         } else {
-            $CovaGtinMatchedData = $this->matchICProductName($product_value, $provinceName, $provinceSlug);
+            $product = $this->matchICProductName($product_value, $provinceName, $provinceSlug);
         }
-        if (empty($CovaGtinMatchedData) && !empty($barcode_value)) {
-            $CovaGtinMatchedData = $this->matchICBarcode($barcode_value, $provinceName, $provinceSlug);
+        if (empty($product) && !empty($barcode_value)) {
+            $product = $this->matchICBarcode($barcode_value, $provinceName, $provinceSlug);
         }
-        return  $CovaGtinMatchedData ?? '';
+        return  $product ?? '';
     }
-    private function getDQIMatchedData($retailerReportSubmission, $covaDaignosticReport, $provinceName, $provinceSlug)
+    private function getDQIMatchedData($report, $covaDaignosticReport, $provinceName, $provinceSlug, $provinceId)
     {
-        if ($retailerReportSubmission->province == 'ON' || $retailerReportSubmission->province == 'Ontario') {
-            return $this->DQISummaryFlag($retailerReportSubmission, trim($covaDaignosticReport->ocs_sku),  trim($covaDaignosticReport->ontario_barcode_upc), $covaDaignosticReport->product_name, $provinceName, $provinceSlug);
-        } elseif ($retailerReportSubmission->province == 'AB' || $retailerReportSubmission->province == 'Alberta') {
-            return $this->DQISummaryFlag($retailerReportSubmission, trim($covaDaignosticReport->aglc_sku),  trim($covaDaignosticReport->manitoba_barcode_upc), $covaDaignosticReport->product_name, $provinceName, $provinceSlug);
-        } elseif ($retailerReportSubmission->province == 'MB' || $retailerReportSubmission->province == 'Manitoba') {
-            return $this->DQISummaryFlag($retailerReportSubmission, trim($covaDaignosticReport->new_brunswick_sku),  trim($covaDaignosticReport->manitoba_barcode_upc), $covaDaignosticReport->product_name, $provinceName, $provinceSlug);
-        } elseif ($retailerReportSubmission->province == 'BC' || $retailerReportSubmission->province == 'British Columbia') {
-            return $this->DQISummaryFlag($retailerReportSubmission, trim($covaDaignosticReport->new_brunswick_sku),  trim($covaDaignosticReport->manitoba_barcode_upc), $covaDaignosticReport->product_name, $provinceName, $provinceSlug);
-        } elseif ($retailerReportSubmission->province == 'SK' || $retailerReportSubmission->province == 'Saskatchewan') {
-            return $this->DQISummaryFlag($retailerReportSubmission, trim($covaDaignosticReport->new_brunswick_sku),  trim($covaDaignosticReport->saskatchewan_barcode_upc), $covaDaignosticReport->product_name, $provinceName, $provinceSlug);
-        }
-    }
-    private function MatchedOffer($retailerReportSubmission, $provinceName, $provinceSlug, $sku, $barcode, $product_name)
-    {
-        if ((!empty($sku) && !empty($barcode)) || (!empty($sku) && empty($barcode))) {
-            $lpOffer = $this->matchOfferSku($retailerReportSubmission->date, $sku, $provinceName, $provinceSlug,$retailerReportSubmission->retailer_id);
-        } elseif (empty($sku) && !empty($barcode)) {
-            $lpOffer = $this->matchOfferBarcode($retailerReportSubmission->date, $barcode, $provinceName, $provinceSlug,$retailerReportSubmission->retailer_id);
-        } elseif (empty($sku) && empty($barcode) && !empty($product_name)) {
-            $lpOffer = $this->matchOfferProductName($retailerReportSubmission->date, $product_name, $provinceName, $provinceSlug,$retailerReportSubmission->retailer_id);
-        } elseif ((!empty($sku))) {
-            $lpOffer = $this->matchOfferSku($retailerReportSubmission->date, $sku, $provinceName, $provinceSlug,$retailerReportSubmission->retailer_id);
-        } elseif (empty($sku) && !empty($product_name)) {
-            $lpOffer = $this->matchOfferProductName($retailerReportSubmission->date, $product_name, $provinceName, $provinceSlug,$retailerReportSubmission->retailer_id);
-        }
-        return $lpOffer ?? '';
-    }
-    private function getMatchedOffer($retailerReportSubmission, $covaDaignosticReport, $provinceName, $provinceSlug)
-    {
-        if ($retailerReportSubmission->province == 'ON' || $retailerReportSubmission->province == 'Ontario') {
-            return  $this->MatchedOffer($retailerReportSubmission, $provinceName, $provinceSlug, trim($covaDaignosticReport->ocs_sku), trim($covaDaignosticReport->ontario_barcode_upc), $covaDaignosticReport->product_name);
-        } elseif ($retailerReportSubmission->province == 'AB' || $retailerReportSubmission->province == 'Alberta') {
-            return  $this->MatchedOffer($retailerReportSubmission, $provinceName, $provinceSlug, trim($covaDaignosticReport->aglc_sku), trim($covaDaignosticReport->manitoba_barcode_upc), $covaDaignosticReport->product_name);
-        } elseif ($retailerReportSubmission->province == 'MB' || $retailerReportSubmission->province == 'Manitoba') {
-            return  $this->MatchedOffer($retailerReportSubmission, $provinceName, $provinceSlug, trim($covaDaignosticReport->new_brunswick_sku), trim($covaDaignosticReport->manitoba_barcode_upc), $covaDaignosticReport->product_name);
-        } elseif ($retailerReportSubmission->province == 'BC' || $retailerReportSubmission->province == 'British Columbia') {
-            return  $this->MatchedOffer($retailerReportSubmission, $provinceName, $provinceSlug, trim($covaDaignosticReport->new_brunswick_sku), trim($covaDaignosticReport->manitoba_barcode_upc), $covaDaignosticReport->product_name);
-        } elseif ($retailerReportSubmission->province == 'SK' || $retailerReportSubmission->province == 'Saskatchewan') {
-            return  $this->MatchedOffer($retailerReportSubmission, $provinceName, $provinceSlug, trim($covaDaignosticReport->new_brunswick_sku), trim($covaDaignosticReport->saskatchewan_barcode_upc), $covaDaignosticReport->product_name);
+        if ($report->province == 'ON' || $report->province == 'Ontario') {
+            return $this->DQISummaryFlag($report, trim($covaDaignosticReport->ocs_sku),  trim($covaDaignosticReport->ontario_barcode_upc), $covaDaignosticReport->product_name, $provinceName, $provinceSlug, $provinceId);
+        } elseif ($report->province == 'AB' || $report->province == 'Alberta') {
+            return $this->DQISummaryFlag($report, trim($covaDaignosticReport->aglc_sku),  trim($covaDaignosticReport->manitoba_barcode_upc), $covaDaignosticReport->product_name, $provinceName, $provinceSlug, $provinceId);
+        } elseif ($report->province == 'MB' || $report->province == 'Manitoba') {
+            return $this->DQISummaryFlag($report, trim($covaDaignosticReport->new_brunswick_sku),  trim($covaDaignosticReport->manitoba_barcode_upc), $covaDaignosticReport->product_name, $provinceName, $provinceSlug, $provinceId);
+        } elseif ($report->province == 'BC' || $report->province == 'British Columbia') {
+            return $this->DQISummaryFlag($report, trim($covaDaignosticReport->new_brunswick_sku),  trim($covaDaignosticReport->manitoba_barcode_upc), $covaDaignosticReport->product_name, $provinceName, $provinceSlug, $provinceId);
+        } elseif ($report->province == 'SK' || $report->province == 'Saskatchewan') {
+            return $this->DQISummaryFlag($report, trim($covaDaignosticReport->new_brunswick_sku),  trim($covaDaignosticReport->saskatchewan_barcode_upc), $covaDaignosticReport->product_name, $provinceName, $provinceSlug, $provinceId);
         }
     }
-    private function addDataCleansheet($retailerReportSubmission, $covaDaignosticReport, &$cleanSheet)
+    private function MatchedOffer($report, $provinceName, $provinceSlug, $provinceId, $sku, $barcode, $product_name)
     {
-        if ($retailerReportSubmission->province == 'ON' || $retailerReportSubmission->province == 'Ontario') {
-            $cleanSheet['sku'] = trim($covaDaignosticReport->ocs_sku);
-            $cleanSheet['barcode'] = trim($covaDaignosticReport->ontario_barcode_upc);
-        } elseif ($retailerReportSubmission->province == 'AB' || $retailerReportSubmission->province == 'Alberta') {
-            $cleanSheet['sku'] = trim($covaDaignosticReport->aglc_sku);
-            $cleanSheet['barcode'] = trim($covaDaignosticReport->manitoba_barcode_upc);
-        } elseif ($retailerReportSubmission->province == 'MB' || $retailerReportSubmission->province == 'Manitoba') {
-            $cleanSheet['sku'] = trim($covaDaignosticReport->new_brunswick_sku);
-            $cleanSheet['barcode'] = trim($covaDaignosticReport->manitoba_barcode_upc);
-        } elseif ($retailerReportSubmission->province == 'BC' || $retailerReportSubmission->province == 'British Columbia') {
-            $cleanSheet['sku'] = trim($covaDaignosticReport->new_brunswick_sku);
-            $cleanSheet['barcode'] = trim($covaDaignosticReport->manitoba_barcode_upc);
-        } elseif ($retailerReportSubmission->province == 'SK' || $retailerReportSubmission->province == 'Saskatchewan') {
-            $cleanSheet['sku'] = trim($covaDaignosticReport->new_brunswick_sku);
-            $cleanSheet['barcode'] = trim($covaDaignosticReport->saskatchewan_barcode_upc);
+        if (!empty($sku)) {
+            $offer = $this->matchOfferSku($report->date, $sku, $provinceName, $provinceSlug, $provinceId, $report->retailer_id);
+        }
+        if (!empty($barcode) && empty($offer)) {
+            $offer = $this->matchOfferBarcode($report->date, $barcode, $provinceName, $provinceSlug, $provinceId, $report->retailer_id);
+        }
+        if (!empty($product_name) && empty($offer)) {
+            $offer = $this->matchOfferProductName($report->date, $product_name, $provinceName, $provinceSlug, $provinceId, $report->retailer_id);
+        }
+        return $offer ?? '';
+    }
+    private function getMatchedOffer($report, $covaDaignosticReport, $provinceName, $provinceSlug, $provinceId)
+    {
+        if ($report->province == 'ON' || $report->province == 'Ontario') {
+            return  $this->MatchedOffer($report, $provinceName, $provinceSlug, $provinceId, trim($covaDaignosticReport->ocs_sku), trim($covaDaignosticReport->ontario_barcode_upc), $covaDaignosticReport->product_name);
+        } elseif ($report->province == 'AB' || $report->province == 'Alberta') {
+            return  $this->MatchedOffer($report, $provinceName, $provinceSlug, $provinceId, trim($covaDaignosticReport->aglc_sku), trim($covaDaignosticReport->manitoba_barcode_upc), $covaDaignosticReport->product_name);
+        } elseif ($report->province == 'MB' || $report->province == 'Manitoba') {
+            return  $this->MatchedOffer($report, $provinceName, $provinceSlug, $provinceId, trim($covaDaignosticReport->new_brunswick_sku), trim($covaDaignosticReport->manitoba_barcode_upc), $covaDaignosticReport->product_name);
+        } elseif ($report->province == 'BC' || $report->province == 'British Columbia') {
+            return  $this->MatchedOffer($report, $provinceName, $provinceSlug, $provinceId, trim($covaDaignosticReport->new_brunswick_sku), trim($covaDaignosticReport->manitoba_barcode_upc), $covaDaignosticReport->product_name);
+        } elseif ($report->province == 'SK' || $report->province == 'Saskatchewan') {
+            return  $this->MatchedOffer($report, $provinceName, $provinceSlug, $provinceId, trim($covaDaignosticReport->new_brunswick_sku), trim($covaDaignosticReport->saskatchewan_barcode_upc), $covaDaignosticReport->product_name);
+        }
+    }
+    private function addDataCleansheet($report, $covaDaignosticReport, &$cleanSheetData)
+    {
+        if ($report->province == 'ON' || $report->province == 'Ontario') {
+            $cleanSheetData['sku'] = trim($covaDaignosticReport->ocs_sku);
+            $cleanSheetData['barcode'] = trim($covaDaignosticReport->ontario_barcode_upc);
+        } elseif ($report->province == 'AB' || $report->province == 'Alberta') {
+            $cleanSheetData['sku'] = trim($covaDaignosticReport->aglc_sku);
+            $cleanSheetData['barcode'] = trim($covaDaignosticReport->manitoba_barcode_upc);
+        } elseif ($report->province == 'MB' || $report->province == 'Manitoba') {
+            $cleanSheetData['sku'] = trim($covaDaignosticReport->new_brunswick_sku);
+            $cleanSheetData['barcode'] = trim($covaDaignosticReport->manitoba_barcode_upc);
+        } elseif ($report->province == 'BC' || $report->province == 'British Columbia') {
+            $cleanSheetData['sku'] = trim($covaDaignosticReport->new_brunswick_sku);
+            $cleanSheetData['barcode'] = trim($covaDaignosticReport->manitoba_barcode_upc);
+        } elseif ($report->province == 'SK' || $report->province == 'Saskatchewan') {
+            $cleanSheetData['sku'] = trim($covaDaignosticReport->new_brunswick_sku);
+            $cleanSheetData['barcode'] = trim($covaDaignosticReport->saskatchewan_barcode_upc);
         }
     }
 }
