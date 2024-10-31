@@ -12,12 +12,9 @@ use App\Models\Retailer;
 use App\Models\CleanSheet;
 use App\Models\GreenlineReport;
 use Illuminate\Support\Facades\Log;
-// use App\Traits\ICIntegrationTrait;
 
 trait GreenlineICIntegration
 {
-    // use ICIntegrationTrait;
-
     /**
      * Process Greenline reports and save to CleanSheet.
      *
@@ -82,7 +79,7 @@ trait GreenlineICIntegration
             $cleanSheetData['sold'] = $greenlineReport->sold;
             $cleanSheetData['purchase'] = $greenlineReport->purchased ?? '0';
             $greenlineAveragePrice = trim(str_replace('$', '', trim($greenlineReport->average_price)));
-            $greenlineAveragePrice = trim($greenlineReport->average_price);
+//            $greenlineAveragePrice = trim($greenlineReport->average_price);
             if($greenlineAveragePrice != "0.00" && ((float)$greenlineAveragePrice > 0.00 || (float)$greenlineAveragePrice < 0.00)) {
                 $cleanSheetData['average_price'] = $greenlineAveragePrice;
             }
@@ -91,7 +88,7 @@ trait GreenlineICIntegration
                 $cleanSheetData['average_price'] = 0.00;
             }
             $greenlineAverageCost = trim(str_replace('$', '', trim($greenlineReport->average_cost)));
-            $greenlineAverageCost = trim($greenlineReport->average_cost);
+//            $greenlineAverageCost = trim($greenlineReport->average_cost);
             if ($greenlineAverageCost != "0.00" && ((float)$greenlineAverageCost > 0.00 || (float)$greenlineAverageCost < 0.00)) {
                 $cleanSheetData['average_cost'] = $greenlineAverageCost;
                 $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
@@ -128,10 +125,10 @@ trait GreenlineICIntegration
             $offer = $this->DQISummaryFlag($report,$greenlineReport->sku,$greenlineReport->barcode,$greenlineReport->name,$provinceName,$provinceSlug,$provinceId);
             if (!empty($offer)) {
                 $cleanSheetData['offer_id'] = $offer->id;
-                $cleanSheetData['lp_id'] = $product->lp_id;
+                $cleanSheetData['lp_id'] = $offer->lp_id;
                 $cleanSheetData['lp_name'] = $offer->lp_name;
                 if((int) $cleanSheetData['purchase'] > 0){
-                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku,$product);
+                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku);
                     $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
                 }
                 else{
@@ -190,7 +187,7 @@ trait GreenlineICIntegration
                 $cleanSheetData['sold'] = $greenlineReport->sold;
                 $cleanSheetData['purchase'] = $greenlineReport->purchased ?? '0';
                 if((int) $cleanSheetData['purchase'] > 0){
-                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku,$product);
+                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku);
                     $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
                 }
                 else{

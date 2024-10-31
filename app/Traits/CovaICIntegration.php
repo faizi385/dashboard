@@ -15,8 +15,7 @@ use Illuminate\Support\Facades\Log;
 
 trait CovaICIntegration
 {
-
-    public function mapCovaMasterCatalouge($covaDaignosticReport, $report)
+    public function mapCovaCatalouge($covaDaignosticReport, $report)
     {
         $cleanSheetData = []; $cleanSheetData['report_price_og'] = '0.00';
         $retailer_id = $greenlineReport->report->retailer_id ?? null;
@@ -131,7 +130,7 @@ trait CovaICIntegration
                 $cleanSheetData['lp_id'] = $offer->lp_id;
                 $cleanSheetData['lp_name'] = $offer->lp_name;
                 if((int) $cleanSheetData['purchase'] > 0){
-                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku,$product);
+                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku);
                     $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
                 }
                 else{
@@ -180,7 +179,7 @@ trait CovaICIntegration
                 $cleanSheetData['sold'] = $covaDaignosticReport->quantity_sold_units ?? "0";
                 $cleanSheetData['purchase'] = $covaDaignosticReport->quantity_purchased_units;
                 if((int) $cleanSheetData['purchase'] > 0){
-                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku,$product);
+                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku);
                     $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
                 }
                 else{

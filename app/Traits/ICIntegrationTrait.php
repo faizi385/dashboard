@@ -45,7 +45,7 @@ trait ICIntegrationTrait
     {
         return $this->  mapOtherPosCatalouge($OtherPOSReport,$report);
     }
- 
+
     public function saveToCleanSheet(array $cleanSheetData)
     {
         try {
@@ -227,14 +227,6 @@ trait ICIntegrationTrait
     public function DQISummaryFlag($report, $sku, $gtin, $productName, $provinceName, $provinceSlug, $provinceId)
     {
         $offer = null;
-//        if (!empty($gtin) && !empty($sku)) {
-//            $offer = $this->matchOfferProduct($sku, $gtin);
-//        } elseif (!empty($gtin)) {
-//            $offer = $this->matchOfferBarcode($gtin);
-//        } elseif (!empty($sku)) {
-//            $offer = $this->matchOfferSku($sku);
-//        }
-
         if (!empty($sku)) {
             $offer = $this->matchOfferSku($report->date, $sku, $provinceName, $provinceSlug, $provinceId, $report->retailer_id);
         }
@@ -304,24 +296,24 @@ trait ICIntegrationTrait
         return null;
     }
 
-    public function checkCarveOuts($report, $province_id, $province_name,  $lpID ,$lpName, $sku,$product)
+    public function checkCarveOuts($report, $province_id, $province_name,  $lpID ,$lpName, $sku)
     {
-        if($lpName == null || $lpID == null){
-            return null;
-        }
+//        if($lpName == null || $lpID == null){
+//            return null;
+//        }
 
-       $lp_name = Product::find($product->id)->lp->name ?? null;
-
-        if($lp_name == null || empty($lp_name)){
-            return null;
-        }
+//       $lp_name = Product::find($product->id)->lp->name ?? null;
+//
+//
+//        if($lp_name == null || empty($lp_name)){
+//            return null;
+//        }
         $date = $report->date;
 
 
         $checkCarveout = Carveout::where('retailer_id', $report->retailer_id)
-            ->where(function ($query) use ($lpName, $lp_name) {
-                $query->where('lp', $lp_name->name)
-                    ->orWhere('lp', $lpName);
+            ->where(function ($query) use ($lpID) {
+                $query->where('lp_id', $lpID);
             })
             ->where(function ($query) use ($province_id, $province_name) {
                 $query->where('location', $province_id);
@@ -334,9 +326,8 @@ trait ICIntegrationTrait
             if ($checkCarveout) {
                 if((!empty($checkCarveout->sku) || $checkCarveout->sku != null) && (!empty($checkCarveout->address_id) || $checkCarveout->address_id != null)){
                     $checkCarveout = Carveout::where('retailer_id', $report->retailer_id)
-                                        ->where(function ($query) use ($lpName, $lp_name) {
-                                            $query->where('lp', $lp_name->name)
-                                                ->orWhere('lp', $lpName);
+                                        ->where(function ($query) use ($lpID) {
+                                            $query->where('lp_id', $lpID);
                                         })
                                         ->where(function ($query) use ($province_id, $province_name) {
                                             $query->where('location', $province_id);
@@ -351,9 +342,8 @@ trait ICIntegrationTrait
                 }
                 else if($checkCarveout->sku != null || !empty($checkCarveout->sku)){
                     $checkCarveout = Carveout::where('retailer_id', $report->retailer_id)
-                                                ->where(function ($query) use ($lpName, $lp_name) {
-                                                    $query->where('lp', $lp_name->name)
-                                                        ->orWhere('lp', $lpName);
+                                                ->where(function ($query) use ($lpID) {
+                                                    $query->where('lp_id', $lpID);
                                                 })
                                                 ->where(function ($query) use ($province_id, $province_name) {
                                                     $query->where('location', $province_id);
@@ -368,9 +358,8 @@ trait ICIntegrationTrait
 
                 else if($checkCarveout->address != null || !empty($checkCarveout->address)){
                     $checkCarveout = Carveout::where('retailer_id', $report->retailer_id)
-                                                    ->where(function ($query) use ($lpName, $lp_name) {
-                                                        $query->where('lp', $lp_name->name)
-                                                            ->orWhere('lp', $lpName);
+                                                    ->where(function ($query) use ($lpID) {
+                                                        $query->where('lp_id', $lpID);
                                                     })
                                                     ->where(function ($query) use ($province_id, $province_name) {
                                                         $query->where('location', $province_id);
@@ -386,9 +375,8 @@ trait ICIntegrationTrait
 
             if(!$checkCarveout || empty($checkCarveout)) {
                 $checkCarveout = Carveout::where('retailer_id', $report->retailer_id)
-                                                    ->where(function ($query) use ($lpName, $lp_name) {
-                                                        $query->where('lp', $lp_name->name)
-                                                            ->orWhere('lp', $lpName);
+                                                    ->where(function ($query) use ($lpID) {
+                                                        $query->where('lp_id', $lpID);
                                                     })
                                                     ->where(function ($query) use ($province_id, $province_name) {
                                                         $query->where('location', $province_name);
@@ -401,9 +389,8 @@ trait ICIntegrationTrait
                 if ($checkCarveout) {
                     if((!empty($checkCarveout->sku) || $checkCarveout->sku != null) && (!empty($checkCarveout->address_id) || $checkCarveout->address_id != null)){
                         $checkCarveout = Carveout::where('retailer_id', $report->retailer_id)
-                                                        ->where(function ($query) use ($lpName, $lp_name) {
-                                                            $query->where('lp', $lp_name->name)
-                                                                ->orWhere('lp', $lpName);
+                                                        ->where(function ($query) use ($lpID) {
+                                                            $query->where('lp_id', $lpID);
                                                         })
                                                         ->where(function ($query) use ($province_id, $province_name) {
                                                             $query->where('location', $province_name);
@@ -418,9 +405,8 @@ trait ICIntegrationTrait
                     }
                     else if($checkCarveout->sku != null || !empty($checkCarveout->sku)){
                         $checkCarveout = Carveout::where('retailer_id', $report->retailer_id)
-                                                        ->where(function ($query) use ($lpName, $lp_name) {
-                                                            $query->where('lp', $lp_name->name)
-                                                                ->orWhere('lp', $lpName);
+                                                        ->where(function ($query) use ($lpID) {
+                                                            $query->where('lp_id', $lpID);
                                                         })
                                                         ->where(function ($query) use ($province_id, $province_name) {
                                                             $query->where('location', $province_name);
@@ -435,9 +421,8 @@ trait ICIntegrationTrait
 
                     else if($checkCarveout->address != null || !empty($checkCarveout->address)){
                         $checkCarveout = Carveout::where('retailer_id', $report->retailer_id)
-                                                        ->where(function ($query) use ($lpName, $lp_name) {
-                                                            $query->where('lp', $lp_name->name)
-                                                                ->orWhere('lp', $lpName);
+                                                        ->where(function ($query) use ($lpID) {
+                                                            $query->where('lp_id', $lpID);
                                                         })
                                                         ->where(function ($query) use ($province_id, $province_name) {
                                                             $query->where('location', $province_name);

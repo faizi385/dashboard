@@ -12,12 +12,9 @@ use App\Models\Retailer;
 use App\Models\CleanSheet;
 use App\Models\GreenlineReport;
 use Illuminate\Support\Facades\Log;
-// use App\Traits\ICIntegrationTrait;
 
 trait BarnetIntegration
 {
-    // use ICIntegrationTrait;
-
     /**
      * Process Greenline reports and save to CleanSheet.
      *
@@ -82,7 +79,6 @@ trait BarnetIntegration
             $cleanSheetData['sold'] = $barnetReport->quantity_sold_units ?? '0';
             $cleanSheetData['purchase'] = $barnetReport->quantity_purchased_units ?? '0';
             $barnetReportAveragePrice = trim(str_replace('$', '', trim($barnetReport->average_price)));
-            $barnetReportAveragePrice = trim($barnetReport->average_price);
             if($barnetReportAveragePrice != "0.00" && ((float)$barnetReportAveragePrice > 0.00 || (float)$barnetReportAveragePrice < 0.00)) {
                 $cleanSheetData['average_price'] = $barnetReportAveragePrice;
             }
@@ -91,7 +87,6 @@ trait BarnetIntegration
                 $cleanSheetData['average_price'] = 0.00;
             }
             $barnetReportAverageCost = trim(str_replace('$', '', trim($barnetReport->average_cost)));
-            $barnetReportAverageCost = trim($barnetReport->average_cost);
             if ($barnetReportAverageCost != "0.00" && ((float)$barnetReportAverageCost > 0.00 || (float)$barnetReportAverageCost < 0.00)) {
                 $cleanSheetData['average_cost'] = $barnetReportAverageCost;
                 $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
@@ -128,10 +123,10 @@ trait BarnetIntegration
             $offer = $this->DQISummaryFlag($report,$barnetReport->sku,$barnetReport->barcode,$barnetReport->name,$provinceName,$provinceSlug,$provinceId);
             if (!empty($offer)) {
                 $cleanSheetData['offer_id'] = $offer->id;
-                $cleanSheetData['lp_id'] = $product->lp_id;
+                $cleanSheetData['lp_id'] = $offer->lp_id;
                 $cleanSheetData['lp_name'] = $offer->lp_name;
                 if((int) $cleanSheetData['purchase'] > 0){
-                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku,$product);
+                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku);
                     $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
                 }
                 else{
@@ -190,7 +185,7 @@ trait BarnetIntegration
                 $cleanSheetData['sold'] = $barnetReport->quantity_sold_units ?? '0';
                 $cleanSheetData['purchase'] = $barnetReport->quantity_purchased_units ?? '0';
                 if((int) $cleanSheetData['purchase'] > 0){
-                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku,$product);
+                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku);
                     $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
                 }
                 else{
@@ -198,7 +193,6 @@ trait BarnetIntegration
                 }
 
                 $barnetReportAveragePrice = trim(str_replace('$', '', trim($barnetReport->average_price)));
-                $barnetReportAveragePrice = trim($barnetReport->average_price);
                 if($barnetReportAveragePrice != "0.00" && ((float)$barnetReportAveragePrice > 0.00 || (float)$barnetReportAveragePrice < 0.00)) {
                     $cleanSheetData['average_price'] = $barnetReportAveragePrice;
                 }
@@ -207,7 +201,6 @@ trait BarnetIntegration
                     $cleanSheetData['average_price'] = "0.00";
                 }
                 $barnetReportAverageCost = trim(str_replace('$', '', trim($barnetReport->average_cost)));
-                $barnetReportAverageCost = trim($barnetReport->average_cost);
                 if ($barnetReportAverageCost != "0.00" && ((float)$barnetReportAverageCost > 0.00 || (float)$barnetReportAverageCost < 0.00)) {
                     $cleanSheetData['average_cost'] = $barnetReportAverageCost;
                     $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];

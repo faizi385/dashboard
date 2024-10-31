@@ -12,12 +12,9 @@ use App\Models\Retailer;
 use App\Models\CleanSheet;
 use App\Models\GreenlineReport;
 use Illuminate\Support\Facades\Log;
-// use App\Traits\ICIntegrationTrait;
 
 trait OtherPOSIntegration
 {
-    // use ICIntegrationTrait;
-
     /**
      * Process Greenline reports and save to CleanSheet.
      *
@@ -82,7 +79,6 @@ trait OtherPOSIntegration
             $cleanSheetData['sold'] = $OtherPOSReport->sold;
             $cleanSheetData['purchase'] = $OtherPOSReport->purchased ?? '0';
            $OtherPOSReportAveragePrice = trim(str_replace('$', '', trim($OtherPOSReport->average_price)));
-           $OtherPOSReportAveragePrice = trim($OtherPOSReport->average_price);
             if($OtherPOSReportAveragePrice != "0.00" && ((float)$OtherPOSReportAveragePrice > 0.00 || (float)$OtherPOSReportAveragePrice < 0.00)) {
                 $cleanSheetData['average_price'] =$OtherPOSReportAveragePrice;
             }
@@ -91,7 +87,6 @@ trait OtherPOSIntegration
                 $cleanSheetData['average_price'] = 0.00;
             }
            $OtherPOSReportAverageCost = trim(str_replace('$', '', trim($OtherPOSReport->average_cost)));
-           $OtherPOSReportAverageCost = trim($OtherPOSReport->average_cost);
             if ($OtherPOSReportAverageCost != "0.00" && ((float)$OtherPOSReportAverageCost > 0.00 || (float)$OtherPOSReportAverageCost < 0.00)) {
                 $cleanSheetData['average_cost'] =$OtherPOSReportAverageCost;
                 $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
@@ -128,10 +123,10 @@ trait OtherPOSIntegration
             $offer = $this->DQISummaryFlag($report,$OtherPOSReport->sku,$OtherPOSReport->barcode,$OtherPOSReport->name,$provinceName,$provinceSlug,$provinceId);
             if (!empty($offer)) {
                 $cleanSheetData['offer_id'] = $offer->id;
-                $cleanSheetData['lp_id'] = $product->lp_id;
+                $cleanSheetData['lp_id'] = $offer->lp_id;
                 $cleanSheetData['lp_name'] = $offer->lp_name;
                 if((int) $cleanSheetData['purchase'] > 0){
-                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku,$product);
+                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku);
                     $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
                 }
                 else{
@@ -190,7 +185,7 @@ trait OtherPOSIntegration
                 $cleanSheetData['sold'] = $OtherPOSReport->sold;
                 $cleanSheetData['purchase'] = $OtherPOSReport->purchased ?? '0';
                 if((int) $cleanSheetData['purchase'] > 0){
-                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku,$product);
+                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku);
                     $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
                 }
                 else{
@@ -198,7 +193,6 @@ trait OtherPOSIntegration
                 }
 
                $OtherPOSReportAveragePrice = trim(str_replace('$', '', trim($OtherPOSReport->average_price)));
-               $OtherPOSReportAveragePrice = trim($OtherPOSReport->average_price);
                 if($OtherPOSReportAveragePrice != "0.00" && ((float)$OtherPOSReportAveragePrice > 0.00 || (float)$OtherPOSReportAveragePrice < 0.00)) {
                     $cleanSheetData['average_price'] =$OtherPOSReportAveragePrice;
                 }
@@ -207,7 +201,6 @@ trait OtherPOSIntegration
                     $cleanSheetData['average_price'] = "0.00";
                 }
                $OtherPOSReportAverageCost = trim(str_replace('$', '', trim($OtherPOSReport->average_cost)));
-               $OtherPOSReportAverageCost = trim($OtherPOSReport->average_cost);
                 if ($OtherPOSReportAverageCost != "0.00" && ((float)$OtherPOSReportAverageCost > 0.00 || (float)$OtherPOSReportAverageCost < 0.00)) {
                     $cleanSheetData['average_cost'] =$OtherPOSReportAverageCost;
                     $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];

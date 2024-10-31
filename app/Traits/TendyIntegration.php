@@ -12,12 +12,9 @@ use App\Models\Retailer;
 use App\Models\CleanSheet;
 use App\Models\tendyDaignosticReport;
 use Illuminate\Support\Facades\Log;
-// use App\Traits\ICIntegrationTrait;
 
 trait TendyIntegration
 {
-    // use ICIntegrationTrait;
-
     /**
      * Process TechPos reports and save to CleanSheet.
      *
@@ -109,10 +106,10 @@ trait TendyIntegration
             $offer = $this->DQISummaryFlag($report,$tendyDaignosticReport->sku,'',$tendyDaignosticReport->productname,$provinceName,$provinceSlug,$provinceId);
             if (!empty($offer)) {
                 $cleanSheetData['offer_id'] = $offer->id;
-                $cleanSheetData['lp_id'] = $product->lp_id;
+                $cleanSheetData['lp_id'] = $offer->lp_id;
                 $cleanSheetData['lp_name'] = $offer->lp_name;
                 if((int) $cleanSheetData['purchase'] > 0){
-                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku,$product);
+                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku);
                     $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
                 }
                 else{
@@ -170,7 +167,7 @@ trait TendyIntegration
                 $cleanSheetData['purchase'] = $tendyDaignosticReport->purchased ?? '0';
                 $cleanSheetData['average_price'] = $this->techpos_averge_price($tendyDaignosticReport);
                 if((int) $cleanSheetData['purchase'] > 0){
-                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku,$product);
+                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku);
                     $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
                 }
                 else{

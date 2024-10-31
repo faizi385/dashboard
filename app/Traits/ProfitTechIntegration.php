@@ -48,12 +48,9 @@ trait ProfitTechIntegration
             Log::warning('Retailer not found:', ['retailer_id' => $retailer_id]);
         }
 
-       
         if (!empty($sku) && empty($product)) {
             $product = $this->matchICSku($profitTechReport->product_sku, $provinceName, $provinceSlug, $provinceId);
         }
-      
-   
 
         if ($product) {
             $lp = Lp::where('id', $product->lp_id)->first();
@@ -77,7 +74,6 @@ trait ProfitTechIntegration
             $cleanSheetData['purchase'] = $profitTechReport->quantity_purchased_units ?? '0';
 
             $profitTechAveragePrice = trim(str_replace('$', '', trim($profitTechReport->average_price)));
-            $profitTechAveragePrice = trim($profitTechReport->average_price);
             if ($profitTechAveragePrice != "0.00" && ((float)$profitTechAveragePrice > 0.00 || (float)$profitTechAveragePrice < 0.00)) {
                 $cleanSheetData['average_price'] = $profitTechAveragePrice;
             } else {
@@ -85,7 +81,6 @@ trait ProfitTechIntegration
             }
 
             $profitTechAverageCost = trim(str_replace('$', '', trim($profitTechReport->average_cost)));
-            $profitTechAverageCost = trim($profitTechReport->average_cost);
             if ($profitTechAverageCost != "0.00" && ((float)$profitTechAverageCost > 0.00 || (float)$profitTechAverageCost < 0.00)) {
                 $cleanSheetData['average_cost'] = $profitTechAverageCost;
                 $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
@@ -119,10 +114,10 @@ trait ProfitTechIntegration
 
             if (!empty($offer)) {
                 $cleanSheetData['offer_id'] = $offer->id;
-                $cleanSheetData['lp_id'] = $product->lp_id;
+                $cleanSheetData['lp_id'] = $offer->lp_id;
                 $cleanSheetData['lp_name'] = $offer->lp_name;
                 if ((int)$cleanSheetData['purchase'] > 0) {
-                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName, $offer->lp_id, $offer->lp_name, $offer->provincial_sku, $product);
+                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName, $offer->lp_id, $offer->lp_name, $offer->provincial_sku);
                     $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
                 } else {
                     $cleanSheetData['c_flag'] = '';
@@ -151,7 +146,7 @@ trait ProfitTechIntegration
             $offer = null;
             if (!empty($sku)) {
                 $offer = $this->matchOfferSku($report->date,$sku,$provinceName,$provinceSlug,$provinceId,$report->retailer_id);
-            } 
+            }
             if ($offer) {
                 $cleanSheetData['retailer_id'] = $retailer_id;
                 $cleanSheetData['offer_id'] = $offer->id;
@@ -172,7 +167,7 @@ trait ProfitTechIntegration
                 $cleanSheetData['sold'] = $profitTechReport->quantity_sold_instore_units ?? '0';
                 $cleanSheetData['purchase'] = $profitTechReport->quantity_purchased_units ?? '0';
                 if((int) $cleanSheetData['purchase'] > 0){
-                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku,$product);
+                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku);
                     $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
                 }
                 else{
@@ -180,7 +175,6 @@ trait ProfitTechIntegration
                 }
 
                 $profitTechAveragePrice = trim(str_replace('$', '', trim($profitTechReport->average_price)));
-                $profitTechAveragePrice  = trim($profitTechReport->average_price);
                 if($profitTechAveragePrice  != "0.00" && ((float)$profitTechAveragePrice > 0.00 || (float)      $profitTechAveragePrice  < 0.00)) {
                     $cleanSheetData['average_price'] =       $profitTechAveragePrice ;
                 }
@@ -188,9 +182,8 @@ trait ProfitTechIntegration
                     $profitTechAveragePrice = "0.00";
                     $cleanSheetData['average_price'] = "0.00";
                 }
-             
-            $profitTechAverageCost = trim(str_replace('$', '', trim($profitTechReport->average_cost)));
-            $profitTechAverageCost = trim($profitTechReport->average_cost);
+
+                $profitTechAverageCost = trim(str_replace('$', '', trim($profitTechReport->average_cost)));
                 if (  $profitTechAverageCost != "0.00" && ((float)  $profitTechAverageCost > 0.00 || (float)  $profitTechAverageCost < 0.00)) {
                     $cleanSheetData['average_cost'] =  $profitTechAverageCost;
                     $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
