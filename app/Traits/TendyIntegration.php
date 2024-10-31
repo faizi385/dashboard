@@ -26,7 +26,7 @@ trait TendyIntegration
      */
     public function mapTendyPosCatalouge($tendyDaignosticReport,$report)
     {
-        Log::info('Processing TechPos reports:', ['report' => $report]);
+        Log::info('Processing Tendy reports:', ['report' => $report]);
         $cleanSheetData = []; $cleanSheetData['report_price_og'] = '0.00';
         $retailer_id = $tendyDaignosticReport->report->retailer_id ?? null;
         $location = $tendyDaignosticReport->report->location ?? null;
@@ -50,7 +50,7 @@ trait TendyIntegration
         }
 
         if (!empty($sku)) {
-        $product = $this->matchICSku($tendyDaignosticReport->sku,$provinceName,$provinceSlug,$provinceId);
+        $product = $this->matchICSku($tendyDaignosticReport->product_sku,$provinceName,$provinceSlug,$provinceId);
         }
         if (empty($sku) && empty($product)){
             $product = $this->matchICProductName($tendyDaignosticReport->TendySalesSummaryReport->product,$provinceName,$provinceSlug,$provinceId);
@@ -85,31 +85,21 @@ trait TendyIntegration
                     $tendyAverageCost = '0';
                 }
                 $cleanSheetData['average_cost'] = $tendyAverageCost;
+                $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
             $cleanSheetData['report_id'] = $report->id;
-            if($tendyDaignosticReport->quantitytransferinunits > 0 || $tendyDaignosticReport->otheradditionsunits){
-                $cleanSheetData['transfer_in'] = $tendyDaignosticReport->quantitytransferinunits + $tendyDaignosticReport->otheradditionsunits ;
-            }
-            else{
-                $cleanSheetData['transfer_in'] = 0;
-            }
-
-            if($tendyDaignosticReport->quantitytransferoutunits > 0 || $tendyDaignosticReport->otherreductionsunits > 0){
-                $cleanSheetData['transfer_out'] = $tendyDaignosticReport->quantitytransferoutunits + $tendyDaignosticReport->otherreductionsunits ;
-            }
-            else{
-                $cleanSheetData['transfer_out'] = 0 ;
-            }
+            $cleanSheetData['transfer_in'] = $tendyDaignosticReport->quantity_purchased_units_transfer ?? '0';
+            $cleanSheetData['transfer_out'] = $tendyDaignosticReport->quantity_sold_units_transfer ?? '0';
             $cleanSheetData['pos'] = $report->pos;
             $cleanSheetData['reconciliation_date'] = $report->date;
-            $cleanSheetData['opening_inventory_unit'] = $tendyDaignosticReport->opening ?? '0';
-            $cleanSheetData['closing_inventory_unit'] = $tendyDaignosticReport->closing ?? '0';
+            $cleanSheetData['opening_inventory_unit'] = $tendyDaignosticReport->opening_inventory_units ?? '0';
+            $cleanSheetData['closing_inventory_unit'] = $tendyDaignosticReport->closing_inventory_units ?? '0';
             $cleanSheetData['product_variation_id'] = $product->id;
             $cleanSheetData['dqi_per'] = 0.00;
             $cleanSheetData['dqi_fee'] = 0.00;
-            $offer = $this->DQISummaryFlag($report,$tendyDaignosticReport->sku,'',$tendyDaignosticReport->productname,$provinceName,$provinceSlug,$provinceId);
+            $offer = $this->DQISummaryFlag($report,$tendyDaignosticReport->product_sku,'',$tendyDaignosticReport->productname,$provinceName,$provinceSlug,$provinceId);
             if (!empty($offer)) {
                 $cleanSheetData['offer_id'] = $offer->id;
-                $cleanSheetData['lp_id'] = $product->lp_id;
+                $cleanSheetData['lp_id'] =    $offer->lp_id;
                 $cleanSheetData['lp_name'] = $offer->lp_name;
                 if((int) $cleanSheetData['purchase'] > 0){
                     $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku,$product);
@@ -120,6 +110,11 @@ trait TendyIntegration
                 }
                 $cleanSheetData['dqi_flag'] = 1;
                 $cleanSheetData['flag'] = '3';
+            
+                $cleanSheetData['comment'] = 'Record found in the Master Catalog and Offer';
+                if( $cleanSheetData['average_cost'] == '0.00' && (int) $cleanSheetData['average_cost'] == 0){
+                    $cleanSheetData['average_cost'] = \App\Helpers\GeneralFunctions::formatAmountValue($offer->unit_cost) ?? "0.00";
+                }
                 $TotalQuantityGet = $cleanSheetData['purchase'];
                 $TotalUnitCostGet = $cleanSheetData['average_cost'];
                 $TotalPurchaseCostMake = (float)$TotalQuantityGet * (float)$TotalUnitCostGet;
@@ -127,10 +122,6 @@ trait TendyIntegration
                 $FinalFeeInDollar = (float)$TotalPurchaseCostMake * $FinalDQIFEEMake / 100;
                 $cleanSheetData['dqi_per'] = $FinalDQIFEEMake;
                 $cleanSheetData['dqi_fee'] = number_format($FinalFeeInDollar,2);
-                $cleanSheetData['comment'] = 'Record found in the Master Catalog and Offer';
-                if( $cleanSheetData['average_cost'] == '0.00' && (int) $cleanSheetData['average_cost'] == 0){
-                    $cleanSheetData['average_cost'] = \App\Helpers\GeneralFunctions::formatAmountValue($offer->unit_cost) ?? "0.00";
-                }
             }
             else{
                 $cleanSheetData['offer_id'] = null;
@@ -144,9 +135,9 @@ trait TendyIntegration
         } else {
             $offer = null;
             if (!empty($sku)) {
-                $offer = $this->matchOfferSku($report->date,$sku,$provinceName,$provinceSlug,$provinceId,$report->retailer_id);
+                $offer = $this->matchOfferSku($report->date,$tendyDaignosticReport->product_sku,$provinceName,$provinceSlug,$provinceId,$report->retailer_id);
             }
-            if (!empty($productName) && empty($offer)) {
+            if (empty($sku) && empty($offer)) {
                 $offer = $this->matchOfferProductName($report->date,$productName,$provinceName,$provinceSlug,$provinceId,$report->retailer_id);
             }
             if ($offer) {
@@ -168,7 +159,6 @@ trait TendyIntegration
                 $cleanSheetData['brand'] = $offer->brand;
                 $cleanSheetData['sold'] = $tendyDaignosticReport->sold;
                 $cleanSheetData['purchase'] = $tendyDaignosticReport->purchased ?? '0';
-                $cleanSheetData['average_price'] = $this->techpos_averge_price($tendyDaignosticReport);
                 if((int) $cleanSheetData['purchase'] > 0){
                     $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku,$product);
                     $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
@@ -176,40 +166,25 @@ trait TendyIntegration
                 else{
                     $cleanSheetData['c_flag'] = '';
                 }
-                $techPOSAverageCost =\App\Helpers\GeneralFunctions::formatAmountValue($tendyDaignosticReport->costperunit) ?? '0';
-                if ($techPOSAverageCost != "0.00" && $techPOSAverageCost != '0' && (float)$techPOSAverageCost != 0.00) {
-                    $cleanSheetData['average_cost'] = $techPOSAverageCost;
+                $cleanSheetData['average_price'] = isset($tendyDaignosticReport->TendySalesSummaryReport->avg_retail_price) ? $tendyDaignosticReport->TendySalesSummaryReport->avg_retail_price: '0';
+                if ($tendyDaignosticReport && $tendyDaignosticReport->TendySalesSummaryReport) {
+                    $tendyAverageCost = $this->tendyAverageCost($tendyDaignosticReport->TendySalesSummaryReport->cost_of_goods_sold,$tendyDaignosticReport->TendySalesSummaryReport->net_qty_sold);
+                    if($tendyAverageCost == "0.00"){
+                        $tendyAverageCost = $product->price_per_unit;
+                    }
+                    }else{
+                        $tendyAverageCost = '0';
+                    }
+                    $cleanSheetData['average_cost'] = $tendyAverageCost;
                     $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
-                }
-                else{
-                    $techPOSAverageCost =\App\Helpers\GeneralFunctions::formatAmountValue($offer->unit_cost);
-                    if($offer->unit_cost != "0.00" && $offer->unit_cost != "0" && (float)$offer->unit_cost != 0.00) {
-                        $cleanSheetData['average_cost'] = $offer->unit_cost;
-                    }
-                    else{
-                        $techPOSAverageCost = "0.00";
-                        $cleanSheetData['average_cost'] = "0.00";
-                    }
-                }
                 $cleanSheetData['barcode'] = $gtin;
                 $cleanSheetData['report_id'] = $report->id;
-                if($tendyDaignosticReport->quantitytransferinunits > 0 || $tendyDaignosticReport->otheradditionsunits){
-                    $cleanSheetData['transfer_in'] = $tendyDaignosticReport->quantitytransferinunits + $tendyDaignosticReport->otheradditionsunits ;
-                }
-                else{
-                    $cleanSheetData['transfer_in'] = 0;
-                }
-
-                if($tendyDaignosticReport->quantitytransferoutunits > 0 || $tendyDaignosticReport->otherreductionsunits > 0){
-                    $cleanSheetData['transfer_out'] = $tendyDaignosticReport->quantitytransferoutunits + $tendyDaignosticReport->otherreductionsunits ;
-                }
-                else{
-                    $cleanSheetData['transfer_out'] = 0 ;
-                }
+                $cleanSheetData['transfer_in'] = $tendyDaignosticReport->quantity_purchased_units_transfer ?? '0';
+            $cleanSheetData['transfer_out'] = $tendyDaignosticReport->quantity_sold_units_transfer ?? '0';
                 $cleanSheetData['pos'] = $report->pos;
                 $cleanSheetData['reconciliation_date'] = $report->date;
-                $cleanSheetData['opening_inventory_unit'] = $tendyDaignosticReport->opening ?? '0';
-                $cleanSheetData['closing_inventory_unit'] = $tendyDaignosticReport->closing ?? '0';
+                $cleanSheetData['opening_inventory_unit'] = $tendyDaignosticReport->opening_inventory_units ?? '0';
+                $cleanSheetData['closing_inventory_unit'] = $tendyDaignosticReport->closing_inventory_units ?? '0';
                 $cleanSheetData['flag'] = '2';
                 $cleanSheetData['comment'] = 'Record found in the Offers';
                 $cleanSheetData['dqi_flag'] = 1;
@@ -241,29 +216,23 @@ trait TendyIntegration
                 $cleanSheetData['brand'] = null;
                 $cleanSheetData['sold'] = $tendyDaignosticReport->sold;
                 $cleanSheetData['purchase'] = $tendyDaignosticReport->purchased ?? '0';
-                $cleanSheetData['average_price'] = $tendyDaignosticReport->average_price;
-                $cleanSheetData['average_cost'] = $tendyDaignosticReport->average_cost;
-                $cleanSheetData['report_price_og'] = $tendyDaignosticReport->average_cost;
+                $cleanSheetData['average_price'] = isset($tendyDaignosticReport->TendySalesSummaryReport->avg_retail_price) ? $tendyDaignosticReport->TendySalesSummaryReport->avg_retail_price: '0';
+                if ($tendyDaignosticReport && $tendyDaignosticReport->TendySalesSummaryReport) {
+                    $tendyAverageCost = $this->tendyAverageCost($tendyDaignosticReport->TendySalesSummaryReport->cost_of_goods_sold,$tendyDaignosticReport->TendySalesSummaryReport->net_qty_sold);
+                    }else{
+                        $tendyAverageCost = '0';
+                    }
+                    $cleanSheetData['average_cost'] = $tendyAverageCost;
+                    $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
                 $cleanSheetData['barcode'] = null;
                 $cleanSheetData['c_flag'] = '';
                 $cleanSheetData['report_id'] = $report->id;
-                if($tendyDaignosticReport->quantitytransferinunits > 0 || $tendyDaignosticReport->otheradditionsunits){
-                    $cleanSheetData['transfer_in'] = $tendyDaignosticReport->quantitytransferinunits + $tendyDaignosticReport->otheradditionsunits ;
-                }
-                else{
-                    $cleanSheetData['transfer_in'] = 0;
-                }
-
-                if($tendyDaignosticReport->quantitytransferoutunits > 0 || $tendyDaignosticReport->otherreductionsunits > 0){
-                    $cleanSheetData['transfer_out'] = $tendyDaignosticReport->quantitytransferoutunits + $tendyDaignosticReport->otherreductionsunits ;
-                }
-                else{
-                    $cleanSheetData['transfer_out'] = 0 ;
-                }
+                $cleanSheetData['transfer_in'] = $tendyDaignosticReport->quantity_purchased_units_transfer ?? '0';
+                $cleanSheetData['transfer_out'] = $tendyDaignosticReport->quantity_sold_units_transfer ?? '0';
                 $cleanSheetData['pos'] = $report->pos;
                 $cleanSheetData['reconciliation_date'] = $report->date;
-                $cleanSheetData['opening_inventory_unit'] = $tendyDaignosticReport->opening ?? '0';
-                $cleanSheetData['closing_inventory_unit'] = $tendyDaignosticReport->closing ?? '0';
+                $cleanSheetData['opening_inventory_unit'] = $tendyDaignosticReport->opening_inventory_units ?? '0';
+                $cleanSheetData['closing_inventory_unit'] = $tendyDaignosticReport->closing_inventory_units ?? '0';
                 $cleanSheetData['flag'] = '0';
                 $cleanSheetData['comment'] = 'No matching product or offer found.';
                 $cleanSheetData['dqi_flag'] = 0;

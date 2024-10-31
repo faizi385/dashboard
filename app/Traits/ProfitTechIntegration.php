@@ -333,27 +333,27 @@ trait ProfitTechIntegration
 
         return (double)$average_price;
     }
-    // public function profitech_averge_cost($product,$createdAt,$provinceName,$provinceSlug){
-    //     $average_cost = 0.00;
-    //     $createdAtMonth = Carbon::parse($createdAt)->addMonth()->format('m');
-    //     $createdAtYear = Carbon::parse($createdAt)->addMonth()->format('Y');
-    //     $lpOffer = ProductVariation::whereMonth('created_at', $createdAtMonth)->whereYear('created_at', $createdAtYear)
-    //         ->where('provincial', $product->sku)
-    //         ->where('province', $provinceName)
-    //         ->first();
-    //     if(empty($lpOffer)){
-    //         $lpOffer = ProductVariation::whereMonth('created_at', $createdAtMonth)->whereYear('created_at', $createdAtYear)
-    //             ->where('provincial', $product->sku)
-    //             ->where('province', $provinceSlug)
-    //             ->first();
-    //     }
-    //     if(!empty($lpOffer)){
-    //         $average_cost =  \App\Helpers\GeneralFunctions::formatAmountValue($lpOffer->unit_cost);
-    //     }
-    //     if($average_cost == '0.00' || $average_cost == '0') {
-    //         $average_cost =  trim(str_replace('$', '', trim($product->price_per_unit)));
-    //     }
+    public function profitech_averge_cost($product,$createdAt,$provinceName,$provinceSlug){
+        $average_cost = 0.00;
+        $createdAtMonth = Carbon::parse($createdAt)->addMonth()->format('m');
+        $createdAtYear = Carbon::parse($createdAt)->addMonth()->format('Y');
+        $lpOffer = ProductVariation::whereMonth('created_at', $createdAtMonth)->whereYear('created_at', $createdAtYear)
+            ->where('provincial', $product->sku)
+            ->where('province', $provinceName)
+            ->first();
+        if(empty($lpOffer)){
+            $lpOffer = ProductVariation::whereMonth('created_at', $createdAtMonth)->whereYear('created_at', $createdAtYear)
+                ->where('provincial', $product->sku)
+                ->where('province', $provinceSlug)
+                ->first();
+        }
+        if(!empty($lpOffer)){
+            $average_cost =  \App\Helpers\GeneralFunctions::formatAmountValue($lpOffer->unit_cost);
+        }
+        if($average_cost == '0.00' || $average_cost == '0') {
+            $average_cost =  trim(str_replace('$', '', trim($product->price_per_unit)));
+        }
 
-    //     return $average_cost;
-    // }
+        return $average_cost;
+    }
 }
