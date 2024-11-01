@@ -1,73 +1,51 @@
 <?php
 
-use App\Traits\IdealIntegration;
+use App\Traits\ICIntegrationTrait;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use App\Models\IdealDiagnosticReport;
-use App\Models\IdealSalesSummaryReport;
+use Illuminate\Support\Facades\Log;
 
-class IdealReconciliation
-{
-    use IdealIntegration; // Use the IdealIntegration trait
+$report = DB::table('reports')->where('pos', 'ideal')->where('status', 'pending')->first();
+dump($report->id . '  -- ' . date('Y-m-d H:i:s'));
 
-    /**
-     * Run the reconciliation process for Ideal reports.
-     */
-    public function runReconciliation()
-    {
-        $limit = 1;
-
-        // Fetch pending Ideal reports
-        $reports = DB::table('reports')
-            ->where('pos', 'ideal')
-            ->where('status', 'pending')
-            ->limit($limit)
-            ->get();
-
-        foreach ($reports as $report) {
-            dump($report->id . ' -- ' . date('Y-m-d H:i:s'));
-
-            try {
-                DB::table('reports')->where('id', $report->id)->update(['status' => 'reconciliation_start']);
-
-                // Retrieve Ideal diagnostic reports and sales summary reports for this report ID
-                $diagnosticReports = IdealDiagnosticReport::where('report_id', $report->id)
-                    ->where(function ($query) {
-                        $query->where('status', 'pending')
-                              ->orWhere('status', 'error');
-                    })
-                    ->get();
-
-                $salesReports = IdealSalesSummaryReport::where('report_id', $report->id)
-                    ->where(function ($query) {
-                        $query->where('status', 'pending')
-                              ->orWhere('status', 'error');
-                    })
-                    ->get();
-
-                // Process diagnostic reports first; if not matched, process sales reports
-                $this->processIdealPOSReports($diagnosticReports, $salesReports);
-
-                DB::table('ideal_diagnostic_reports')
-                    ->where('report_id', $report->id)
-                    ->update(['status' => 'done']);
-                DB::table('ideal_sales_summary_reports')
-                    ->where('report_id', $report->id)
-                    ->update(['status' => 'done']);
-
-                DB::table('reports')->where('id', $report->id)->update(['status' => 'retailer_statement_process']);
-
-            } catch (\Exception $e) {
-                Log::error('Error in Ideal reconciliation: ' . $e->getMessage());
-                DB::table('reports')->where('id', $report->id)->update(['status' => 'failed']);
-                continue;
-            }
+try {
+    DB::beginTransaction();
+    DB::table('reports')->where('id', $report->id)->update(['status' => 'reconciliation_start']);
+    
+    // Fetch Ideal reports where status is pending
+    $idealDaignosticReport = IdealDiagnosticReport::where('report_id', $report->id)->where('status', 'pending')->get();
+    dump('idealReports fetched -- ' . date('Y-m-d H:i:s'));
+    
+    $cleanSheet = [];  
+    $insertionCount = 1; 
+    $insertionLimit = 500; 
+    $totalReportCount = count( $idealDaignosticReport);
+    
+    foreach ( $idealDaignosticReport as $key =>  $idealDaignosticReport) {
+        $cleanSheet[] = (new class {
+            use ICIntegrationTrait;
+        })->idealMasterCatalogue($idealDaignosticReport,$report); // Replace greenlineMasterCatalouge with idealMasterCatalogue
+        
+        $insertionCount++;
+        
+        if ($insertionCount == $insertionLimit || $key === $totalReportCount - 1) {
+            DB::table('clean_sheets')->insert($cleanSheet);
+            $insertionCount = 1;
+            $cleanSheet = [];
+        }
+        
+        if ($key === $totalReportCount - 1) {
+            DB::table('ideal_diagnostic_reports')->where('report_id', $report->id)->update(['status' => 'done']);
         }
     }
+    
+    DB::table('reports')->where('id', $report->id)->update(['status' => 'retailer_statement_process']);
+    DB::commit();
+    
+} catch (\Exception $e) {
+    Log::error('Error in Ideal reconciliation: ' . $e->getMessage());
+    DB::rollBack();
+    DB::table('reports')->where('id', $report->id)->update(['status' => 'failed']);
 }
-
-// Run the reconciliation process
-$idealReconciliation = new IdealReconciliation();
-$idealReconciliation->runReconciliation();
 
 print_r('Reconciliation process completed successfully.');

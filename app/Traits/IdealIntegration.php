@@ -10,19 +10,22 @@ use App\Models\ProductVariation;
 use App\Models\Province;
 use App\Models\Retailer;
 use App\Models\CleanSheet;
+use App\Models\IdealSalesSummaryReport;
 use App\Models\TechPOSReport;
 use Illuminate\Support\Facades\Log;
 
 trait IdealIntegration
 {
     /**
-     * Process TechPos reports and save to CleanSheet.
+     * Process Ideal reports and save to CleanSheet.
      *
      * @param array $reports
      * @return void
      */
     public function mapIdealCatalouge($idealDaignosticReport,$report)
     {
+        $IdealSalesSummaryReport=IdealSalesSummaryReport::where('report_id', $report->id)->first();
+        // $IdealSalesSummaryReport =  IdealSalesSummaryReport::where('ideal_diagnostic_report_id', $idealDaignosticReport->id)->first();
         Log::info('Processing Ideal reports:', ['report' => $report]);
         $cleanSheetData = []; $cleanSheetData['report_price_og'] = '0.00';
         $retailer_id = $idealDaignosticReport->report->retailer_id ?? null;
@@ -33,7 +36,7 @@ trait IdealIntegration
         }
         $sku = $idealDaignosticReport->sku;
         $gtin = '';
-        $productName = $idealDaignosticReport->productname;
+        $productName = $idealDaignosticReport->description;
         $provinceId = $report->province_id;
         $provinceName = $report->province;
         $provinceSlug = $report->province_slug;
@@ -50,7 +53,7 @@ trait IdealIntegration
         $product = $this->matchICSku($idealDaignosticReport->sku,$provinceName,$provinceSlug,$provinceId);
         }
         if (!empty($productName) && empty($product)){
-            $product = $this->matchICProductName($idealDaignosticReport->productname,$provinceName,$provinceSlug,$provinceId);
+            $product = $this->matchICProductName($idealDaignosticReport->description,$provinceName,$provinceSlug,$provinceId);
         }
         if ($product) {
             $lp = Lp::where('id',$product->lp_id)->first();
@@ -78,20 +81,20 @@ trait IdealIntegration
             } else {
                 $cleanSheetData['average_price'] = "0.00";
             }
-            // if($IdealSalesSummaryReport != null){
-            //     if (!empty($IdealSalesSummaryReport->purchase_amount) && $IdealSalesSummaryReport->purchase_amount != '0' && $IdealSalesSummaryReport->purchase_amount != '0.00'
-            //         && !empty($IdealSalesSummaryReport->quantity_purchased) && $IdealSalesSummaryReport->quantity_purchased != '0' && $IdealSalesSummaryReport->quantity_purchased != '0.00') {
-            //         $cleanSheetData['average_cost'] = $this->avgCostForIdeal($IdealSalesSummaryReport);
-            //         $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
-            //     } else if ($product->price_per_unit) {
-            //         $cleanSheetData['average_cost'] = $product->price_per_unit;
-            //     } else {
-            //         $cleanSheetData['average_cost'] = "0.00";
-            //     }
-            // }
-            // else{
-            //     $cleanSheetData['average_cost'] = "0.00";
-            // }
+            if($IdealSalesSummaryReport != null){
+                if (!empty($IdealSalesSummaryReport->purchase_amount) && $IdealSalesSummaryReport->purchase_amount != '0' && $IdealSalesSummaryReport->purchase_amount != '0.00'
+                    && !empty($IdealSalesSummaryReport->quantity_purchased) && $IdealSalesSummaryReport->quantity_purchased != '0' && $IdealSalesSummaryReport->quantity_purchased != '0.00') {
+                    $cleanSheetData['average_cost'] = $this->avgCostForIdeal($IdealSalesSummaryReport);
+                    $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
+                } else if ($product->price_per_unit) {
+                    $cleanSheetData['average_cost'] = $product->price_per_unit;
+                } else {
+                    $cleanSheetData['average_cost'] = "0.00";
+                }
+            }
+            else{
+                $cleanSheetData['average_cost'] = "0.00";
+            }
             $cleanSheetData['barcode'] = $gtin;
             $cleanSheetData['report_id'] = $report->id;
             if ($idealDaignosticReport->trans_in > 0) {
@@ -152,7 +155,7 @@ trait IdealIntegration
                 $offer = $this->matchOfferSku($report->date,$sku,$provinceName,$provinceSlug,$provinceId,$report->retailer_id);
             }
             if (!empty($productName) && empty($offer)) {
-                $offer = $this->matchOfferProductName($report->date,$productName,$provinceName,$provinceSlug,$provinceId,$report->retailer_id);
+                $offer = $this->matchOfferProductName($report->date,$idealDaignosticReport->description,$provinceName,$provinceSlug,$provinceId,$report->retailer_id);
             }
             if ($offer) {
                 $cleanSheetData['retailer_id'] = $retailer_id;
@@ -178,6 +181,13 @@ trait IdealIntegration
                 $cleanSheetData['average_cost'] = $this->avgCostForIdeal($IdealSalesSummaryReport) == '0.00' ? trim(str_replace('$', '', trim($offer->unit_cost))) : $this->avgCostForIdeal($IdealSalesSummaryReport);
                 $cleanSheetData['report_price_og'] = $this->avgCostForIdeal($IdealSalesSummaryReport);
                 $cleanSheetData['barcode'] = $gtin;
+                if((int) $cleanSheetData['purchase'] > 0){
+                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku);
+                    $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
+                }
+                else{
+                    $cleanSheetData['c_flag'] = '';
+                }
                 $cleanSheetData['report_id'] = $report->id;
                 if ($idealDaignosticReport->trans_in > 0) {
                     $cleanSheetData['transfer_in'] = $idealDaignosticReport->trans_in;

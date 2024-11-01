@@ -1,73 +1,61 @@
 <?php
 
-use App\Traits\GlobalTillIntegration; // Use the GlobalTillIntegration trait
+use App\Traits\ICIntegrationTrait;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use App\Models\GlobalTillDiagnosticReport;
-use App\Models\GlobalTillSalesSummaryReport;
+use Illuminate\Support\Facades\Log;
 
-class GlobalTillReconciliation
-{
-    use GlobalTillIntegration; // Use the GlobalTillIntegration trait
+$report = DB::table('reports')->where('pos', 'global')->where('status', 'pending')->first();
 
-    /**
-     * Run the reconciliation process for GlobalTill reports.
-     */
-    public function runReconciliation()
-    {
-        $limit = 1;
-
-        // Fetch pending GlobalTill reports
-        $reports = DB::table('reports')
-            ->where('pos', 'global')
-            ->where('status', 'pending')
-            ->limit($limit)
-            ->get();
-
-        foreach ($reports as $report) {
-            dump($report->id . ' -- ' . date('Y-m-d H:i:s'));
-
-            try {
-                DB::table('reports')->where('id', $report->id)->update(['status' => 'reconciliation_start']);
-
-                // Retrieve GlobalTill diagnostic reports and sales summary reports for this report ID
-                $diagnosticReports = GlobalTillDiagnosticReport::where('report_id', $report->id)
-                    ->where(function ($query) {
-                        $query->where('status', 'pending')
-                              ->orWhere('status', 'error');
-                    })
-                    ->get();
-
-                $salesReports = GlobalTillSalesSummaryReport::where('report_id', $report->id)
-                    ->where(function ($query) {
-                        $query->where('status', 'pending')
-                              ->orWhere('status', 'error');
-                    })
-                    ->get();
-
-                // Process diagnostic reports first; if not matched, process sales reports
-                $this->processGlobalTillReports($diagnosticReports, $salesReports);
-
-                DB::table('global_till_diagnostic_reports')
-                    ->where('report_id', $report->id)
-                    ->update(['status' => 'done']);
-                DB::table('globaltill_sales_summary_reports')
-                    ->where('report_id', $report->id)
-                    ->update(['status' => 'done']);
-
-                DB::table('reports')->where('id', $report->id)->update(['status' => 'retailer_statement_process']);
-
-            } catch (\Exception $e) {
-                Log::error('Error in GlobalTill reconciliation: ' . $e->getMessage());
-                DB::table('reports')->where('id', $report->id)->update(['status' => 'failed']);
-                continue;
-            }
-        }
-    }
+if (!$report) {
+    Log::info('No pending GlobalTill reports found.');
+    exit;
 }
 
-// Run the reconciliation process
-$globalTillReconciliation = new GlobalTillReconciliation();
-$globalTillReconciliation->runReconciliation();
+dump($report->id . ' -- ' . date('Y-m-d H:i:s'));
 
-print_r('Reconciliation process completed successfully.');
+try {
+    DB::beginTransaction();
+    DB::table('reports')->where('id', $report->id)->update(['status' => 'reconciliation_start']);
+    
+    // Fetch GlobalTill diagnostic reports where status is pending
+    $globalTillDiagnosticReports = GlobalTillDiagnosticReport::where('report_id', $report->id)->where('status', 'pending')->get();
+    dump('GlobalTill reports fetched -- ' . date('Y-m-d H:i:s'));
+    
+    if ($globalTillDiagnosticReports->isEmpty()) {
+        throw new \Exception("No pending GlobalTill Diagnostic Reports found for report ID {$report->id}");
+    }
+
+    $cleanSheet = [];  
+    $insertionCount = 1; 
+    $insertionLimit = 500; 
+    $totalReportCount = count($globalTillDiagnosticReports);
+    
+    foreach ($globalTillDiagnosticReports as $key => $globalTillDiagnosticReport) {
+        $cleanSheet[] = (new class {
+            use ICIntegrationTrait;
+        })->globaltillMasterCatalogue($globalTillDiagnosticReport, $report); // Ensure method is correctly implemented
+        
+        $insertionCount++;
+        
+        if ($insertionCount == $insertionLimit || $key === $totalReportCount - 1) {
+            DB::table('clean_sheets')->insert($cleanSheet);
+            $insertionCount = 1;
+            $cleanSheet = [];
+        }
+        
+        if ($key === $totalReportCount - 1) {
+            DB::table('global_till_diagnostic_reports')->where('report_id', $report->id)->update(['status' => 'done']);
+        }
+    }
+    
+    DB::table('reports')->where('id', $report->id)->update(['status' => 'retailer_statement_process']);
+    DB::commit();
+    
+} catch (\Exception $e) {
+    Log::error('Error in GlobalTill reconciliation: ' . $e->getMessage());
+    DB::rollBack();
+    DB::table('reports')->where('id', $report->id)->update(['status' => 'failed']);
+}
+
+print_r('GlobalTill reconciliation process completed successfully.');

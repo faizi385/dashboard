@@ -20,7 +20,7 @@ use App\Traits\GreenlineICIntegration;
 
 trait ICIntegrationTrait
 {
-    use CovaICIntegration, GreenlineICIntegration, TechPosIntegration,ProfitTechIntegration,BarnetIntegration,OtherPOSIntegration,TendyIntegration;
+    use CovaICIntegration, GreenlineICIntegration, TechPosIntegration,ProfitTechIntegration,BarnetIntegration,OtherPOSIntegration,TendyIntegration,IdealIntegration,GlobalTillIntegration;
     public function covaMasterCatalouge($covaDaignosticReport, $report)
     {
         return $this->mapCovaCatalouge($covaDaignosticReport, $report);
@@ -49,6 +49,17 @@ trait ICIntegrationTrait
     {
         return $this-> mapTendyPosCatalouge($tendyDaignosticReport,$report);
     }
+    public function idealMasterCatalogue($idealDaignosticReport,$report)
+    {
+        return $this->mapIdealCatalouge($idealDaignosticReport,$report);
+    }
+    public function globaltillMasterCatalogue($gobatellDiagnosticReport,$report)
+    {
+        return $this->mapGlobaltillMasterCatalouge($gobatellDiagnosticReport,$report);
+    }
+
+
+
     public function saveToCleanSheet(array $cleanSheetData)
     {
         try {

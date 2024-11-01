@@ -2,236 +2,317 @@
 
 namespace App\Traits;
 
+use App\Models\Lp;
 use App\Models\Offer;
 use App\Models\Product;
 use App\Models\Province;
 use App\Models\Retailer;
 use App\Models\CleanSheet;
-use App\Models\GlobalTillDiagnosticReport;
-use App\Models\GlobalTillSalesSummaryReport;
+use App\Models\TechPOSReport;
+use App\Models\ProductVariation;
+use App\Helpers\GeneralFunctions;
 use Illuminate\Support\Facades\Log;
+
+use App\Models\GlobalTillSalesSummaryReport;
 
 trait GlobalTillIntegration
 {
-    use ICIntegrationTrait;
-
     /**
-     * Process GlobalTill reports and save to CleanSheet.
+     * Process Globaltill and save to CleanSheet.
      *
      * @param array $reports
      * @return void
      */
-    public function processGlobalTillReports($reports)
+    public function mapGlobaltillMasterCatalouge($gobatellDiagnosticReport,$report)
     {
-        Log::info('Processing GlobalTill reports:', ['reports' => $reports]);
+        $GobatellSalesSummaryReport=GlobalTillSalesSummaryReport::where('report_id', $report->id)->first();
 
-        foreach ($reports as $report) {
-     
-            $globalTillReport = GlobalTillDiagnosticReport::with('report')->find($report->id);
+        Log::info('Processing Globaltill reports:', ['report' => $report]);
+        $cleanSheetData = []; $cleanSheetData['report_price_og'] = '0.00';
+        $retailer_id = $gobatellDiagnosticReport->report->retailer_id ?? null;
+        $location = $gobatellDiagnosticReport->report->location ?? null;
 
-            // Check in sales summary reports if not found in diagnostic reports
-            // if (!$globalTillReport) {
-            //     $globalTillReport = GlobalTillSalesSummaryReport::with('report')->find($report->id);
-            // }
+        if (!$retailer_id) {
+            Log::warning('Retailer ID not found for report:', ['report_id' => $report->id]);
+        }
+        $sku = $gobatellDiagnosticReport->supplier_sku;
+        $gtin = $gobatellDiagnosticReport->compliance_code;
+        $productName = $gobatellDiagnosticReport->product;
+        $provinceId = $report->province_id;
+        $provinceName = $report->province;
+        $provinceSlug = $report->province_slug;
+        $product = null;
 
-            if (!$globalTillReport) {
-                Log::warning('GlobalTill report not found in both tables:', ['report_id' => $report->id]);
-                continue;
-            }
-
-            $retailer_id = $globalTillReport->report->retailer_id ?? null;
-            $location = $globalTillReport->report->location ?? null;
-
-            if (!$retailer_id) {
-                Log::warning('Retailer ID not found for report:', ['report_id' => $report->id]);
-                continue;
-            }
-
-            $sku = $globalTillReport->supplier_sku;
-            $gtin = $globalTillReport->compliance_code;
-
-         
-            $provinceName = null;
-            $provinceSlug = null;
-            $product = null;
-            $lpName = null;
-            $retailerName = null;
-
-      
-            $retailer = Retailer::find($retailer_id);
-            if ($retailer) {
-                $retailerName = trim("{$retailer->first_name} {$retailer->last_name}");
-            } else {
-                Log::warning('Retailer not found:', ['retailer_id' => $retailer_id]);
-            }
-
-          
-            if (!empty($gtin) && !empty($sku)) {
-                $product = $this->matchICBarcodeSku($sku, $gtin);
-            } if (!empty($sku) && empty($product)) {
-                $product = $this->matchICSku($sku);
-            } if (!empty($gtin) && empty($product)) {
-                $product = $this->matchICBarcode($gtin);
-            } if (!empty($globalTillReport->product) && empty($product)) {
-                $product = $this->matchICProductName($globalTillReport->product);
-            }
-
-            if ($product) {
-            
-                $provinceName = $product->province;
-                $province = Province::where('name', $provinceName)->first();
-                $provinceSlug = $province->slug ?? null;
-
-              
-                $lpName = Product::find($product->id)->lp->name ?? null;
-
-           
-                $dqi_fee = $this->calculateDqiFee($globalTillReport, $product);
-                $dqi_per = $this->calculateDqiPer($globalTillReport, $product);
-
-                $cleanSheetData = [
-                    'retailer_id' => $retailer_id,
-                    'report_id' => $report->id,
-                    'retailer_name' => $retailerName,
-                    'lp_name' => $lpName,
-                    'thc_range' => $product->thc_range,
-                    'cbd_range' => $product->cbd_range,
-                    'size_in_gram' => $product->product_size,
-                    'location' => $location,
-                    'province' => $provinceName,
-                    'province_slug' => $provinceSlug,
-                    'sku' => $sku,
-                    'product_name' => $globalTillReport->productname,
-                    'category' => $product->category,
-                    'brand' => $product->brand,
-                    'sold' => $globalTillReport->sales_reductions ?? "0",
-                    'purchase' => $globalTillReport->purchases_from_suppliers_additions ?? "0",
-                    'average_price' => $report->average_price,
-                    'average_cost' => $report->average_cost,
-                    'report_price_og' => $report->report_price_og,
-                    'barcode' => $gtin,
-                    'transfer_in' => $report->transfer_in,
-                    'transfer_out' => $report->transfer_out,
-                    'pos' => 'GlobalTill',
-                    'pos_report_id' => $globalTillReport->id,
-                    'comment' => 'Record found in the Master Catalog',
-                    'opening_inventory_unit' => $globalTillReport->opening_inventory ?? "0",
-                    'closing_inventory_unit' => $globalTillReport->closing_inventory ?? "0",
-                    'reconciliation_date' => now(),
-                ];
-
-         
-                $offers = $this->DQISummaryFlag($globalTillReport->supplier_sku, $globalTillReport->compliance_code, $globalTillReport->product);
-
-                if (!empty($offers)) {
-                    if((int) $cleanSheetData['purchased'] > 0){
-                        $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offers->lp_id,$offers->lp,$offers->provincial,$product);
-                        $cleanSheet['c_flag'] = $checkCarveout ? 'yes' : 'no';
-                    }
-                    else{
-                        $cleanSheet['c_flag'] = '';
-                    }
-                    $cleanSheetData['offer_id'] = $offers->id;
-                    $cleanSheetData['lp_id'] = $product->lp_id;
-                    $cleanSheetData['dqi_fee'] = $dqi_fee;
-                    $cleanSheetData['dqi_per'] = $dqi_per;
-                }
-
-                $this->saveToCleanSheet($cleanSheetData);
-            } else {
-                Log::warning('Product not found for SKU and GTIN:', ['sku' => $sku, 'gtin' => $gtin, 'report_data' => $report]);
-
-                
-                $offer = !empty($sku) ? $this->matchOfferSku($sku) : null;
-
-                if (!$offer && !empty($globalTillReport->productname)) {
-                    $offer = $this->matchOfferProductName($globalTillReport->productname);
-                }
-
-                if ($offer) {
-                    $lpName = Offer::find($offer->id)->lp->name ?? null;
-
-                    $dqi_fee = $this->calculateDqiFee($globalTillReport, $offer);
-                    $dqi_per = $this->calculateDqiPer($globalTillReport, $offer);
-
-                    $cleanSheetData = [
-                        'retailer_id' => $retailer_id,
-                        'lp_id' => $offer->lp_id,
-                        'report_id' => $report->id,
-                        'offer_id' => $offer->id,
-                        'retailer_name' => $retailerName,
-                        'lp_name' => $lpName,
-                        'thc_range' => $offer->thc_range,
-                        'cbd_range' => $offer->cbd_range,
-                        'size_in_gram' => $offer->product_size,
-                        'location' => $location,
-                        'province' => $offer->province,
-                        'province_slug' => $offer->province_slug,
-                        'sku' => $sku,
-                        'product_name' => $offer->product_name,
-                        'category' => $offer->category,
-                        'brand' => $offer->brand,
-                        'sold' => $globalTillReport->sales_reductions ?? "0",
-                        'purchase' => $globalTillReport->purchases_from_suppliers_additions ?? "0",
-                        'average_price' => $report->average_price,
-                        'average_cost' => $report->average_cost,
-                        'report_price_og' => $report->report_price_og,
-                        'barcode' => $gtin,
-                        'transfer_in' => $report->transfer_in,
-                        'transfer_out' => $report->transfer_out,
-                        'pos' => 'GlobalTill',
-                        'pos_report_id' => $globalTillReport->id,
-                        'comment' => 'Record found in the Offers Table',
-                        'opening_inventory_unit' => $globalTillReport->opening_inventory ?? "0",
-                        'closing_inventory_unit' => $globalTillReport->closing_inventory ?? "0",
-                        'dqi_fee' => $dqi_fee,
-                        'dqi_per' => $dqi_per,
-                        'reconciliation_date' => now(),
-                    ];
-
-                    $this->saveToCleanSheet($cleanSheetData);
-                } else {
-                    Log::info('No product or offer found, saving report data as is:', ['report_data' => $report]);
-
-                    $cleanSheetData = [
-                        'retailer_id' => $retailer_id,
-                        'lp_id' => null,
-                        'report_id' => $report->id,
-                        'retailer_name' => $retailerName,
-                        'lp_name' => null,
-                        'thc_range' => null,
-                        'cbd_range' => null,
-                        'size_in_gram' => null,
-                        'location' => $location,
-                        'province' => null,
-                        'province_slug' => null,
-                        'sku' => $sku,
-                        'product_name' => $globalTillReport->productname,
-                        'category' => $globalTillReport->category,
-                        'brand' => $globalTillReport->brand,
-                        'sold' => $globalTillReport->sales_reductions ?? "0",
-                        'purchase' => $globalTillReport->purchases_from_suppliers_additions ?? "0",
-                        'average_price' => $report->average_price,
-                        'average_cost' => $report->average_cost,
-                        'report_price_og' => $report->report_price_og,
-                        'barcode' => $gtin,
-                        'transfer_in' => $report->transfer_in,
-                        'transfer_out' => $report->transfer_out,
-                        'pos' => 'GlobalTill',
-                        'pos_report_id' => $globalTillReport->id,
-                        'comment' => 'No matching product or offer found',
-                        'opening_inventory_unit' => $globalTillReport->opening_inventory ?? "0",
-                        'closing_inventory_unit' => $globalTillReport->closing_inventory ?? "0",
-                        'reconciliation_date' => now(),
-                    ];
-
-                    $this->saveToCleanSheet($cleanSheetData);
-                }
-            }
+        $retailer = Retailer::find($retailer_id);
+        if ($retailer) {
+            $retailerName = trim("{$retailer->first_name} {$retailer->last_name}");
+        } else {
+            Log::warning('Retailer not found:', ['retailer_id' => $retailer_id]);
         }
 
-        Log::info('Completed processing GlobalTill reports.');
+        if (!empty($gtin) && !empty($sku)) {
+            $product = $this->matchICBarcodeSku($gobatellDiagnosticReport->compliance_code, $gobatellDiagnosticReport->supplier_sku,$provinceName,$provinceSlug,$provinceId);
+        }
+        if (!empty($sku) && empty($product)) {
+            $product = $this->matchICSku($gobatellDiagnosticReport->supplier_sku,$provinceName,$provinceSlug,$provinceId);
+        }
+        if (!empty($gtin) && empty($product)) {
+            $product = $this->matchICBarcode($gobatellDiagnosticReport->compliance_code,$provinceName,$provinceSlug,$provinceId);
+        }
+        if (!empty($productName) && empty($product)){
+            $product = $this->matchICProductName($gobatellDiagnosticReport->product,$provinceName,$provinceSlug,$provinceId);
+        }
+        if ($product) {
+            $lp = Lp::where('id',$product->lp_id)->first();
+            $lpName = $lp->name ?? null;
+            $lpId = $lp->id ?? null;
+
+            $cleanSheetData['retailer_id'] = $retailer_id;
+            $cleanSheetData['pos_report_id'] = $gobatellDiagnosticReport->id;
+            $cleanSheetData['retailer_name'] = $retailerName ?? null;
+            $cleanSheetData['thc_range'] = $product->thc_range;
+            $cleanSheetData['cbd_range'] = $product->cbd_range;
+            $cleanSheetData['size_in_gram'] =  $product->product_size;
+            $cleanSheetData['location'] = $location;
+            $cleanSheetData['province'] = $provinceName;
+            $cleanSheetData['province_slug'] = $provinceSlug;
+            $cleanSheetData['province_id'] =  $provinceId ;
+            $cleanSheetData['sku'] = $sku;
+            $cleanSheetData['product_name'] = $productName;
+            $cleanSheetData['category'] = $product->category;
+            $cleanSheetData['brand'] = $product->brand;
+            $cleanSheetData['sold'] = $gobatellDiagnosticReport->sales_reductions ?? "0";
+            $cleanSheetData['purchase'] = $gobatellDiagnosticReport->purchases_from_suppliers_additions ?? "0";
+            $cleanSheetData['average_price'] = $this->avgPriceForGlobaltill($GobatellSalesSummaryReport);
+            $cleanSheetData['average_cost'] = $this->avgCostForGlobaltill($GobatellSalesSummaryReport);
+            $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
+            if( $cleanSheetData['average_cost'] == 0.00 ||  $cleanSheetData['average_cost'] == 0){
+                $cleanSheetData['average_cost'] = GeneralFunctions::formatAmountValue($product->price_per_unit);
+            }
+            if( $cleanSheetData['average_cost'] == 0.00 ||  $cleanSheetData['average_cost'] == 0){
+                $cleanSheetData['average_cost'] = 0;
+            }
+            $cleanSheetData['barcode'] = $gtin;
+            $cleanSheetData['report_id'] = $report->id;
+            if ($gobatellDiagnosticReport->other_additions_additions > 0) {
+                $cleanSheetData['transfer_in'] = $gobatellDiagnosticReport->other_additions_additions;
+            } else {
+                $cleanSheetData['transfer_in'] = 0;
+            }
+            if ($gobatellDiagnosticReport->other_reductions_reductions < 0) {
+                $cleanSheetData['transfer_out'] = str_replace('-', '', $gobatellDiagnosticReport->other_reductions_reductions);
+            } else {
+                $cleanSheetData['transfer_out'] = 0;
+            }
+            $cleanSheetData['pos'] = $report->pos;
+            $cleanSheetData['reconciliation_date'] = $report->date;
+            $cleanSheetData['opening_inventory_unit'] = $gobatellDiagnosticReport->opening_inventory ?? "0";
+            $cleanSheetData['closing_inventory_unit'] = $gobatellDiagnosticReport->closing_inventory ?? "0";
+            $cleanSheetData['product_variation_id'] = $product->id;
+            $cleanSheetData['dqi_per'] = 0.00;
+            $cleanSheetData['dqi_fee'] = 0.00;
+            $offer = $this->DQISummaryFlag($report,$gobatellDiagnosticReport->supplier_sku,'',$gobatellDiagnosticReport->productname,$provinceName,$provinceSlug,$provinceId);
+            if (!empty($offer)) {
+                $cleanSheetData['offer_id'] = $offer->id;
+                $cleanSheetData['lp_id'] = $offer->lp_id;
+                $cleanSheetData['lp_name'] = $offer->lp_name;
+                if((int) $cleanSheetData['purchase'] > 0){
+                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku);
+                    $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
+                }
+                else{
+                    $cleanSheetData['c_flag'] = '';
+                }
+                $cleanSheetData['dqi_flag'] = 1;
+                $cleanSheetData['flag'] = '3';
+                $TotalQuantityGet = $cleanSheetData['purchase'];
+                $TotalUnitCostGet = $cleanSheetData['average_cost'];
+                $TotalPurchaseCostMake = (float)$TotalQuantityGet * (float)$TotalUnitCostGet;
+                $FinalDQIFEEMake = (float)trim($offer->data, '%') * 100;
+                $FinalFeeInDollar = (float)$TotalPurchaseCostMake * $FinalDQIFEEMake / 100;
+                $cleanSheetData['dqi_per'] = $FinalDQIFEEMake;
+                $cleanSheetData['dqi_fee'] = number_format($FinalFeeInDollar,2);
+                $cleanSheetData['comment'] = 'Record found in the Master Catalog and Offer';
+                if( $cleanSheetData['average_cost'] == '0.00' && (int) $cleanSheetData['average_cost'] == 0){
+                    $cleanSheetData['average_cost'] = \App\Helpers\GeneralFunctions::formatAmountValue($offer->unit_cost) ?? "0.00";
+                }
+            }
+            else{
+                $cleanSheetData['offer_id'] = null;
+                $cleanSheetData['lp_id'] = $lpId;
+                $cleanSheetData['lp_name'] = $lpName;
+                $cleanSheetData['c_flag'] = '';
+                $cleanSheetData['dqi_flag'] = 0;
+                $cleanSheetData['flag'] = '1';
+                $cleanSheetData['comment'] = 'Record found in the Master Catalog';
+            }
+        } else {
+            $offer = null;
+            $offer = null;
+            if (!empty($sku)) {
+                $offer = $this->matchOfferSku($report->date,$gobatellDiagnosticReport->supplier_sku,$provinceName,$provinceSlug,$provinceId,$report->retailer_id);
+            } if (!empty($gtin) && empty($offer)) {
+                $offer = $this->matchOfferBarcode($report->date,$gobatellDiagnosticReport->compliance_code,$provinceName,$provinceSlug,$provinceId,$report->retailer_id);
+            } if (!empty($productName) && empty($offer)) {
+                $offer = $this->matchOfferProductName($report->date,$gobatellDiagnosticReport->product,$provinceName,$provinceSlug,$provinceId,$report->retailer_id);
+            }
+            if ($offer) {
+                $cleanSheetData['retailer_id'] = $retailer_id;
+                $cleanSheetData['offer_id'] = $offer->id;
+                $cleanSheetData['pos_report_id'] = $gobatellDiagnosticReport->id;
+                $cleanSheetData['lp_id'] = $offer->lp_id;
+                $cleanSheetData['retailer_name'] = $retailerName;
+                $cleanSheetData['lp_name'] = $offer->lp_name;
+                $cleanSheetData['thc_range'] = $offer->thc_range;
+                $cleanSheetData['cbd_range'] = $offer->cbd_range;
+                $cleanSheetData['size_in_gram'] = $offer->product_size;
+                $cleanSheetData['location'] = $location;
+                $cleanSheetData['province'] = $offer->province;
+                $cleanSheetData['province_slug'] = $offer->province_slug;
+                $cleanSheetData['province_id'] =  $provinceId ;
+                $cleanSheetData['sku'] = $sku;
+                $cleanSheetData['product_name'] = $offer->product_name;
+                $cleanSheetData['category'] = $offer->category;
+                $cleanSheetData['brand'] = $offer->brand;
+                $cleanSheetData['sold'] = $gobatellDiagnosticReport->sales_reductions ?? "0";
+                $cleanSheetData['purchase'] = $gobatellDiagnosticReport->purchases_from_suppliers_additions ?? "0";
+                $cleanSheetData['average_price'] = $this->avgPriceForGlobaltill($GobatellSalesSummaryReport);
+                $cleanSheetData['average_cost'] = $this->avgCostForGlobaltill($GobatellSalesSummaryReport);
+                $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
+                if((int) $cleanSheetData['purchase'] > 0){
+                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku);
+                    $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
+                }
+                else{
+                    $cleanSheetData['c_flag'] = '';
+                }
+                if( $cleanSheetData['average_cost'] == 0.00 ||  $cleanSheetData['average_cost'] == 0){
+                    $cleanSheetData['average_cost'] = GeneralFunctions::formatAmountValue($product->price_per_unit);
+                }
+                if( $cleanSheetData['average_cost'] == 0.00 ||  $cleanSheetData['average_cost'] == 0){
+                    $cleanSheetData['average_cost'] = 0;
+                }
+                $cleanSheetData['barcode'] = $gtin;
+                $cleanSheetData['report_id'] = $report->id;
+                if ($gobatellDiagnosticReport->other_additions_additions > 0) {
+                    $cleanSheetData['transfer_in'] = $gobatellDiagnosticReport->other_additions_additions;
+                } else {
+                    $cleanSheetData['transfer_in'] = 0;
+                }
+                if ($gobatellDiagnosticReport->other_reductions_reductions < 0) {
+                    $cleanSheetData['transfer_out'] = str_replace('-', '', $gobatellDiagnosticReport->other_reductions_reductions);
+                } else {
+                    $cleanSheetData['transfer_out'] = 0;
+                }
+                $cleanSheetData['pos'] = $report->pos;
+                $cleanSheetData['reconciliation_date'] = $report->date;
+                $cleanSheetData['opening_inventory_unit'] = $gobatellDiagnosticReport->opening_inventory ?? "0";
+                $cleanSheetData['closing_inventory_unit'] = $gobatellDiagnosticReport->closing_inventory ?? "0";
+                $cleanSheetData['flag'] = '2';
+                $cleanSheetData['comment'] = 'Record found in the Offers';
+                $cleanSheetData['dqi_flag'] = 1;
+                $cleanSheetData['product_variation_id'] = null;
+                $TotalQuantityGet = $cleanSheetData['purchase'];
+                $TotalUnitCostGet = $cleanSheetData['average_cost'];
+                $TotalPurchaseCostMake = (float)$TotalQuantityGet * (float)$TotalUnitCostGet;
+                $FinalDQIFEEMake = (float)trim($offer->data, '%') * 100;
+                $FinalFeeInDollar = (float)$TotalPurchaseCostMake * $FinalDQIFEEMake / 100;
+                $cleanSheetData['dqi_per'] = $FinalDQIFEEMake;
+                $cleanSheetData['dqi_fee'] = number_format($FinalFeeInDollar,2);
+            } else {
+                Log::info('No product or offer found, saving report data as is:', ['report_data' => $report]);
+                $cleanSheetData['retailer_id'] = $retailer_id;
+                $cleanSheetData['offer_id'] = null;
+                $cleanSheetData['pos_report_id'] = $gobatellDiagnosticReport->id;
+                $cleanSheetData['lp_id'] = null;
+                $cleanSheetData['retailer_name'] = $retailerName;
+                $cleanSheetData['lp_name'] = null;
+                $cleanSheetData['thc_range'] = null;
+                $cleanSheetData['cbd_range'] = null;
+                $cleanSheetData['size_in_gram'] = null;
+                $cleanSheetData['location'] = $location;
+                $cleanSheetData['province'] = $provinceName;
+                $cleanSheetData['province_slug'] = $provinceSlug;
+                $cleanSheetData['province_id'] =  $provinceId ;
+                $cleanSheetData['sku'] = $gobatellDiagnosticReport->sku;
+                $cleanSheetData['product_name'] = $gobatellDiagnosticReport->description;
+                $cleanSheetData['category'] = null;
+                $cleanSheetData['brand'] = null;
+                $cleanSheetData['sold'] = $gobatellDiagnosticReport->sales_reductions ?? "0";
+            $cleanSheetData['purchase'] = $gobatellDiagnosticReport->purchases_from_suppliers_additions ?? "0";
+                $cleanSheetData['average_price'] = $this->avgPriceForGlobaltill($GobatellSalesSummaryReport);
+                $cleanSheetData['average_cost'] = $this->avgCostForGlobaltill($GobatellSalesSummaryReport);
+                $cleanSheetData['report_price_og'] = $gobatellDiagnosticReport->average_cost;
+                $cleanSheetData['barcode'] = null;
+                $cleanSheetData['c_flag'] = '';
+                $cleanSheetData['report_id'] = $report->id;
+                if ($gobatellDiagnosticReport->other_additions_additions > 0) {
+                    $cleanSheetData['transfer_in'] = $gobatellDiagnosticReport->other_additions_additions;
+                } else {
+                    $cleanSheetData['transfer_in'] = 0;
+                }
+                if ($gobatellDiagnosticReport->other_reductions_reductions < 0) {
+                    $cleanSheetData['transfer_out'] = str_replace('-', '', $gobatellDiagnosticReport->other_reductions_reductions);
+                } else {
+                    $cleanSheetData['transfer_out'] = 0;
+                }
+                $cleanSheetData['pos'] = $report->pos;
+                $cleanSheetData['reconciliation_date'] = $report->date;
+                $cleanSheetData['opening_inventory_unit'] = $gobatellDiagnosticReport->opening_inventory ?? "0";
+                $cleanSheetData['closing_inventory_unit'] = $gobatellDiagnosticReport->closing_inventory ?? "0";
+                $cleanSheetData['flag'] = '0';
+                $cleanSheetData['comment'] = 'No matching product or offer found.';
+                $cleanSheetData['dqi_flag'] = 0;
+                $cleanSheetData['product_variation_id'] = null;
+                $cleanSheetData['dqi_per'] = 0.00;
+                $cleanSheetData['dqi_fee'] = 0.00;
+            }
+        }
+        $cleanSheetData['sold'] = $this->sanitizeNumeric($cleanSheetData['sold']);
+        $cleanSheetData['purchase'] = $this->sanitizeNumeric($cleanSheetData['purchase']);
+        $cleanSheetData['average_price'] = $this->sanitizeNumeric($cleanSheetData['average_price']);
+        $cleanSheetData['report_price_og'] = $this->sanitizeNumeric($cleanSheetData['report_price_og']);
+        $cleanSheetData['average_cost'] = $this->sanitizeNumeric($cleanSheetData['average_cost']);
+
+        if ($cleanSheetData['average_cost'] === 0.0 || $cleanSheetData['average_cost'] === 0) {
+            $cleanSheetData['average_cost'] = GeneralFunctions::checkAvgCostCleanSheet($cleanSheetData['sku'],$cleanSheetData['province']);
+        }
+
+        return $cleanSheetData;
     }
 
- 
+    private function avgPriceForGlobaltill($GobatellSalesSummaryReport)
+    {
+        if (!empty($GobatellSalesSummaryReport->sold_retail_value) && !empty($GobatellSalesSummaryReport->sales_reductions)) {
+            $sold_retail_value = GeneralFunctions::formatAmountValue($GobatellSalesSummaryReport->sold_retail_value);
+            $sales_reductions = GeneralFunctions::formatAmountValue($GobatellSalesSummaryReport->sales_reductions);
+            if ($sales_reductions == 0.00 || $sales_reductions == 0) {
+                $sales_reductions = 1;
+            }
+            $averagePrice = $sold_retail_value / $sales_reductions;
+        }
+        else{
+            $averagePrice = 0.00;
+        }
+
+        return $averagePrice;
+    }
+    private function avgCostForGlobaltill($GobatellSalesSummaryReport)
+    {
+        if (!empty($GobatellSalesSummaryReport->purchases_from_suppliers_value) && !empty($GobatellSalesSummaryReport->purchases_from_suppliers_additions)) {
+            $purchases_from_suppliers_value = GeneralFunctions::formatAmountValue($GobatellSalesSummaryReport->purchases_from_suppliers_value);
+            $purchases_from_suppliers_additions = GeneralFunctions::formatAmountValue($GobatellSalesSummaryReport->purchases_from_suppliers_additions);
+            if($purchases_from_suppliers_value != 0 && $purchases_from_suppliers_value != 0.00 && $purchases_from_suppliers_additions != 0 && $purchases_from_suppliers_additions != 0.00){
+                $average_cost = $purchases_from_suppliers_value / $purchases_from_suppliers_additions ;
+            }
+            else{
+                $average_cost = 0.00;
+            }
+        }
+        else{
+            $average_cost = 0.00;
+        }
+
+        return $average_cost;
+    }
 }

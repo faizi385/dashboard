@@ -20,7 +20,7 @@ class UserSeeder extends Seeder
         ]);
 
         // Assign the Super Admin role
-        $superAdminRole = Role::where('first_name', 'super_admin_1')->first();
+        $superAdminRole = Role::where('name', 'super_admin_1')->first();
         if ($superAdminRole) {
             $user1->assignRole($superAdminRole);
         }

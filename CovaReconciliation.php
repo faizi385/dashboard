@@ -12,7 +12,7 @@ try {
     DB::table('reports')->where('id', $report->id)->update(['status' => 'reconciliation_start']);
     DB::beginTransaction();
 //    $retailer_id = $retailerReportSubmission->retailer_id;
-    $covaDaignosticReports =  CovaDiagnosticReport::with('CovaSalesSummaryReport')->where('report_id', $report->id)->where('entry_status', 'pending')->get();
+    $covaDaignosticReports =  CovaDiagnosticReport::with('CovaSalesSummaryReport')->where('report_id', $report->id)->where('status', 'pending')->get();
 //    dump('covaDaignosticReports fetch -- '.date('Y-m-d H:i:s'));
     $data = []; $cleanSheet = [];  $insertionCount = 1; $insertionLimit = 500; $totalReportCount = count($covaDaignosticReports);
     foreach ($covaDaignosticReports as $key => $covaDaignosticReport) {
@@ -28,22 +28,16 @@ try {
             $cleanSheet = [];
         }
         if($key === $totalReportCount - 1){
-            DB::table('cova_diagnostic_reports')->where('retailerReportSubmission_id',$report->id)->update(['entry_status'=>'done']);
+            DB::table('cova_diagnostic_reports')->where('report_id',$report->id)->update(['status'=>'done']);
         }
     }
-    DB::table('retailer_report_submissions')->where('id', $report->id)->update(['status' => 'retailer_statement_process']);
-    $insertIntoLogs = DB::table('cron_logs')->where('retailerReportSubmission_id', $report->id)->update([
+    DB::table('reports')->where('id', $report->id)->update(['status' => 'retailer_statement_process']);
+    $insertIntoLogs = DB::table('cron_logs')->where('report_id', $report->id)->update([
         'end_time' => now()
     ]);
     DB::commit();
 } catch (\Exception $e) {
-    Log::error('Error occurred IN Cova Cron Reconciliation--: ' . $e);
-    DB::rollback();
-    DB::table('retailer_report_submissions')->where('id', $report->id)->update([
-        'status' => 'failed'
-    ]);
-    DB::table('cron_logs')->where('retailerReportSubmission_id', $report->id)->update([
-        'end_time' => now(),
-        'error_log' => $e->getMessage()
-    ]);
+    Log::error('Error in Cova reconciliation: ' . $e->getMessage());
+    DB::rollBack();
+    DB::table('reports')->where('id', $report->id)->update(['status' => 'failed']);
 }

@@ -17,9 +17,9 @@ class CreateCleanSheetTable extends Migration
             $table->string('lp_name');
             $table->string('thc_range');
             $table->string('cbd_range');
-            $table->double('size_in_gram'); // Double without precision/scale
+            $table->string('size_in_gram'); 
             $table->string('location');
-            $table->unsignedBigInteger('province_id'); // Province ID as integer instead of string
+            $table->unsignedBigInteger('province_id');
             $table->string('province_slug');
             $table->string('sku');
             $table->string('product_name');
@@ -27,28 +27,29 @@ class CreateCleanSheetTable extends Migration
             $table->string('brand');
             $table->integer('sold');
             $table->integer('purchase');
-            $table->double('average_price'); // Double without precision/scale
-            $table->double('average_cost');  // Double without precision/scale
-            $table->double('report_price_og'); // Double without precision/scale
+            $table->double('average_price'); 
+            $table->double('average_cost');  
+            $table->double('report_price_og'); 
             $table->string('barcode')->nullable();
             $table->integer('transfer_in')->nullable();
             $table->integer('transfer_out')->nullable();
-            $table->string('pos'); // Point of Sale system
+            $table->string('pos'); 
             $table->date('reconciliation_date');
-            $table->integer('dqi_flag')->default(0); // Integer for dqi_flag
-            $table->integer('flag')->default(0); // Integer for flag
+            $table->integer('dqi_flag')->default(0); 
+            $table->integer('flag')->default(0); 
             $table->text('comment')->nullable();
             $table->integer('opening_inventory_unit');
             $table->integer('closing_inventory_unit');
-            $table->integer('c_flag')->default(0); // Integer for c_flag
-            $table->double('dqi_fee')->nullable(); // Double without precision/scale
-            $table->double('dqi_per')->nullable(); // Double without precision/scale
+            $table->string('c_flag')->default(''); 
+            $table->double('dqi_fee')->nullable(); 
+            $table->double('dqi_per')->nullable(); 
             $table->unsignedBigInteger('offer_id')->nullable();
             $table->unsignedBigInteger('pos_report_id')->nullable();
-
+    
             $table->timestamps();
         });
     }
+    
 
     public function down()
     {
