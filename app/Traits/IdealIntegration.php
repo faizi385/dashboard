@@ -24,7 +24,7 @@ trait IdealIntegration
      */
     public function mapIdealCatalouge($idealDaignosticReport,$report)
     {
-        $IdealSalesSummaryReport=IdealSalesSummaryReport::where('report_id', $report->id)->first();
+        $IdealSalesSummaryReport =  IdealSalesSummaryReport::where('ideal_diagnostic_report_id', $idealDaignosticReport->id)->first();
         // $IdealSalesSummaryReport =  IdealSalesSummaryReport::where('ideal_diagnostic_report_id', $idealDaignosticReport->id)->first();
         Log::info('Processing Ideal reports:', ['report' => $report]);
         $cleanSheetData = []; $cleanSheetData['report_price_og'] = '0.00';

@@ -15,13 +15,13 @@ class CreateTechPosReportsTable extends Migration
     {
         Schema::create('tech_pos_reports', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('report_id'); // Assuming this relates to your existing report table
-            $table->string('branchname')->nullable();
-            $table->string('sku')->nullable();
-            $table->string('productname')->nullable();
-            $table->string('category')->nullable();
+            $table->unsignedBigInteger('report_id')->index(); // Foreign key for reports table with index
+            $table->string('branchname')->nullable()->index();
+            $table->string('sku')->nullable()->index();
+            $table->string('productname')->nullable()->index();
+            $table->string('category')->nullable()->index();
             $table->string('categoryparent')->nullable();
-            $table->string('brand')->nullable();
+            $table->string('brand')->nullable()->index();
             $table->decimal('costperunit', 10, 2)->nullable();
             $table->integer('openinventoryunits')->nullable();
             $table->decimal('openinventorycost', 10, 2)->nullable();

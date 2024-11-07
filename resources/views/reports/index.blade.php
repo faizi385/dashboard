@@ -9,12 +9,10 @@
 </div>
 
 <div class="container p-3">
-
     <div class="row mb-4">
         <div class="col text-end">
-            {{-- <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#addReportModal">
-                Add Report
-            </button> --}}
+            {{-- Uncomment the button below to enable report addition --}}
+            {{-- <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#addReportModal">Add Report</button> --}}
         </div>
     </div>
 
@@ -23,48 +21,72 @@
             <table id="reportsTable" class="table table-hover table-bordered text-center align-middle">
                 <thead>
                     <tr>
-                        <th class="">Retailer DBA</th>
-                        <th class="">Location</th>
-                        <th class="">POS</th>
-                        <th class="">Status</th>
+                        <th>Retailer DBA</th>
+                        <th>Location</th>
+                        <th>POS</th>
+                        <th>Status</th>
                         <th>File 1</th>
                         <th>File 2</th>
                         <th>Date</th>
-                        <th class="text-center">Actions</th> <!-- Centered Actions header -->
+                        <th>Payout without Tax</th>
+                        <th>Payout with Tax</th>
+                        <th class="text-center">Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($reports as $report)
                     <tr>
-                        <td class="">{{ $report->retailer->dba ?? 'N/A' }}</td>
-                        <td class="">{{ $report->location }}</td>
-                        <td class="">{{ $report->pos }}</td>
-                        <td class="">{{ $report->status }}</td>
-                        <td><a href="{{ asset('storage/' . $report->file_1) }}">Download</a></td>
-                        <td><a href="{{ asset('storage/' . $report->file_2) }}">Download</a></td>
-                        <td>{{ \Carbon\Carbon::parse($report->date)->format('Y-m-d') }}</td>
-                        <td class="text-center">
-                            <!-- Actions for edit and delete -->
-                            <a href="#" class="icon-action" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Report">
-                                <i style="color: black" class="fas fa-edit"></i>
+                        <td>{{ $report->retailer->dba ?? '-' }}</td>
+                        <td>{{ $report->location }}</td>
+                        <td>{{ $report->pos }}</td>
+                        <td>{{ $report->status }}</td>
+                        <td>
+                            <a href="{{ route('reports.downloadFile', ['reportId' => $report->id, 'fileNumber' => 1]) }}" download="{{ basename($report->file_1) }}">
+                                Download File 1
                             </a>
-                            <form action="#" method="POST" style="display:inline;" class="delete-form">
+                        </td>
+                        <td>
+                            <a href="{{ route('reports.downloadFile', ['reportId' => $report->id, 'fileNumber' => 2]) }}" download="{{ basename($report->file_2) }}">
+                                Download File 2
+                            </a>
+                        </td>
+                        <td>{{ \Carbon\Carbon::parse($report->date)->format('Y-m-d') }}</td>
+                        
+                        <!-- Display Payout without Tax and Payout with Tax -->
+                        <td>${{ number_format($retailerSums[$report->retailer_id]['total_payout'] ?? 0, 2) }}</td>
+                        <td>${{ number_format($retailerSums[$report->retailer_id]['total_payout_with_tax'] ?? 0, 2) }}</td>
+                        
+                        <td class="text-center">
+                          
+                            <form action="{{ route('reports.destroy', ['report' => $report->id]) }}" method="POST" style="display:inline;" class="delete-form">
                                 @csrf
                                 @method('DELETE')
-                                <button type="button" class="btn btn-link p-0 delete-report" data-id="{{ $report->id }}" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete Report">
+                                <button type="button" class="btn btn-link p-0 delete-report" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete Report">
                                     <i style="color: black" class="fas fa-trash"></i>
                                 </button>
                             </form>
+                        
+                            <!-- Export CleanSheet Icon -->
+                            <a href="{{ route('reports.exportCleanSheets', $report->id) }}" class="icon-action" data-bs-toggle="tooltip" data-bs-placement="top" title="Export CleanSheet">
+                                <i style="color: black" class="fas fa-file-export"></i>
+                            </a>
+                        
+                            <!-- Export Retailer Statement Icon -->
+                            <a href="{{ route('reports.exportStatement', $report->id) }}" class="icon-action" data-bs-toggle="tooltip" data-bs-placement="top" title="Export Retailer Statement">
+                                <i style="color: black" class="fas fa-file-download"></i>
+                            </a>
                         </td>
                     </tr>
                     @empty
-                        <!-- Remove this line -->
+                        <tr><td colspan="10">No reports found.</td></tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
     </div>
 </div>
+
+
 <style>
     /* General table styling */
 table.dataTable {
@@ -104,10 +126,6 @@ table.dataTable tbody td.actions-column {
     text-align: center;
 }
 
-/* Adjust download link color */
-a {
-    color: #007bff; /* Customize link color */
-}
 
 /* Set the background for alternating rows */
 table.dataTable tbody tr:nth-child(odd) {
@@ -117,46 +135,27 @@ table.dataTable tbody tr:nth-child(odd) {
 table.dataTable tbody tr:nth-child(even) {
     background-color: #fff;
 }
-
-/* Loader */
-.loader-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 9999;
-    background: rgba(255, 255, 255, 0.8);
-}
-
-.loader {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    border: 16px solid #f3f3f3;
-    border-top: 16px solid #3498db;
-    border-radius: 50%;
-    width: 120px;
-    height: 120px;
-    animation: spin 2s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled{
+    color: white  !important;
 }
 
 </style>
 @push('scripts')
 <script>
     $(document).ready(function() {
+        // Hide loader after page loads
         $("#loader").fadeOut("slow");
 
-        // Initialize DataTable
-        var table = $('#reportsTable').DataTable({
+        // Initialize DataTable with responsive and horizontal scrolling options
+        const table = $('#reportsTable').DataTable({
             responsive: true,
-         
-          
+            scrollX: true, // Enable horizontal scrolling
+            language: {
+                emptyTable: "No offers found." // Custom message for no data
+            },
+            initComplete: function() {
+                $('#loader').addClass('hidden'); // Hide the loader once the table is initialized
+            }
         });
 
         // Initialize tooltips
@@ -164,9 +163,11 @@ table.dataTable tbody tr:nth-child(even) {
 
         // Function to handle delete confirmation with SweetAlert
         function initializeDeleteConfirmation() {
-            document.querySelectorAll('.delete-report').forEach(button => {
-                button.addEventListener('click', function() {
-                    const deleteForm = this.closest('form');
+            $('.delete-report').each(function() {
+                $(this).off('click').on('click', function(e) {
+                    e.preventDefault();
+                    const deleteForm = $(this).closest('form');
+
                     Swal.fire({
                         title: 'Are you sure?',
                         text: "You won't be able to revert this!",
@@ -187,17 +188,18 @@ table.dataTable tbody tr:nth-child(even) {
         // Call the function to initialize delete confirmation on page load
         initializeDeleteConfirmation();
 
-        // Reinitialize the SweetAlert delete confirmation when DataTable is redrawn (pagination, search, etc.)
+        // Reinitialize delete confirmation after each DataTable redraw (pagination, search, etc.)
         table.on('draw', function() {
             initializeDeleteConfirmation();
         });
 
-        // Display Toastr messages
+        // Display Toastr messages if session has toast_success
         @if(session('toast_success'))
             toastr.success("{{ session('toast_success') }}");
         @endif
     });
 </script>
+
 @endpush
 
 @endsection

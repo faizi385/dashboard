@@ -1,7 +1,10 @@
 <?php
+
 namespace App\Imports;
 
 use App\Models\Offer;
+use App\Models\Product;
+use App\Models\ProductVariation;
 use App\Models\Province;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -32,6 +35,7 @@ class OffersImport implements ToModel, WithHeadingRow
             'category', 'brand', 'thc_range', 'cbd_range'
         ];
 
+        // Check for required headers only once
         if (!$this->hasCheckedHeaders) {
             $missingHeaders = array_diff($requiredHeaders, array_keys($row));
             if (!empty($missingHeaders)) {
@@ -44,6 +48,7 @@ class OffersImport implements ToModel, WithHeadingRow
             $this->hasCheckedHeaders = true;
         }
 
+        // Retrieve and validate data
         $gtin = (int)($row['gtin_unit'] ?? $row['gtin'] ?? null);
         $productName = $row['product'] ?? $row['product_name'] ?? null;
         $unitCost = $row['unit_cost_excl_hst'] ?? $row['unit_cost'] ?? 0;
@@ -60,7 +65,8 @@ class OffersImport implements ToModel, WithHeadingRow
         $provinceName = $province->name ?? null;
         $provinceId = $province->id ?? null;
 
-        return new Offer([
+        // Create the Offer model instance
+        $offer = new Offer([
             'product_name' => $productName,
             'gtin' => $gtin,
             'provincial_sku' => $row['provincial_sku'] ?? null,
@@ -84,6 +90,11 @@ class OffersImport implements ToModel, WithHeadingRow
             'retailer_id' => $row['retailer_id'] ?? null,
             'source' => $this->source,
         ]);
+
+        // Store the product details
+        $this->storeProduct($offer);
+
+        return $offer;
     }
 
     public function getErrors()
@@ -125,4 +136,80 @@ class OffersImport implements ToModel, WithHeadingRow
 
         return null;
     }
+
+    private function storeProduct($data) 
+    {
+        // Check if a product with the same GTIN exists in the product family
+        $existingProduct = \App\Models\Product::where('gtin', $data['gtin'])->first();
+    
+        // If GTIN doesn't match, create a new product in the product family
+        if (!$existingProduct) {
+            $product = Product::create([
+                'product_name' => $data['product_name'],
+                'provincial_sku' => $data['provincial_sku'],
+                'gtin' => $data['gtin'],
+                'province' => $data['province'],
+                'category' => $data['category'],
+                'brand' => $data['brand'],
+                'lp_id' => $data['lp_id'],
+                'product_size' => $data['product_size'],
+                'thc_range' => $data['thc_range'],
+                'cbd_range' => $data['cbd_range'],
+                'comment' => $data['comment'],
+                'product_link' => $data['product_link'],
+                'unit_cost' => $data['unit_cost'],
+            ]);
+        } else {
+            // If GTIN matches, set $product to the existing product
+            $product = $existingProduct;
+        }
+    
+        // Check if a product variation with the same SKU exists
+        $existingVariation = \App\Models\ProductVariation::where('provincial_sku', $data['provincial_sku'])
+                                    ->where('gtin', $data['gtin'])
+                                    ->first();
+    
+        // If an existing variation is found
+        if ($existingVariation) {
+            // If province is different, create a new variation
+            if ($existingVariation->province !== $data['province']) {
+                // Create a new product variation
+                \App\Models\ProductVariation::create([
+                    'product_name' => $data['product_name'],
+                    'provincial_sku' => $data['provincial_sku'],
+                    'gtin' => $data['gtin'],
+                    'province' => $data['province'],
+                    'category' => $data['category'],
+                    'brand' => $data['brand'],
+                    'lp_id' => $data['lp_id'],
+                    'product_size' => $data['product_size'],
+                    'thc_range' => $data['thc_range'],
+                    'cbd_range' => $data['cbd_range'],
+                    'comment' => $data['comment'],
+                    'product_link' => $data['product_link'],
+                    'price_per_unit' => $data['unit_cost'],
+                ]);
+            }
+            return; // SKU exists, no need to create a new product variation
+        }
+    
+        // If SKU does not exist, create the product variation
+        \App\Models\ProductVariation::create([
+            'product_name' => $data['product_name'],
+            'provincial_sku' => $data['provincial_sku'],
+            'gtin' => $data['gtin'],
+            'province' => $data['province'],
+            'category' => $data['category'],
+            'brand' => $data['brand'],
+            'lp_id' => $data['lp_id'],
+            'product_size' => $data['product_size'],
+            'thc_range' => $data['thc_range'],
+            'cbd_range' => $data['cbd_range'],
+            'comment' => $data['comment'],
+            'product_link' => $data['product_link'],
+            'price_per_unit' => $data['unit_cost'],
+            // Add any additional fields as needed
+        ]);
+    }
+    
 }

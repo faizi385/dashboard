@@ -2,25 +2,26 @@
 
 namespace App\Imports;
 
-use App\Models\GlobalTillSalesSummaryReport;
-use Maatwebsite\Excel\Concerns\ToModel;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Concerns\ToModel;
+use App\Models\GlobalTillDiagnosticReport;
+use App\Models\GlobalTillSalesSummaryReport;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Exception; // Ensure to import the Exception class
 
 class GlobalTillSalesSummaryReportImport implements ToModel, WithHeadingRow
 {
     protected $location;
     protected $reportId;
-    protected $gbDiagnosticReportId; // Added gb_diagnostic_report_id
+ // Added gb_diagnostic_report_id
     protected $errors = []; // Array to store error messages
     protected $hasCheckedHeaders = false; // Flag to check if headers have been validated
 
-    public function __construct($location, $reportId, $gbDiagnosticReportId)
+    public function __construct($location, $reportId)
     {
         $this->location = $location; // Store location
         $this->reportId = $reportId; // Store report_id
-        $this->gbDiagnosticReportId = $gbDiagnosticReportId; // Store gb_diagnostic_report_id
+   // Store gb_diagnostic_report_id
     }
 
     /**
@@ -75,38 +76,56 @@ class GlobalTillSalesSummaryReportImport implements ToModel, WithHeadingRow
                     return str_replace('_', ' ', $header); // Replace underscores with spaces
                 }, $missingHeaders);
                 // Throw an exception for missing headers
-                throw new \Exception('Missing header: ' . implode(', ', $formattedHeaders)); // Throwing the exception
+                throw new Exception('Missing header: ' . implode(', ', $formattedHeaders)); // Throwing the exception
             }
         }
 
-        // Proceed with creating the model if headers are valid
-        return new GlobalTillSalesSummaryReport([
-            'compliance_code' => $row['compliance_code'] ?? null,
-            'supplier_sku' => $row['supplier_sku'] ?? null,
-            'opening_inventory' => $this->cleanNumericValue($row['opening_inventory']),
-            'opening_inventory_value' => $this->cleanNumericValue($row['opening_inventory_value']),
-            'purchases_from_suppliers_additions' => $this->cleanNumericValue($row['purchases_from_suppliers_additions']),
-            'purchases_from_suppliers_value' => $this->cleanNumericValue($row['purchases_from_suppliers_value']),
-            'returns_from_customers_additions' => $this->cleanNumericValue($row['returns_from_customers_additions']),
-            'customer_returns_retail_value' => $this->cleanNumericValue($row['customer_returns_retail_value']),
-            'other_additions_additions' => $this->cleanNumericValue($row['other_additions_additions']),
-            'other_additions_value' => $this->cleanNumericValue($row['other_additions_value']),
-            'sales_reductions' => $this->cleanNumericValue($row['sales_reductions']),
-            'sold_retail_value' => $this->cleanNumericValue($row['sold_retail_value']),
-            'destruction_reductions' => $this->cleanNumericValue($row['destruction_reductions']),
-            'destruction_value' => $this->cleanNumericValue($row['destruction_value']),
-            'theft_reductions' => $this->cleanNumericValue($row['theft_reductions']),
-            'theft_value' => $this->cleanNumericValue($row['theft_value']),
-            'returns_to_suppliers_reductions' => $this->cleanNumericValue($row['returns_to_suppliers_reductions']),
-            'supplier_return_value' => $this->cleanNumericValue($row['supplier_return_value']),
-            'other_reductions_reductions' => $this->cleanNumericValue($row['other_reductions_reductions']),
-            'other_reductions_value' => $this->cleanNumericValue($row['other_reductions_value']),
-            'closing_inventory' => $this->cleanNumericValue($row['closing_inventory']),
-            'closing_inventory_value' => $this->cleanNumericValue($row['closing_inventory_value']),
-            'report_id' => $this->reportId,
-            'location' => $this->location,
-            'gb_diagnostic_report_id' => $this->gbDiagnosticReportId, // Adding gb_diagnostic_report_id
-        ]);
+        // Find the corresponding diagnostic report
+        $gobatellDiagnosticReport = GlobalTillDiagnosticReport::where('supplier_sku', $row['supplier_sku'])
+            ->where('report_id', $this->reportId)
+            ->first();
+
+        if ($gobatellDiagnosticReport) {
+            if (!empty(array_filter($row))) {
+                if (isset($row['grand_total'])) {
+                    unset($row['grand_total']);
+                }
+
+                if ($row['supplier_sku'] != null || $row['compliance_code'] != null) {
+                    if ($row['supplier_sku'] != '*') {
+                        return new GlobalTillSalesSummaryReport([
+                            'compliance_code' => $row['compliance_code'] ?? null,
+                            'supplier_sku' => $row['supplier_sku'] ?? null,
+                            'opening_inventory' => $this->cleanNumericValue($row['opening_inventory']),
+                            'opening_inventory_value' => $this->cleanNumericValue($row['opening_inventory_value']),
+                            'purchases_from_suppliers_additions' => $this->cleanNumericValue($row['purchases_from_suppliers_additions']),
+                            'purchases_from_suppliers_value' => $this->cleanNumericValue($row['purchases_from_suppliers_value']),
+                            'returns_from_customers_additions' => $this->cleanNumericValue($row['returns_from_customers_additions']),
+                            'customer_returns_retail_value' => $this->cleanNumericValue($row['customer_returns_retail_value']),
+                            'other_additions_additions' => $this->cleanNumericValue($row['other_additions_additions']),
+                            'other_additions_value' => $this->cleanNumericValue($row['other_additions_value']),
+                            'sales_reductions' => $this->cleanNumericValue($row['sales_reductions']),
+                            'sold_retail_value' => $this->cleanNumericValue($row['sold_retail_value']),
+                            'destruction_reductions' => $this->cleanNumericValue($row['destruction_reductions']),
+                            'destruction_value' => $this->cleanNumericValue($row['destruction_value']),
+                            'theft_reductions' => $this->cleanNumericValue($row['theft_reductions']),
+                            'theft_value' => $this->cleanNumericValue($row['theft_value']),
+                            'returns_to_suppliers_reductions' => $this->cleanNumericValue($row['returns_to_suppliers_reductions']),
+                            'supplier_return_value' => $this->cleanNumericValue($row['supplier_return_value']),
+                            'other_reductions_reductions' => $this->cleanNumericValue($row['other_reductions_reductions']),
+                            'other_reductions_value' => $this->cleanNumericValue($row['other_reductions_value']),
+                            'closing_inventory' => $this->cleanNumericValue($row['closing_inventory']),
+                            'closing_inventory_value' => $this->cleanNumericValue($row['closing_inventory_value']),
+                            'report_id' => $this->reportId,
+                            'location' => $this->location,
+                            'gb_diagnostic_report_id' =>    $gobatellDiagnosticReport->id// Adding gb_diagnostic_report_id
+                        ]);
+                    }
+                }
+            }
+        }
+
+        return null; // Return null if no record is created
     }
 
     public function getErrors()

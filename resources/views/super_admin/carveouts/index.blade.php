@@ -97,7 +97,7 @@
                     <input type="hidden" name="lp_id" value="{{ $lp_id }}"> <!-- Pass the LP ID here -->
 
                     <div class="mb-3">
-                        <label for="province" class="form-label">Province</label>
+                        <label for="province" class="form-label">Province <span class="text-danger">*</span></label>
                         <select class="form-control" id="province" name="province">
                             <option value="" disabled selected>Select Province</option>
                             @foreach($provinces as $province)
@@ -108,7 +108,7 @@
 
                     <div class="mb-3">
                         <label for="retailer" class="form-label">Retailer <span class="text-danger">*</span></label>
-                        <select class="form-control" id="retailer" name="retailer" required>
+                        <select class="form-control" id="retailer" name="retailer" >
                             <option value="" disabled selected>Select Retailer</option>
                             @foreach($retailers as $retailer)
                                 <option value="{{ $retailer->id }}">{{ $retailer->dba }}</option>
@@ -117,8 +117,8 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="location" class="form-label">Location <span class="text-danger">*</span></label>
-                        <select class="form-control" id="location" name="location" required>
+                        <label for="location" class="form-label">Location </label>
+                        <select class="form-control" id="location" name="location" >
                             <option value="" disabled selected>Select Location</option>
                         </select>
                     </div>
@@ -129,8 +129,8 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="carveout_date" class="form-label">Carveout Date</label>
-                        <input type="date" class="form-control" id="carveout_date" name="carveout_date" required>
+                        <label for="carveout_date" class="form-label">Carveout Date <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="carveout_date" name="carveout_date" >
                     </div>
                 </div>
                 <div class="modal-footer">

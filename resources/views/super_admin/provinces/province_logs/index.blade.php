@@ -26,7 +26,7 @@
                 @endphp
                 <tr>
                     <td>{{ $log->user ? $log->user->first_name . ' ' . $log->user->last_name : 'System' }}</td>
-                    <td>{{ $log->province ? $log->province->name : 'N/A' }}</td>
+                    <td>{{ $log->province ? $log->province->name : '-' }}</td>
                     <td>{{ $log->created_at->format('d-M-Y h:i A') }}</td>
                     <td>{{ ucfirst($log->action) }}</td>
                     <td>

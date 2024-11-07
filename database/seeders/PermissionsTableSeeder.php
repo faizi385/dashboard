@@ -28,6 +28,22 @@ class PermissionsTableSeeder extends Seeder
 
             ['name' => 'view retailer dashboard', 'description' => 'View the retailer dashboard'],
             ['name' => 'view lp dashboard', 'description' => 'View the LP dashboard'],
+
+            // Permissions for reports
+            ['name' => 'view reports', 'description' => 'View the list of reports'],
+            ['name' => 'create reports', 'description' => 'Create new reports'],
+            ['name' => 'edit reports', 'description' => 'Edit existing reports'],
+            ['name' => 'delete reports', 'description' => 'Delete reports'],
+
+            // Permissions for managing provinces
+            ['name' => 'view provinces', 'description' => 'View the list of provinces'],
+            ['name' => 'create provinces', 'description' => 'Create new provinces'],
+            ['name' => 'edit provinces', 'description' => 'Edit existing provinces'],
+            ['name' => 'delete provinces', 'description' => 'Delete provinces'],
+
+            // Permissions for logs
+            ['name' => 'view logs', 'description' => 'View logs'],
+            ['name' => 'delete logs', 'description' => 'Delete logs'],
         ];
 
         // Loop through each permission and check if it exists before creating
@@ -39,4 +55,5 @@ class PermissionsTableSeeder extends Seeder
     }
 }
 
+// To run the seeder, use the following command:
 // php artisan db:seed --class=PermissionsTableSeeder

@@ -10,15 +10,19 @@ class CreateIdealSalesSummaryReportsTable extends Migration
     {
         Schema::create('ideal_sales_summary_reports', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('report_id'); // Foreign key to link to the reports table
-            $table->string('location');
-            $table->string('sku');
-            $table->string('product_description');
-            $table->integer('quantity_purchased');
-            $table->decimal('purchase_amount', 10, 2);
-            $table->integer('return_quantity')->nullable();
-            $table->decimal('amount_return', 10, 2)->nullable();
+            $table->unsignedBigInteger('report_id')->index(); // Foreign key to link to the reports table, indexed
+            $table->string('location')->nullable(); // Nullable
+            $table->string('sku')->nullable()->index(); // Nullable and indexed
+            $table->string('product_description')->nullable(); // Nullable
+            $table->integer('quantity_purchased')->nullable(); // Nullable
+            $table->decimal('purchase_amount', 10, 2)->nullable(); // Nullable
+            $table->integer('return_quantity')->nullable(); // Nullable
+            $table->decimal('amount_return', 10, 2)->nullable(); // Nullable
+
             $table->timestamps();
+
+            // Foreign key constraint
+            $table->foreign('report_id')->references('id')->on('reports')->onDelete('cascade');
         });
     }
 

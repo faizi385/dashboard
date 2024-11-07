@@ -62,7 +62,7 @@ class TendySalesSummaryReportImport implements ToModel, WithHeadingRow
                 throw new \Exception('Missing header: ' . implode(', ', $formattedHeaders));
             }
         }
-        $tendyDaignosticReport = TendyDiagnosticReport::where('product_sku', $row['sku'])->where('retailerReportSubmission_id', $this->reportId)->first();
+        $tendyDaignosticReport = TendyDiagnosticReport::where('product_sku', $row['sku'])->where('report_id', $this->reportId)->first();
         if($tendyDaignosticReport) {
             if (!empty(array_filter($row))) {
                 if ($row['product'] != null || $row['sku'] != null) {

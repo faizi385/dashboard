@@ -53,21 +53,21 @@
                                                 <div class="custom-card-header">Old User</div>
                                                 <div class="custom-card-body">
                                                     @foreach($description['old'] ?? [] as $key => $value)
-                                                        @if(isset($description['new'][$key]) && $description['old'][$key] !== $description['new'][$key])
-                                                            <div class="mb-2">
-                                                                <strong>{{ ucfirst($key) }}:</strong>
-                                                                @if($key === 'password')
-                                                                    ********** <!-- Mask old password -->
-                                                                @elseif($key === 'updated_at' || $key === 'created_at')
-                                                                    {{ \Carbon\Carbon::parse($value)->format('Y-m-d H:i:s') }} <!-- Format old updated_at -->
-                                                                @elseif(is_array($value))
-                                                                    {{ implode(', ', $value) }}
-                                                                @else
-                                                                    {{ $value }}
-                                                                @endif
-                                                            </div>
-                                                        @endif
-                                                    @endforeach
+                                                    @if(isset($description['new'][$key]) && $description['old'][$key] !== $description['new'][$key])
+                                                        <div class="mb-2">
+                                                            <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong>
+                                                            @if($key === 'password')
+                                                                ********** <!-- Mask old password -->
+                                                            @elseif($key === 'updated_at' || $key === 'created_at')
+                                                                {{ \Carbon\Carbon::parse($value)->format('Y-m-d H:i:s') }} <!-- Format old updated_at -->
+                                                            @elseif(is_array($value))
+                                                                {{ implode(', ', $value) }}
+                                                            @else
+                                                                {{ $value }}
+                                                            @endif
+                                                        </div>
+                                                    @endif
+                                                @endforeach
                                                 </div>
                                             </div>
                                         </div>
@@ -76,22 +76,23 @@
                                             <div class="custom-card updated-card">
                                                 <div class="custom-card-header">Updated User</div>
                                                 <div class="custom-card-body">
-                                                    @foreach($description['new'] ?? [] as $key => $value)
-                                                        @if(isset($description['old'][$key]) && $description['old'][$key] !== $description['new'][$key])
-                                                            <div class="mb-2">
-                                                                <strong>{{ ucfirst($key) }}:</strong>
-                                                                @if($key === 'password')
-                                                                    ********** <!-- Mask new password -->
-                                                                @elseif($key === 'updated_at' || $key === 'created_at')
-                                                                    {{ \Carbon\Carbon::parse($value)->format('Y-m-d H:i:s') }} <!-- Format new updated_at -->
-                                                                @elseif(is_array($value))
-                                                                    {{ implode(', ', $value) }}
-                                                                @else
-                                                                    {{ $value }}
-                                                                @endif
-                                                            </div>
-                                                        @endif
-                                                    @endforeach
+                                                
+@foreach($description['new'] ?? [] as $key => $value)
+@if(isset($description['old'][$key]) && $description['old'][$key] !== $description['new'][$key])
+    <div class="mb-2">
+        <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong>
+        @if($key === 'password')
+            ********** <!-- Mask new password -->
+        @elseif($key === 'updated_at' || $key === 'created_at')
+            {{ \Carbon\Carbon::parse($value)->format('Y-m-d H:i:s') }} <!-- Format new updated_at -->
+        @elseif(is_array($value))
+            {{ implode(', ', $value) }}
+        @else
+            {{ $value }}
+        @endif
+    </div>
+@endif
+@endforeach
                                                 </div>
                                             </div>
                                         </div>
@@ -101,22 +102,23 @@
                                         <div class="custom-card-header">Created User</div>
                                         <div class="custom-card-body">
                                             @foreach($description as $key => $value)
-                                                @if($key === 'updated_at' || $key === 'created_at')
-                                                    <div class="mb-2">
-                                                        <strong>{{ ucfirst($key) }}:</strong>
-                                                        {{ \Carbon\Carbon::parse($value)->format('Y-m-d H:i:s') }} <!-- Format created_at -->
-                                                    </div>
-                                                @elseif($key !== 'role') <!-- Exclude the role field -->
-                                                    <div class="mb-2">
-                                                        <strong>{{ ucfirst($key) }}:</strong>
-                                                        @if(is_array($value))
-                                                            {{ implode(', ', $value) }}
-                                                        @else
-                                                            {{ $value }}
-                                                        @endif
-                                                    </div>
-                                                @endif
-                                            @endforeach
+                                            @if($key === 'updated_at' || $key === 'created_at')
+                                                <div class="mb-2">
+                                                    <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> 
+                                                    {{ \Carbon\Carbon::parse($value)->format('Y-m-d H:i:s') }} <!-- Format created_at or updated_at -->
+                                                </div>
+                                            @elseif($key !== 'role') <!-- Exclude the role field -->
+                                                <div class="mb-2">
+                                                    <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong>
+                                                    @if(is_array($value))
+                                                        {{ implode(', ', $value) }}
+                                                    @else
+                                                        {{ $value }}
+                                                    @endif
+                                                </div>
+                                            @endif
+                                        @endforeach
+                                        
                                         </div>
                                     </div>
                                 @elseif($log->action == 'deleted')

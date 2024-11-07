@@ -65,7 +65,7 @@ class RetailerController extends Controller
         // Send an email with the link
         Mail::to($validatedData['email'])->send(new RetailerFormMail($link));
         // Redirect back with a success message
-        return redirect()->route('retailer.create')->with('success', 'Retailer created and email sent!');
+        return redirect()->route('retailer.create')->with('success', 'Retailer created and email sent successfully!');
     }
     public function showForm($token)
     {
@@ -139,7 +139,7 @@ class RetailerController extends Controller
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'corporate_name' => 'nullable|string|max:255',
-            'dba' => 'required|string|max:255',
+            'dba' => 'nullable|string|max:255',
             'phone' => 'required|string|max:20',
             'email' => 'required|email|max:255',
             'street_no' => 'nullable|string|max:50',

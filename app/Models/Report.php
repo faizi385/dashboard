@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Report extends Model
 {
-    use HasFactory;
+    use HasFactory,SoftDeletes;
 
     // Specify the fillable fields for mass assignment
     protected $fillable = [
@@ -26,4 +27,5 @@ class Report extends Model
     {
         return $this->belongsTo(Retailer::class);
     }
+
 }

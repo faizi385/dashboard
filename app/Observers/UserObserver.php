@@ -30,11 +30,11 @@ class UserObserver
             'action_user_id' => $actionUserId, // Store the action user's ID, or null if not authenticated
             'ip_address' => request()->ip(),
             'description' => json_encode([
-                'name' => $user->first_name . ' ' . $user->last_name,
-                'email' => $user->email,
-                'phone' => $user->phone, // Include the phone number here
-                'role' => $roles, // Ensure roles are logged correctly
-                'updated_at' => $user->updated_at,
+                'Name' => $user->first_name . ' ' . $user->last_name,
+                'Email' => $user->email,
+                'Phone' => $user->phone, // Include the phone number here
+               
+                'Created At' => $user->created_at->format('Y-m-d H:i:s'),
             ]),
         ]);
     }

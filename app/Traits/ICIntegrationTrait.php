@@ -278,21 +278,21 @@ trait ICIntegrationTrait
         return 0;
     }
 
-    function getRetailerProvince($retailerReportSubmission)
+    function getRetailerProvince($report)
     {
-        if ($retailerReportSubmission->province == 'ON' || $retailerReportSubmission->province == 'Ontario') {
+        if ($report->province == 'ON' || $report->province == 'Ontario') {
             $provinceDetail['province_name'] = 'Ontario';
             $provinceDetail['province_slug'] = 'ON';
-        } elseif ($retailerReportSubmission->province == 'MB' || $retailerReportSubmission->province == 'Manitoba') {
+        } elseif ($report->province == 'MB' || $report->province == 'Manitoba') {
             $provinceDetail['province_name'] = 'Manitoba';
             $provinceDetail['province_slug'] = 'MB';
-        } elseif ($retailerReportSubmission->province == 'BC' || $retailerReportSubmission->province == 'British Columbia') {
+        } elseif ($report->province == 'BC' || $report->province == 'British Columbia') {
             $provinceDetail['province_name'] = 'British Columbia';
             $provinceDetail['province_slug'] = 'BC';
-        } elseif ($retailerReportSubmission->province == 'AB' || $retailerReportSubmission->province == 'Alberta') {
+        } elseif ($report->province == 'AB' || $report->province == 'Alberta') {
             $provinceDetail['province_name'] = 'Alberta';
             $provinceDetail['province_slug'] = 'AB';
-        } elseif ($retailerReportSubmission->province == 'SK' || $retailerReportSubmission->province == 'Saskatchewan') {
+        } elseif ($report->province == 'SK' || $report->province == 'Saskatchewan') {
             $provinceDetail['province_name'] = 'Saskatchewan';
             $provinceDetail['province_slug'] = 'SK';
         }

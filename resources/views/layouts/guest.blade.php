@@ -13,6 +13,9 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+        <!-- Toastr CSS -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     </head>
     <body class="font-sans text-gray-900 antialiased">
         <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100">
@@ -26,5 +29,21 @@
                 {{ $slot }}
             </div>
         </div>
+
+        <!-- Toastr JS -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+        <!-- Toastr Notification Script -->
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                @if (session('success'))
+                    toastr.success("{{ session('success') }}");
+                @endif
+
+                @if (session('error'))
+                    toastr.error("{{ session('error') }}");
+                @endif
+            });
+        </script>
     </body>
 </html>

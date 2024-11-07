@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Offer;
 use App\Models\Product;
 use App\Mail\LpFormMail;
+use App\Models\CleanSheet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -16,8 +17,13 @@ class LpController extends Controller
 {
     public function dashboard()
     {
-        return view('super_admin.lp.dashboard'); // LP dashboard view
+        $purchases = CleanSheet::all(); // Adjust query as needed
+        $totalPurchases = $purchases->sum('purchase'); // Assuming 'purchase' is the column name
+    
+        return view('super_admin.lp.dashboard', compact('purchases', 'totalPurchases'));
     }
+    
+    
     
     public function index()
     {
@@ -158,7 +164,7 @@ class LpController extends Controller
         );
     
         // Redirect to the login page with a success message
-        return redirect()->route('login')->with('success', 'Your account has been created. Please log in to continue.');
+        return redirect()->route('login')->with('success', 'LP information completed successfully. Please log in.');
     }
     
  

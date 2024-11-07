@@ -86,3 +86,5 @@ class IdealDiagnosticReportImport implements ToModel, WithHeadingRow
         return $this->diagnosticReportId; // Return the ID of the last imported diagnostic report
     }
 }
+
+

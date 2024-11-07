@@ -2,10 +2,11 @@
 
 namespace App\Imports;
 
-use App\Models\IdealSalesSummaryReport; // Adjust the model namespace if needed
+use Illuminate\Support\Facades\Log;
+use App\Models\IdealDiagnosticReport;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Illuminate\Support\Facades\Log;
+use App\Models\IdealSalesSummaryReport; // Adjust the model namespace if needed
 
 class IdealSalesSummaryReportImport implements ToModel, WithHeadingRow
 {
@@ -24,6 +25,7 @@ class IdealSalesSummaryReportImport implements ToModel, WithHeadingRow
 
     public function model(array $row)
     {
+        // Define the required headers
         $requiredHeaders = [
             'sku',
             'product_description',
@@ -50,24 +52,37 @@ class IdealSalesSummaryReportImport implements ToModel, WithHeadingRow
             }
         }
 
-        // Proceed with creating the model if headers are valid
-        return new IdealSalesSummaryReport([
-            'location' => $this->location,
-            'report_id' => $this->reportId,
-            'ideal_diagnostic_report_id' => $this->diagnosticReportId, // Add the diagnostic report ID here
-            'sku' => $row['sku'],
-            'product_description' => $row['product_description'],
-            'quantity_purchased' => $row['quantity_purchased'],
-            'purchase_amount' => $row['purchase_amount'],
-            'return_quantity' => $row['return_quantity'],
-            'amount_return' => $row['amount_return'],
-        ]);
+        // Retrieve the ideal diagnostic report
+        $idealDiagnosticReport = IdealDiagnosticReport::where('sku', $row['sku'])
+            ->where('report_id', $this->reportId)
+            ->first();
+
+        // If a matching diagnostic report exists and the row is valid
+        if ($idealDiagnosticReport && !empty(array_filter($row))) {
+            // Unset 'grand_total' if it exists
+            unset($row['grand_total']);
+
+            // Ensure SKU is valid
+            if (!empty($row['sku']) && $row['sku'] !== '*') {
+                return new IdealSalesSummaryReport([
+                    'location' => $this->location,
+                    'report_id' => $this->reportId,
+                    'ideal_diagnostic_report_id' => $idealDiagnosticReport->id, // Correctly reference the ID
+                    'sku' => $row['sku'],
+                    'product_description' => $row['product_description'],
+                    'quantity_purchased' => $row['quantity_purchased'],
+                    'purchase_amount' => $row['purchase_amount'],
+                    'return_quantity' => $row['return_quantity'],
+                    'amount_return' => $row['amount_return'],
+                ]);
+            }
+        }
+
+        return null; // Return null if no conditions are met
     }
 
     public function getErrors()
     {
         return $this->errors; // Return collected errors
     }
-
-   
 }

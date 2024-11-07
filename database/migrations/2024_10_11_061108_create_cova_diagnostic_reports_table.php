@@ -15,15 +15,15 @@ return new class extends Migration
     {
         Schema::create('cova_diagnostic_reports', function (Blueprint $table) {
             $table->id();
-            $table->string('product_name');
-            $table->string('type');
-            $table->string('aglc_sku')->nullable();
-            $table->string('new_brunswick_sku')->nullable();
-            $table->string('ocs_sku')->nullable();
-            $table->string('ylc_sku')->nullable();
-            $table->string('manitoba_barcodeupc')->nullable();
-            $table->string('ontario_barcodeupc')->nullable();
-            $table->string('saskatchewan_barcodeupc')->nullable();
+            $table->string('product_name')->index();
+            $table->string('type')->index();
+            $table->string('aglc_sku')->nullable()->index();
+            $table->string('new_brunswick_sku')->nullable()->index();
+            $table->string('ocs_sku')->nullable()->index();
+            $table->string('ylc_sku')->nullable()->index();
+            $table->string('manitoba_barcodeupc')->nullable()->index();
+            $table->string('ontario_barcodeupc')->nullable()->index();
+            $table->string('saskatchewan_barcodeupc')->nullable()->index();
             $table->string('link_to_product')->nullable();
             $table->integer('opening_inventory_units')->nullable();
             $table->integer('quantity_purchased_units')->nullable();
@@ -39,7 +39,7 @@ return new class extends Migration
             $table->timestamps();
         });
     }
-    
+
     /**
      * Reverse the migrations.
      *

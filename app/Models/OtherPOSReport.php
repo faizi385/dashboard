@@ -13,7 +13,7 @@ class OtherPOSReport extends Model
 
     // Specify the fields that can be mass-assigned
     protected $fillable = [
-        'report_id',          // Foreign key for the report
+        'report_id',          
         'sku',                // SKU of the product
         'name',               // Name of the product
         'barcode',            // Barcode for the product

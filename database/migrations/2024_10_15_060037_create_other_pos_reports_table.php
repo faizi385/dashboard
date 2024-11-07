@@ -1,7 +1,5 @@
 <?php
 
-
-
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -13,11 +11,11 @@ class CreateOtherPosReportsTable extends Migration
         Schema::create('other_pos_reports', function (Blueprint $table) {
             $table->id();
             $table->foreignId('report_id')->constrained()->onDelete('cascade');
-            $table->string('sku');
-            $table->string('name');
-            $table->string('barcode')->nullable();
-            $table->string('brand');
-            $table->string('compliance_category')->nullable();
+            $table->string('sku')->index(); // Added index to SKU
+            $table->string('name')->nullable(); // Make name nullable
+            $table->string('barcode')->nullable(); // Barcode remains nullable
+            $table->string('brand')->index(); // Added index to brand
+            $table->string('compliance_category')->nullable(); // Compliance category remains nullable
             $table->decimal('opening', 10, 2)->default(0);
             $table->decimal('sold', 10, 2)->default(0);
             $table->decimal('purchased', 10, 2)->default(0);

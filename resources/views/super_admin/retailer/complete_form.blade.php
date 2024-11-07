@@ -83,21 +83,21 @@
             <div class="row mb-4">
                 <!-- First Name -->
                 <div class="col-md-4 mb-3">
-                    <label for="first_name" class="form-label"><i class="fas fa-user"></i> First Name</label>
+                    <label for="first_name" class="form-label"><i class="fas fa-user"></i> First Name <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" name="first_name" id="first_name" value="{{ $retailer->first_name }}" required>
                     <div class="invalid-feedback">Please provide a valid first name.</div>
                 </div>
 
                 <!-- Last Name -->
                 <div class="col-md-4 mb-3">
-                    <label for="last_name" class="form-label"><i class="fas fa-user"></i> Last Name</label>
+                    <label for="last_name" class="form-label"><i class="fas fa-user"></i> Last Name <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" name="last_name" id="last_name" value="{{ $retailer->last_name }}" required>
                     <div class="invalid-feedback">Please provide a valid last name.</div>
                 </div>
 
                 <!-- Email -->
                 <div class="col-md-4 mb-3">
-                    <label for="email" class="form-label"><i class="fas fa-envelope"></i> Email</label>
+                    <label for="email" class="form-label"><i class="fas fa-envelope"></i> Email <span class="text-danger">*</span></label>
                     <input type="email" class="form-control" name="email" id="email" value="{{ $retailer->email }}" required>
                     <div class="invalid-feedback">Please provide a valid email address.</div>
                 </div>
@@ -106,7 +106,7 @@
             <div class="row mb-4">
                 <!-- Phone Number -->
                 <div class="col-md-4 mb-3">
-                    <label for="phone" class="form-label"><i class="fas fa-phone"></i> Phone Number</label>
+                    <label for="phone" class="form-label"><i class="fas fa-phone"></i> Phone Number <span class="text-danger">*</span></label>
                     <input type="tel" class="form-control" name="phone" id="phone" value="{{ $retailer->phone }}" required pattern="^\+?\d{1,2}\s?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$">
                     <div class="invalid-feedback">Please provide a valid phone number in the format +1 (952) 473-2014.</div>
                 </div>
@@ -120,22 +120,23 @@
     
                 <!-- DBA -->
                 <div class="col-md-4 mb-3">
-                    <label for="dba" class="form-label"><i class="fas fa-tag"></i> DBA (Doing Business As)</label>
-                    <input type="text" class="form-control" name="dba" id="dba" value="{{ $retailer->dba }}">
+                    <label for="dba" class="form-label"><i class="fas fa-tag"></i> DBA (Doing Business As) <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="dba" id="dba" value="{{ $retailer->dba }}" required >
+                    <div class="invalid-feedback">Dba is required.</div>
                 </div>
             </div>
     
             <div class="row mb-4">
                 <!-- Password -->
                 <div class="col-md-6 mb-3">
-                    <label for="password" class="form-label"><i class="fas fa-lock"></i> Password</label>
+                    <label for="password" class="form-label"><i class="fas fa-lock"></i> Password <span class="text-danger">*</span></label>
                     <input type="password" class="form-control" name="password" id="password" minlength="8" required>
                     <div class="invalid-feedback">Password must be at least 8 characters long.</div>
                 </div>
     
                 <!-- Confirm Password -->
                 <div class="col-md-6 mb-3">
-                    <label for="password_confirmation" class="form-label"><i class="fas fa-lock"></i> Confirm Password</label>
+                    <label for="password_confirmation" class="form-label"><i class="fas fa-lock"></i> Confirm Password <span class="text-danger">*</span></label>
                     <input type="password" class="form-control" name="password_confirmation" id="password_confirmation" minlength="8" required>
                     <div class="invalid-feedback">Passwords do not match.</div>
                 </div>
@@ -152,19 +153,19 @@
                     </button>
                     <div class="row mb-3">
                         <div class="col-md-4 mb-3">
-                            <label for="street_no_0" class="form-label"><i class="fas fa-home"></i> Street No</label>
+                            <label for="street_no_0" class="form-label"><i class="fas fa-home"></i> Street No <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="addresses[0][street_no]" id="street_no_0" required>
                             <div class="invalid-feedback">Please provide a valid street number.</div>
                         </div>
             
                         <div class="col-md-4 mb-3">
-                            <label for="street_name_0" class="form-label"><i class="fas fa-road"></i> Street Name</label>
+                            <label for="street_name_0" class="form-label"><i class="fas fa-road"></i> Street Name <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="addresses[0][street_name]" id="street_name_0" required>
                             <div class="invalid-feedback">Please provide a valid street name.</div>
                         </div>
             
                         <div class="col-md-4 mb-3">
-                            <label for="location_0" class="form-label"><i class="fas fa-map-marker-alt"></i> Location</label>
+                            <label for="location_0" class="form-label"><i class="fas fa-map-marker-alt"></i> Location <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="addresses[0][location]" id="location_0" required>
                             <div class="invalid-feedback">Please provide a valid location.</div>
                         </div>
@@ -172,7 +173,7 @@
             
                     <div class="row mb-3">
                         <div class="col-md-4 mb-3">
-                            <label for="province_0" class="form-label"><i class="fas fa-globe"></i> Province</label>
+                            <label for="province_0" class="form-label"><i class="fas fa-globe"></i> Province <span class="text-danger">*</span></label>
                             <select class="form-control" name="addresses[0][province]" id="province_0" required>
                                 <option value="">Select a province</option>
                                 @foreach($provinces as $province)
@@ -184,13 +185,13 @@
                         
             
                         <div class="col-md-4 mb-3">
-                            <label for="city_0" class="form-label"><i class="fas fa-city"></i> City</label>
+                            <label for="city_0" class="form-label"><i class="fas fa-city"></i> City <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="addresses[0][city]" id="city_0" required>
                             <div class="invalid-feedback">Please provide a valid city.</div>
                         </div>
             
                         <div class="col-md-4 mb-3">
-                            <label for="postal_code_0" class="form-label"><i class="fas fa-envelope"></i> Postal Code</label>
+                            <label for="postal_code_0" class="form-label"><i class="fas fa-envelope"></i> Postal Code <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="addresses[0][postal_code]" id="postal_code_0" required pattern="^\d{5}(-\d{4})?$">
                             <div class="invalid-feedback">Please provide a valid postal code (5 digits).</div>
                         </div>

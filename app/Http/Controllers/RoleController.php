@@ -10,102 +10,112 @@ class RoleController extends Controller
 {
     public function index()
     {
-        // Get the authenticated user
         $user = auth()->user();
-    
-        // Check the user's role and retrieve roles accordingly
-        if ($user->hasRole('Retailer') || $user->hasRole('LP')) {
-            // Retrieve roles created by the logged-in retailer or LP
+        
+        // Filter roles based on user role
+        if ($user->hasRole(['Retailer', 'LP'])) {
+            // Only roles created by the logged-in Retailer or LP
             $roles = Role::where('created_by', $user->id)->get();
         } elseif ($user->hasRole('Super Admin')) {
-            // Retrieve roles created by the super admin only
-            $roles = Role::where('created_by', $user->id)->get(); 
+            // Super Admin can view all roles created by them
+            $roles = Role::where('created_by', $user->id)->get();
         } else {
-            // Default case for other roles (if applicable)
             $roles = Role::all();
         }
-    
+
         return view('super_admin.roles.index', compact('roles'));
     }
     
     public function create()
     {
+        // Get all permissions
         $permissions = Permission::all();
         return view('super_admin.roles.create', compact('permissions'));
     }
-
     public function store(Request $request)
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'],
-            'permissions' => 'nullable|array|min:1', // Ensure at least one permission is selected
-            'permissions.*' => 'exists:permissions,id', // Ensure each permission ID exists in the database
+            'permissions' => 'nullable|array|min:1',
+            'permissions.*' => 'exists:permissions,id',
         ]);
-    
-        // Concatenate the user ID with the role name
+        
+        // Create a unique role name for the creator
         $roleName = $request->name . '_' . auth()->id();
-    
-        // Check if a role with the same name exists for the current user
-        $existingRole = Role::where('name', $roleName)
-            ->where('created_by', auth()->id())
-            ->first();
+        $existingRole = Role::where('name', $roleName)->where('created_by', auth()->id())->first();
     
         if ($existingRole) {
             return redirect()->back()->withErrors(['name' => 'A role with this name already exists for the current user.']);
         }
     
-        // Create the new role with the concatenated name
+        // Create the new role
         $role = Role::create([
-            'name' => $roleName, // For unique naming
-            'original_name' => $request->input('name'), // Base role name
-            'created_by' => auth()->id(), // Track the creator
+            'name' => $roleName,
+            'original_name' => $request->input('name'),
+            'created_by' => auth()->id(),
         ]);
     
-        // Sync permissions if provided
-        if ($request->has('permissions')) {
-            $validPermissions = Permission::whereIn('id', $request->permissions)->pluck('id')->toArray();
-            $role->syncPermissions($validPermissions);
+        // Check if permissions are provided
+        if (empty($request->permissions)) {
+            return redirect()->back()->with('error', 'Please select at least one permission.');
         }
+    
+        // Sync permissions if provided
+        $validPermissions = Permission::whereIn('id', $request->permissions)->pluck('id')->toArray();
+        $role->syncPermissions($validPermissions);
     
         return redirect()->route('roles.index')->with('toast_success', 'Role created successfully.');
     }
     
+    
+
     public function edit(Role $role)
     {
         $permissions = Permission::all();
         $rolePermissions = $role->permissions->pluck('id')->toArray();
 
         return view('super_admin.roles.edit', compact('role', 'permissions', 'rolePermissions'));
-    }   
+    }
 
     public function update(Request $request, Role $role)
     {
         $request->validate([
             'name' => [
-                'required', 
-                'string', 
-                'max:255', 
-                'regex:/^[a-zA-Z\s]+$/', // Ensure no numeric values
+                'required',
+                'string',
+                'max:255',
+                'regex:/^[a-zA-Z\s]+$/',
                 'unique:roles,name,' . $role->id . ',id,created_by,' . auth()->id(),
             ],
-            'permissions' => 'array', 
+            'permissions' => 'nullable|array',
+            'permissions.*' => 'exists:permissions,id',
         ]);
-
-        $role->update(['original_name' => $request->name]);
-
+    
+        // Update role with validated name
+        $role->update([
+            'original_name' => $request->name,
+            'name' => $request->name . '_' . auth()->id(),
+        ]);
+    
+        // Sync permissions
         if ($request->has('permissions')) {
-            $validPermissions = Permission::whereIn('id', $request->permissions)->pluck('id')->toArray();
+            // Retrieve only existing permissions that match the current guard
+            $validPermissions = Permission::whereIn('id', $request->permissions)
+                                          ->where('guard_name', $role->guard_name)
+                                          ->pluck('id')
+                                          ->toArray();
             $role->syncPermissions($validPermissions);
         } else {
-            $role->syncPermissions([]); 
+            $role->syncPermissions([]);
         }
-
+    
         return redirect()->route('roles.index')->with('toast_success', 'Role updated successfully.');
     }
+    
 
     public function destroy(Role $role)
     {
         $role->delete();
-        return redirect()->route('roles.index')->with('toast_success','Role deleted successfully.');
+        return redirect()->route('roles.index')->with('toast_success', 'Role deleted successfully.');
     }
 }

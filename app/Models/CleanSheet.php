@@ -73,5 +73,10 @@ class CleanSheet extends Model
     {
         return $this->belongsTo(Province::class);
     }
+
+    public function product_variations()
+    {
+        return $this->belongsTo(ProductVariation::class);
+    }
    
 }

@@ -116,6 +116,7 @@ public function destroy($id)
     
         // Retrieve the LP ID and source from the request
         $lpId = $request->lp_id;
+        $lpName = $request->lp_name; // Retrieve LP name
         $source = $request->source;
     
         // Handle Offer Imports
@@ -124,7 +125,7 @@ public function destroy($id)
     
             try {
                 // Import Offers and check for errors
-                $import = new OffersImport($lpId, $source);
+                $import = new OffersImport($lpId, $source,$lpName);
                 Excel::import($import, $filePath);
     
                 // Check for any import errors (if the OffersImport tracks errors)
@@ -154,9 +155,9 @@ public function destroy($id)
         $rules = [
             'product_name' => 'required|string|max:255|regex:/^[^\d]*$/', // Ensure no integers
             'provincial_sku' => 'required|string|max:255',
-            'gtin' => 'required|string|max:255',
+             'gtin' => 'required|digits_between:1,255', // Accepts only numeric characters with a length between 1 and 255
             'province' => 'required|string|max:255|regex:/^[^\d]*$/', // Ensure no integers
-            'general_data_fee' => 'nullable|numeric|min:0',
+            'general_data_fee' => 'required|numeric|min:0',
             'exclusive_data_fee' => 'nullable|numeric|min:0', // Keep as nullable
             'unit_cost' => 'required|numeric',
             'category' => 'required|string|max:255|regex:/^[^\d]*$/', // Ensure no integers

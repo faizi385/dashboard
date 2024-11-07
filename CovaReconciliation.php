@@ -32,9 +32,9 @@ try {
         }
     }
     DB::table('reports')->where('id', $report->id)->update(['status' => 'retailer_statement_process']);
-    $insertIntoLogs = DB::table('cron_logs')->where('report_id', $report->id)->update([
-        'end_time' => now()
-    ]);
+    // $insertIntoLogs = DB::table('cron_logs')->where('report_id', $report->id)->update([
+    //     'end_time' => now()
+    // ]);
     DB::commit();
 } catch (\Exception $e) {
     Log::error('Error in Cova reconciliation: ' . $e->getMessage());

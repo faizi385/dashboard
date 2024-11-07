@@ -47,16 +47,16 @@
 
             <div class="row row-form">
                 <div class="col-md-4 form-group">
-                    <label for="name"><i class="fas fa-store"></i> LP Name</label>
+                    <label for="name"><i class="fas fa-store"></i> LP Name  <span class="text-danger">*</label>
                     <input type="text" class="form-control" name="name" id="name" value="{{ $lp->name }}" required>
                     <div class="invalid-feedback">Please provide a valid LP name.</div>
                 </div>
                 <div class="col-md-4 form-group">
-                    <label for="dba"><i class="fas fa-tag"></i> DBA (Doing Business As)</label>
+                    <label for="dba"><i class="fas fa-tag"></i> DBA (Doing Business As)  <span class="text-danger">*</label>
                     <input type="text" class="form-control" name="dba" id="dba" value="{{ $lp->dba }}">
                 </div>
                 <div class="col-md-4 form-group">
-                    <label for="primary_contact_email"><i class="fas fa-envelope"></i> Primary Contact Email</label>
+                    <label for="primary_contact_email"><i class="fas fa-envelope"></i> Primary Contact Email  <span class="text-danger">*</label>
                     <input type="email" class="form-control" name="primary_contact_email" id="primary_contact_email" value="{{ $lp->primary_contact_email }}" required>
                     <div class="invalid-feedback">Please provide a valid email address.</div>
                 </div>
@@ -64,15 +64,15 @@
 
             <div class="row row-form">
                 <div class="col-md-4 form-group">
-                    <label for="primary_contact_phone"><i class="fas fa-phone"></i> Primary Contact Phone</label>
+                    <label for="primary_contact_phone"><i class="fas fa-phone"></i> Primary Contact Phone  <span class="text-danger">*</label>
                     <input type="text" class="form-control" name="primary_contact_phone" id="primary_contact_phone" value="{{ $lp->primary_contact_phone }}">
                 </div>
                 <div class="col-md-4 form-group">
-                    <label for="primary_contact_position"><i class="fas fa-briefcase"></i> Primary Contact Position</label>
+                    <label for="primary_contact_position"><i class="fas fa-briefcase"></i> Primary Contact Position  <span class="text-danger">*</label>
                     <input type="text" class="form-control" name="primary_contact_position" id="primary_contact_position" value="{{ $lp->primary_contact_position }}">
                 </div>
                 <div class="col-md-4 form-group">
-                    <label for="password"><i class="fas fa-lock"></i> Password</label>
+                    <label for="password"><i class="fas fa-lock"></i> Password  <span class="text-danger">*</label>
                     <input type="password" class="form-control" name="password" id="password" required>
                     <div class="invalid-feedback">Please provide a password.</div>
                 </div>
@@ -80,27 +80,27 @@
 
             <div class="row row-form">
                 <div class="col-md-4 form-group">
-                    <label for="password_confirmation"><i class="fas fa-lock"></i> Confirm Password</label>
+                    <label for="password_confirmation"><i class="fas fa-lock"></i> Confirm Password  <span class="text-danger">*</label>
                     <input type="password" class="form-control" name="password_confirmation" id="password_confirmation" required>
                     <div class="invalid-feedback">Please confirm your password.</div>
                 </div>
                 <div class="col-md-4 form-group">
-                    <label for="street_number"><i class="fas fa-home"></i> Street Number</label>
+                    <label for="street_number"><i class="fas fa-home"></i> Street Number  <span class="text-danger">*</label>
                     <input type="text" class="form-control" name="address[street_number]" id="street_number">
                 </div>
                 <div class="col-md-4 form-group">
-                    <label for="street_name"><i class="fas fa-road"></i> Street Name</label>
+                    <label for="street_name"><i class="fas fa-road"></i> Street Name  <span class="text-danger">*</label>
                     <input type="text" class="form-control" name="address[street_name]" id="street_name">
                 </div>
             </div>
 
             <div class="row row-form">
                 <div class="col-md-4 form-group">
-                    <label for="postal_code"><i class="fas fa-postcode"></i> Postal Code</label>
+                    <label for="postal_code"><i class="fas fa-postcode"></i> Postal Code  <span class="text-danger">*</label>
                     <input type="text" class="form-control" name="address[postal_code]" id="postal_code">
                 </div>
                 <div class="col-md-4 form-group">
-                    <label for="city"><i class="fas fa-city"></i> City</label>
+                    <label for="city"><i class="fas fa-city"></i> City  <span class="text-danger">*</label>
                     <select class="form-control" name="address[city]" id="city" required>
                         <option value="">Select City</option>
                         <option value="City1">City1</option>

@@ -9,7 +9,8 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Illuminate\Support\Facades\Log;
 
 class OtherPOSReportImport implements ToModel, WithHeadingRow
-{   protected $location;
+{   
+    protected $location;
     protected $reportId;
     protected $errors = []; // Array to store error messages
     protected $hasCheckedHeaders = false; // Flag to check if headers have been validated
@@ -38,12 +39,21 @@ class OtherPOSReportImport implements ToModel, WithHeadingRow
                 Log::error('Missing headers: ' . implode(', ', $formattedHeaders));
                 $this->errors[] = 'Missing headers: ' . implode(', ', $formattedHeaders);
                 $this->hasCheckedHeaders = true; // Set the flag to prevent further checks
-                return null; // Stop processing this row
+
+                // Throw an exception for missing headers
+                throw new \Exception('Missing headers: ' . implode(', ', $formattedHeaders));
             }
         }
 
         // Fetch the report ID based on the location
         $report = Report::where('location', $this->location)->first();
+        
+        // Log the fetched report for debugging
+        if ($report) {
+            Log::info('Fetched report ID: ' . $report->id . ' for location: ' . $this->location);
+        } else {
+            Log::warning('No report found for location: ' . $this->location);
+        }
 
         // Proceed with creating the model if headers are valid
         return new OtherPOSReport([
@@ -74,3 +84,4 @@ class OtherPOSReportImport implements ToModel, WithHeadingRow
         return floatval(str_replace('$', '', $value));
     }
 }
+

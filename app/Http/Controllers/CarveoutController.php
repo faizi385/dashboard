@@ -67,9 +67,9 @@ class CarveoutController extends Controller
     
         // Validate incoming request
         $request->validate([
-            'province' => 'nullable',
+            'province' => 'required',
             'retailer' => 'required|exists:retailers,id',
-            'location' => 'required|string|max:255',
+            'location' => 'nullable|string|max:255',
             'sku' => 'nullable|string|max:255',
             'carveout_date' => 'required|date',
             'lp_id' => auth()->user()->hasRole('Super Admin') ? 'required|exists:lps,id' : '', // Only validate lp_id for Super Admin

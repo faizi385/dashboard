@@ -14,5 +14,5 @@ class ReportLogController extends Controller
     
         return view('reports.report_logs.index', compact('reportLogs'));
     }
-    
+ 
 }

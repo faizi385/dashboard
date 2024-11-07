@@ -9,7 +9,7 @@
 <!-- Toastr CSS -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Ivy+Mode:wght@400&display=swap" rel="stylesheet">
-
+   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <!-- Toastr JS -->
 {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script> --}}
 
@@ -111,7 +111,7 @@
                 <nav class="mt-2">
                     <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
         
-                        <!-- Manage Users Dropdown (Visible to both Super Admin and Retailers) -->
+                    
                         <li class="nav-item has-treeview {{ request()->is('users*') || request()->is('roles*') || request()->is('permissions*') ? 'menu-open' : '' }}">
                             <a href="#" class="nav-link {{ request()->is('users*') || request()->is('roles*') || request()->is('permissions*') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-users"></i>
@@ -373,7 +373,9 @@
     
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
    
-    <!-- Other plugins -->
+ <!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     @stack('scripts')
 </body>
 </html>

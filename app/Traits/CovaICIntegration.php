@@ -18,8 +18,8 @@ trait CovaICIntegration
     public function mapCovaCatalouge($covaDaignosticReport, $report)
     {
         $cleanSheetData = []; $cleanSheetData['report_price_og'] = '0.00';
-        $retailer_id = $greenlineReport->report->retailer_id ?? null;
-        $location = $greenlineReport->report->location ?? null;
+        $retailer_id = $covaDaignosticReport->report->retailer_id ?? null;
+        $location = $covaDaignosticReport->report->location ?? null;
 
         if (!$retailer_id) {
             Log::warning('Retailer ID not found for report:', ['report_id' => $report->id]);
@@ -37,35 +37,35 @@ trait CovaICIntegration
         }
 
         if ($report->province == 'ON' || $report->province == 'Ontario') {
-            $product =  $this->getICMatchedData('ocs_sku', trim($covaDaignosticReport->ocs_sku) ?? '', 'ontario_barcode_upc', trim($covaDaignosticReport->ontario_barcode_upc) ?? '', 'product_name', $covaDaignosticReport->product_name ?? '', $provinceName, $provinceSlug);
+            $product =  $this->getICMatchedData('ocs_sku', trim($covaDaignosticReport->ocs_sku) ?? '', 'ontario_barcode_upc', trim($covaDaignosticReport->ontario_barcode_upc) ?? '', 'product_name', $covaDaignosticReport->product_name ?? '', $provinceName, $provinceSlug, $provinceId);
             if(!empty($product) && empty($covaDaignosticReport->ocs_sku)){
                 $CovaSalesSummaryReport =  CovaSalesReport::where('cova_diagnostic_report_id', $covaDaignosticReport->id)->first();
             } else {
                 $CovaSalesSummaryReport =  CovaSalesReport::where('cova_diagnostic_report_id', $covaDaignosticReport->id)->first();
             }
         } elseif ($report->province == 'AB' || $report->province == 'Alberta') {
-            $product =  $this->getICMatchedData('aglc_sku', trim($covaDaignosticReport->aglc_sku) ?? '', 'manitoba_barcode_upc', trim($covaDaignosticReport->manitoba_barcode_upc) ?? '', 'product_name', $covaDaignosticReport->product_name ?? '', $provinceName, $provinceSlug);
+            $product =  $this->getICMatchedData('aglc_sku', trim($covaDaignosticReport->aglc_sku) ?? '', 'manitoba_barcode_upc', trim($covaDaignosticReport->manitoba_barcode_upc) ?? '', 'product_name', $covaDaignosticReport->product_name ?? '', $provinceName, $provinceSlug, $provinceId);
             if(!empty($product) && empty($covaDaignosticReport->aglc_sku)){
                 $CovaSalesSummaryReport =  CovaSalesReport::where('cova_diagnostic_report_id', $covaDaignosticReport->id)->first();
             } else {
                 $CovaSalesSummaryReport =  CovaSalesReport::where('cova_diagnostic_report_id', $covaDaignosticReport->id)->first();
             }
         } elseif ($report->province == 'MB' || $report->province == 'Manitoba') {
-            $product =  $this->getICMatchedData('new_brunswick_sku', trim($covaDaignosticReport->new_brunswick_sku) ?? '', 'manitoba_barcode_upc', trim($covaDaignosticReport->manitoba_barcode_upc) ?? '', 'product_name', $covaDaignosticReport->product_name ?? '', $provinceName, $provinceSlug);
+            $product =  $this->getICMatchedData('new_brunswick_sku', trim($covaDaignosticReport->new_brunswick_sku) ?? '', 'manitoba_barcode_upc', trim($covaDaignosticReport->manitoba_barcode_upc) ?? '', 'product_name', $covaDaignosticReport->product_name ?? '', $provinceName, $provinceSlug, $provinceId);
             if(!empty($product) && empty($covaDaignosticReport->new_brunswick_sku)){
                 $CovaSalesSummaryReport =  CovaSalesReport::where('cova_diagnostic_report_id', $covaDaignosticReport->id)->first();
             } else{
                 $CovaSalesSummaryReport =  CovaSalesReport::where('cova_diagnostic_report_id', $covaDaignosticReport->id)->first();
             }
         } elseif ($report->province == 'BC' || $report->province == 'British Columbia') {
-            $product =  $this->getICMatchedData('new_brunswick_sku', trim($covaDaignosticReport->new_brunswick_sku) ?? '', 'manitoba_barcode_upc', trim($covaDaignosticReport->manitoba_barcode_upc) ?? '', 'product_name', $covaDaignosticReport->product_name ?? '', $provinceName, $provinceSlug);
+            $product =  $this->getICMatchedData('new_brunswick_sku', trim($covaDaignosticReport->new_brunswick_sku) ?? '', 'manitoba_barcode_upc', trim($covaDaignosticReport->manitoba_barcode_upc) ?? '', 'product_name', $covaDaignosticReport->product_name ?? '', $provinceName, $provinceSlug, $provinceId);
             if(!empty($product) && empty($covaDaignosticReport->new_brunswick_sku)){
                 $CovaSalesSummaryReport =  CovaSalesReport::where('cova_diagnostic_report_id', $covaDaignosticReport->id)->first();
             } else {
                 $CovaSalesSummaryReport =  CovaSalesReport::where('cova_diagnostic_report_id', $covaDaignosticReport->id)->first();
             }
         } elseif ($report->province == 'SK' || $report->province == 'Saskatchewan') {
-            $product =  $this->getICMatchedData('new_brunswick_sku', trim($covaDaignosticReport->new_brunswick_sku) ?? '', 'saskatchewan_barcode_upc', trim($covaDaignosticReport->saskatchewan_barcode_upc) ?? '', 'product_name', $covaDaignosticReport->product_name ?? '', $provinceName, $provinceSlug);
+            $product =  $this->getICMatchedData('new_brunswick_sku', trim($covaDaignosticReport->new_brunswick_sku) ?? '', 'saskatchewan_barcode_upc', trim($covaDaignosticReport->saskatchewan_barcode_upc) ?? '', 'product_name', $covaDaignosticReport->product_name ?? '', $provinceName, $provinceSlug, $provinceId);
             if(!empty($product) && empty($covaDaignosticReport->new_brunswick_sku)){
                 $CovaSalesSummaryReport =  CovaSalesReport::where('cova_diagnostic_report_id', $covaDaignosticReport->id)->first();
             } else {
@@ -85,6 +85,7 @@ trait CovaICIntegration
             $cleanSheetData['location'] = $report->location;
             $cleanSheetData['province'] = $provinceName;
             $cleanSheetData['province_slug'] = $provinceSlug;
+            $cleanSheetData['province_id'] =  $provinceId ;
             $cleanSheetData['sku'] = $product->sku;
             $cleanSheetData['product_name'] = $product->product_name;
             $cleanSheetData['category'] = $product->category;
@@ -119,11 +120,11 @@ trait CovaICIntegration
             }
             $cleanSheetData['pos'] = $report->pos;
             $cleanSheetData['reconciliation_date'] = $report->date;
-            $cleanSheetData['opening_inventory_units'] = $covaDaignosticReport->opening_inventory_units ?? "0";
-            $cleanSheetData['closing_inventory_units'] = $covaDaignosticReport->closing_inventory_units ?? "0";
+            $cleanSheetData['opening_inventory_unit'] = $covaDaignosticReport->opening_inventory_units ?? "0";
+            $cleanSheetData['closing_inventory_unit'] = $covaDaignosticReport->closing_inventory_units ?? "0";
             $cleanSheetData['product_variation_id'] = $product->id;
-            $cleanSheetData['dqi_per'] = '';
-            $cleanSheetData['dqi_fee'] = '';
+            $cleanSheetData['dqi_per'] = 0.00;
+            $cleanSheetData['dqi_fee'] = 0.00;
             $offer = $this->getDQIMatchedData($report, $covaDaignosticReport, $provinceName, $provinceSlug,$provinceId);
             if (!empty($offer)) {
                 $cleanSheetData['offer_id'] = $offer->id;
@@ -156,7 +157,7 @@ trait CovaICIntegration
                 $cleanSheetData['c_flag'] = '';
                 $cleanSheetData['dqi_flag'] = 0;
                 $cleanSheetData['flag'] = '1';
-                $cleanSheetData['comments'] = 'Record found in the Master Catalog';
+                $cleanSheetData['comment'] = 'Record found in the Master Catalog';
             }
         } else {
             $offer = $this->getMatchedOffer($report, $covaDaignosticReport, $provinceName, $provinceSlug, $provinceId);
@@ -172,6 +173,7 @@ trait CovaICIntegration
                 $cleanSheetData['location'] = $location;
                 $cleanSheetData['province'] = $provinceName;
                 $cleanSheetData['province_slug'] = $provinceSlug;
+                $cleanSheetData['province_id'] =  $provinceId ;
                 $cleanSheetData['sku'] = $offer->provincial_sku;
                 $cleanSheetData['product_name'] = $offer->product_name;
                 $cleanSheetData['category'] = $offer->category;
@@ -216,8 +218,8 @@ trait CovaICIntegration
                 }
                 $cleanSheetData['pos'] = $report->pos;
                 $cleanSheetData['reconciliation_date'] = $report->date;
-                $cleanSheetData['opening_inventory_units'] = $covaDaignosticReport->opening_inventory_units ?? "0";
-                $cleanSheetData['closing_inventory_units'] = $covaDaignosticReport->closing_inventory_units ?? "0";
+                $cleanSheetData['opening_inventory_unit'] = $covaDaignosticReport->opening_inventory_units ?? "0";
+                $cleanSheetData['closing_inventory_unit'] = $covaDaignosticReport->closing_inventory_units ?? "0";
                 $cleanSheetData['flag'] = '2';
                 $cleanSheetData['comment'] = 'Record found in the Offers';
                 $cleanSheetData['dqi_flag'] = 1;
@@ -242,6 +244,7 @@ trait CovaICIntegration
                 $cleanSheetData['location'] = $report->location;
                 $cleanSheetData['province'] = $provinceName;
                 $cleanSheetData['province_slug'] = $provinceSlug;
+                $cleanSheetData['province_id'] =  $provinceId ;
                 $cleanSheetData['product_name'] = $covaDaignosticReport->product_name;
                 $cleanSheetData['category'] = $CovaSalesSummaryReport->category ?? '';
                 $cleanSheetData['brand'] =  $CovaSalesSummaryReport->brand ?? '';
@@ -270,14 +273,14 @@ trait CovaICIntegration
                 }
                 $cleanSheetData['pos'] = $report->pos;
                 $cleanSheetData['reconciliation_date'] = $report->date;
-                $cleanSheetData['opening_inventory_units'] = $covaDaignosticReport->opening_inventory_units ?? "0";
-                $cleanSheetData['closing_inventory_units'] = $covaDaignosticReport->closing_inventory_units ?? "0";
+                $cleanSheetData['opening_inventory_unit'] = $covaDaignosticReport->opening_inventory_units ?? "0";
+                $cleanSheetData['closing_inventory_unit'] = $covaDaignosticReport->closing_inventory_units ?? "0";
                 $cleanSheetData['flag'] = '0';
-                $cleanSheetData['comments'] = 'Record not found in the Master Catalog And Offer';
+                $cleanSheetData['comment'] = 'Record not found in the Master Catalog And Offer';
                 $cleanSheetData['dqi_flag'] = 0;
                 $cleanSheetData['product_variation_id'] = null;
-                $cleanSheetData['dqi_per'] = '';
-                $cleanSheetData['dqi_fee'] = '';
+                $cleanSheetData['dqi_per'] = 0.00;
+                $cleanSheetData['dqi_fee'] = 0.00;
             }
         }
         $cleanSheetData['sold'] = $this->sanitizeNumeric($cleanSheetData['sold']);
@@ -308,19 +311,19 @@ trait CovaICIntegration
 
         return $averageCost;
     }
-    private function getICMatchedData($sku_key, $sku_value, $barcode_key, $barcode_value, $product_key, $product_value, $provinceName, $provinceSlug)
+    private function getICMatchedData($sku_key, $sku_value, $barcode_key, $barcode_value, $product_key, $product_value, $provinceName, $provinceSlug, $provinceId)
     {
         if (!empty($barcode_value) && !empty($sku_value)) {
-            $product = $this->matchICBarcodeSku($barcode_value, $sku_value, $provinceName, $provinceSlug);
-        } elseif (!empty($barcode_value) && empty($sku_value)) {
-            $product = $this->matchICBarcode($barcode_value, $provinceName, $provinceSlug);
-        } elseif (!empty($sku_value)) {
-            $product = $this->matchICSku($sku_value, $provinceName, $provinceSlug);
-        } else {
-            $product = $this->matchICProductName($product_value, $provinceName, $provinceSlug);
-        }
-        if (empty($product) && !empty($barcode_value)) {
-            $product = $this->matchICBarcode($barcode_value, $provinceName, $provinceSlug);
+            $product = $this->matchICBarcodeSku($barcode_value, $sku_value, $provinceName, $provinceSlug, $provinceId);
+        } 
+        if (!empty($sku_value) && empty($product)) {
+            $product = $this->matchICSku($sku_value, $provinceName, $provinceSlug, $provinceId);
+        } 
+        if (!empty($barcode_value)  && empty($product)) {
+            $product = $this->matchICBarcode($barcode_value, $provinceName, $provinceSlug, $provinceId);
+        } 
+        if (!empty($product_value) && empty($product)) {
+            $product = $this->matchICProductName($product_value, $provinceName, $provinceSlug, $provinceId);
         }
         return  $product ?? '';
     }

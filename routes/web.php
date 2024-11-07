@@ -14,6 +14,7 @@ use App\Http\Controllers\CarveoutController;
 use App\Http\Controllers\OfferLogController;
 use App\Http\Controllers\ProvinceController;
 use App\Http\Controllers\RetailerController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReportLogController;
 use App\Http\Controllers\ManageInfoController;
 use App\Http\Controllers\PermissionController;
@@ -35,10 +36,9 @@ use App\Http\Controllers\RetailerLogController;
 Route::get('/', function () {
     return view('welcome');
 });
-
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified', 'role:Super Admin'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified', 'role:Super Admin']) // Ensure only Super Admins can access
+    ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -187,6 +187,12 @@ Route::get('/report-logs', [ReportLogController::class, 'index'])->name('report.
 Route::get('/retailers/{retailer}/reports', [ReportController::class, 'index'])->name('retailers.reports.index');
 Route::get('/super-admin/reports', [ReportController::class, 'index'])->name('super_admin.reports.index');
 Route::get('/retailer/reports', [ReportController::class, 'index'])->middleware('auth')->name('retailer.reports.index');
+Route::get('/report/{reportId}/download/{fileNumber}', [ReportController::class, 'downloadFile'])->name('report.download');
+Route::get('reports/download/{reportId}/{fileNumber}', [ReportController::class, 'downloadFile'])->name('reports.downloadFile');
+Route::get('/reports/{report_id}/export-clean-sheets', [ReportController::class, 'exportCleanSheets'])->name('reports.exportCleanSheets');
+Route::get('/reports/{report_id}/export-statement', [ReportController::class, 'exportStatement'])->name('reports.exportStatement');
+Route::delete('/reports/{report}', [ReportController::class, 'destroy'])->name('reports.destroy');
+
 
 
 

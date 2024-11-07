@@ -2,14 +2,13 @@
 
 @section('content')
 <div class="container">
-   
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="text-white">Edit LP</h1>
         <a href="{{ route('lp.index') }}" class="btn btn-primary">
             <i class="fas fa-arrow-left"></i> Back
         </a>
     </div>
-    <form action="{{ route('lp.update', $lp) }}" method="POST">
+    <form id="editLpForm" action="{{ route('lp.update', $lp) }}" method="POST">
         @csrf
         @method('PUT')
 
@@ -19,7 +18,7 @@
                     <!-- LP Name -->
                     <div class="col-md-6 form-group">
                         <label for="name"><i class="fas fa-building"></i> LP Name <span class="text-danger">*</span></label>
-                        <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name', $lp->name) }}" >
+                        <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name', $lp->name) }}">
                         @error('name')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -39,7 +38,7 @@
                     <!-- Primary Contact Email -->
                     <div class="col-md-6 form-group">
                         <label for="primary_contact_email"><i class="fas fa-envelope"></i> Primary Contact Email <span class="text-danger">*</span></label>
-                        <input type="email" name="primary_contact_email" id="primary_contact_email" class="form-control @error('primary_contact_email') is-invalid @enderror" value="{{ old('primary_contact_email', $lp->primary_contact_email) }}" >
+                        <input type="email" name="primary_contact_email" id="primary_contact_email" class="form-control @error('primary_contact_email') is-invalid @enderror" value="{{ old('primary_contact_email', $lp->primary_contact_email) }}">
                         @error('primary_contact_email')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -74,3 +73,28 @@
     </form>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Function to remove 'is-invalid' class and error message when user starts typing
+        function removeValidationErrors(input) {
+            input.addEventListener('input', function () {
+                if (input.classList.contains('is-invalid')) {
+                    input.classList.remove('is-invalid');
+                    const errorDiv = input.nextElementSibling;
+                    if (errorDiv && errorDiv.classList.contains('invalid-feedback')) {
+                        errorDiv.style.display = 'none'; // Hide the error message
+                    }
+                }
+            });
+        }
+
+        // Add event listeners to all form inputs to remove validation errors when typing
+        const formInputs = document.querySelectorAll('#editLpForm input[type="text"], #editLpForm input[type="email"]');
+        formInputs.forEach(function (input) {
+            removeValidationErrors(input);
+        });
+    });
+</script>
+@endpush

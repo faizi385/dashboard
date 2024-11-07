@@ -2,7 +2,17 @@
 
 @section('content')
 <div class="container p-4">
-    <h1 class="text-white mb-4">Add Report for {{ $retailer->dba }}</h1>
+  
+
+
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="text-white mb-4">Add Report for {{ $retailer->dba }}</h1>
+        <a href="{{ url()->previous() }}" class="btn btn-primary">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
+
 
     <div class="bg-white p-4 rounded shadow-sm mb-4">
         <form action="{{ route('retailers.reports.store', $retailer->id) }}" method="POST" enctype="multipart/form-data">
@@ -11,7 +21,7 @@
             <!-- Location Dropdown -->
             <div class="row mb-4">
                 <div class="col-md-6">
-                    <label for="location" class="form-label">Location</label>
+                    <label for="location" class="form-label">Location <span class="text-danger">*</span></label>
                     <select name="location" id="location" class="form-select @error('location') is-invalid @enderror">
                         <option value="">Select Location</option>
                         @foreach($addresses as $address)
@@ -27,7 +37,7 @@
 
                 <!-- POS Dropdown -->
                 <div class="col-md-6">
-                    <label for="pos" class="form-label">POS System</label>
+                    <label for="pos" class="form-label">POS System <span class="text-danger">*</span></label>
                     <select name="pos" id="pos" class="form-select @error('pos') is-invalid @enderror" onchange="toggleFileUpload()">
                         <option value="">Select POS</option>
                         <option value="greenline">Greenline</option>

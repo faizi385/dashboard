@@ -25,8 +25,8 @@ trait GlobalTillIntegration
      */
     public function mapGlobaltillMasterCatalouge($gobatellDiagnosticReport,$report)
     {
-        $GobatellSalesSummaryReport=GlobalTillSalesSummaryReport::where('report_id', $report->id)->first();
 
+        $GobatellSalesSummaryReport =  GlobalTillSalesSummaryReport::where('gb_diagnostic_report_id', $gobatellDiagnosticReport->id)->first();
         Log::info('Processing Globaltill reports:', ['report' => $report]);
         $cleanSheetData = []; $cleanSheetData['report_price_og'] = '0.00';
         $retailer_id = $gobatellDiagnosticReport->report->retailer_id ?? null;
