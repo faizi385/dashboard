@@ -51,7 +51,7 @@ try {
     }
 
     // Mark report as completed upon successful processing
-    DB::table('reports')->where('id', $report->id)->update(['status' => 'retailer_statement_done']);
+    DB::table('reports')->where('id', $report->id)->update(['status' => 'Completed']);
     DB::commit();
     
     print_r('Retailer statement process completed successfully.');

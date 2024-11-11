@@ -68,11 +68,11 @@ trait TechPosIntegration
             $cleanSheetData['province_slug'] = $provinceSlug;
             $cleanSheetData['province_id'] =  $provinceId ;
             $cleanSheetData['sku'] = $sku;
-            $cleanSheetData['product_name'] = $productName;
+            $cleanSheetData['product_name'] = $product->product_name;
             $cleanSheetData['category'] = $product->category;
             $cleanSheetData['brand'] = $product->brand;
-            $cleanSheetData['sold'] = $techPOSReport->sold;
-            $cleanSheetData['purchase'] = $techPOSReport->purchased ?? '0';
+            $cleanSheetData['sold'] = $techPOSReport->quantitysoldinstoreunits ?? '0';
+            $cleanSheetData['purchase'] = $techPOSReport->quantitypurchasedunits ?? '0';
             $cleanSheetData['average_price'] = $this->techpos_averge_price($techPOSReport);
             $techPOSAverageCost = \App\Helpers\GeneralFunctions::formatAmountValue($techPOSReport->costperunit) ?? '0';
             if ($techPOSAverageCost != "0.00" && $techPOSAverageCost != '0' && (float)$techPOSAverageCost != 0.00) {
@@ -104,8 +104,8 @@ trait TechPosIntegration
             }
             $cleanSheetData['pos'] = $report->pos;
             $cleanSheetData['reconciliation_date'] = $report->date;
-            $cleanSheetData['opening_inventory_unit'] = $techPOSReport->opening ?? '0';
-            $cleanSheetData['closing_inventory_unit'] = $techPOSReport->closing ?? '0';
+            $cleanSheetData['opening_inventory_unit'] = $techPOSReport->openinventoryunits ?? '0';
+            $cleanSheetData['closing_inventory_unit'] = $techPOSReport->closinginventoryunits ?? '0';
             $cleanSheetData['product_variation_id'] = $product->id;
             $cleanSheetData['dqi_per'] = 0.00;
             $cleanSheetData['dqi_fee'] = 0.00;
@@ -212,8 +212,8 @@ trait TechPosIntegration
                 }
                 $cleanSheetData['pos'] = $report->pos;
                 $cleanSheetData['reconciliation_date'] = $report->date;
-                $cleanSheetData['opening_inventory_unit'] = $techPOSReport->opening ?? '0';
-                $cleanSheetData['closing_inventory_unit'] = $techPOSReport->closing ?? '0';
+                $cleanSheetData['opening_inventory_unit'] = $techPOSReport->openinventoryunits ?? '0';
+                $cleanSheetData['closing_inventory_unit'] = $techPOSReport->closinginventoryunits ?? '0';
                 $cleanSheetData['flag'] = '2';
                 $cleanSheetData['comment'] = 'Record found in the Offers';
                 $cleanSheetData['dqi_flag'] = 1;
@@ -267,8 +267,8 @@ trait TechPosIntegration
                 }
                 $cleanSheetData['pos'] = $report->pos;
                 $cleanSheetData['reconciliation_date'] = $report->date;
-                $cleanSheetData['opening_inventory_unit'] = $techPOSReport->opening ?? '0';
-                $cleanSheetData['closing_inventory_unit'] = $techPOSReport->closing ?? '0';
+                $cleanSheetData['opening_inventory_unit'] = $techPOSReport->openinventoryunits ?? '0';
+                $cleanSheetData['closing_inventory_unit'] = $techPOSReport->closinginventoryunits ?? '0';
                 $cleanSheetData['flag'] = '0';
                 $cleanSheetData['comment'] = 'No matching product or offer found.';
                 $cleanSheetData['dqi_flag'] = 0;
@@ -292,8 +292,8 @@ trait TechPosIntegration
 
     public function techpos_averge_price($techPOSReport){
 
-        $quantitysoldunits =  (double)trim($techPOSReport->quantitysoldunits);
-        $quantitysoldvalue =  \App\Helpers\GeneralFunctions::formatAmountValue($techPOSReport->quantitysoldvalue);
+        $quantitysoldunits =  (double)trim($techPOSReport->quantitysoldinstoreunits);
+        $quantitysoldvalue =  \App\Helpers\GeneralFunctions::formatAmountValue($techPOSReport->quantitysoldinstorevalue);
         if ($quantitysoldunits == '0' || $quantitysoldunits == '0.00') {
             $quantitysoldunits = 1;
         }

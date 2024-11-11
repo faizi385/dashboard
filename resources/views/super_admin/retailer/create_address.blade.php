@@ -102,74 +102,137 @@
         <button type="submit" class="btn btn-primary mt-3"><i class="fas fa-save"></i> Save Locations</button>
     </form>
     <script>
-        let addressCount = 1;
+ let addressCount = 1;
 
-        // Function to remove 'is-invalid' class and error message when user starts typing
-        function removeValidationErrors(input) {
-            input.addEventListener('input', function () {
-                if (input.classList.contains('is-invalid')) {
-                    input.classList.remove('is-invalid');
-                    const errorDiv = input.nextElementSibling;
-                    if (errorDiv && errorDiv.classList.contains('invalid-feedback')) {
-                        errorDiv.style.display = 'none'; // Hide the error message
-                    }
-                }
-            });
+// Function to remove 'is-invalid' class and error message when user starts typing
+function removeValidationErrors(input) {
+    input.addEventListener('input', function () {
+        if (input.classList.contains('is-invalid')) {
+            input.classList.remove('is-invalid');
+            const errorDiv = input.nextElementSibling;
+            if (errorDiv && errorDiv.classList.contains('invalid-feedback')) {
+                errorDiv.style.display = 'none'; // Hide the error message
+            }
+        }
+    });
+}
+
+// Add event listeners to all form inputs to remove validation errors when typing
+const formInputs = document.querySelectorAll('#address-forms input[type="text"], #address-forms input[type="email"], #address-forms select');
+formInputs.forEach(function (input) {
+    removeValidationErrors(input);
+});
+// Function to display validation errors dynamically
+function displayValidationErrors(input) {
+    if (input.value.trim() === '') {
+        input.classList.add('is-invalid');
+        let errorDiv = input.nextElementSibling;
+        
+        // If error div does not exist, create it
+        if (!errorDiv || !errorDiv.classList.contains('invalid-feedback')) {
+            errorDiv = document.createElement('div');
+            errorDiv.classList.add('invalid-feedback');
+            input.parentNode.insertBefore(errorDiv, input.nextSibling);
+        }
+        
+        errorDiv.style.display = 'block'; // Show the error message
+        errorDiv.textContent = 'This field is required.'; // Custom message
+    }
+}
+
+// Add new address form functionality
+document.getElementById('add-address').addEventListener('click', function() {
+    let newAddressForm = document.querySelector('.address-form').cloneNode(true);
+    newAddressForm.querySelectorAll('input, select').forEach(function(input) {
+        input.name = input.name.replace(/\d+/, addressCount);
+        input.value = '';
+        input.setAttribute('required', 'required'); // Ensure the required attribute is present
+        if (input.classList.contains('custom-city-input')) {
+            input.style.display = 'none'; // Hide custom city input in cloned form
+        }
+        input.classList.remove('is-invalid'); // Remove the invalid class from cloned inputs
+        
+        // Remove error message if it exists
+        let errorDiv = input.nextElementSibling;
+        if (errorDiv && errorDiv.classList.contains('invalid-feedback')) {
+            errorDiv.style.display = 'none';
         }
 
-        // Add event listeners to all form inputs to remove validation errors when typing
-        const formInputs = document.querySelectorAll('#address-forms input[type="text"], #address-forms input[type="email"], #address-forms select');
-        formInputs.forEach(function (input) {
-            removeValidationErrors(input);
-        });
+        // Add event listener to new inputs for dynamic error removal
+        removeValidationErrors(input);
+    });
+    
+    // Display the remove button on new forms
+    newAddressForm.querySelector('.remove-address').style.display = 'inline-block';
+    document.getElementById('address-forms').appendChild(newAddressForm);
+    addressCount++;
+    
+    // Apply city toggle functionality for new form
+    handleCityDropdown(newAddressForm);
 
-        // Add new address form functionality
-        document.getElementById('add-address').addEventListener('click', function() {
-            let newAddressForm = document.querySelector('.address-form').cloneNode(true);
-            newAddressForm.querySelectorAll('input, select').forEach(function(input) {
-                input.name = input.name.replace(/\d+/, addressCount);
-                input.value = '';
-                if (input.classList.contains('custom-city-input')) {
-                    input.style.display = 'none'; // Hide custom city input in cloned form
-                }
-                input.classList.remove('is-invalid'); // Remove the invalid class from cloned inputs
-                const errorDiv = input.nextElementSibling;
-                if (errorDiv && errorDiv.classList.contains('invalid-feedback')) {
-                    errorDiv.style.display = 'none'; // Hide the error message in cloned inputs
-                }
-            });
-            // Display the remove button on new forms
-            newAddressForm.querySelector('.remove-address').style.display = 'inline-block';
-            document.getElementById('address-forms').appendChild(newAddressForm);
-            addressCount++;
-            // Apply city toggle functionality for new form
-            handleCityDropdown(newAddressForm);
-        });
+    // Add validation event for cloned inputs
+    validateClonedInputs(newAddressForm);
+});
 
-        // Handle city dropdown toggle
-        function handleCityDropdown(form) {
-            form.querySelector('.city-dropdown').addEventListener('change', function() {
-                if (this.value === 'other') {
-                    form.querySelector('.custom-city-input').style.display = 'block';
-                } else {
-                    form.querySelector('.custom-city-input').style.display = 'none';
-                }
-            });
-        }
-
-        // Apply city dropdown toggle for the initial form
-        document.querySelectorAll('.address-form').forEach(handleCityDropdown);
-
-        // Remove address form functionality
-        document.addEventListener('click', function(event) {
-            if (event.target.classList.contains('remove-address')) {
-                if (document.querySelectorAll('.address-form').length > 1) {
-                    event.target.closest('.address-form').remove();
-                } else {
-                    alert('At least one address is .');
-                }
+// Add event listener for form submit validation
+document.querySelector('form').addEventListener('submit', function(event) {
+    let isValid = true;
+    
+    // Check each required input in each address form
+    document.querySelectorAll('.address-form').forEach(function(form) {
+        form.querySelectorAll('input[required], select[required]').forEach(function(input) {
+            if (input.value.trim() === '') {
+                displayValidationErrors(input);
+                isValid = false;
             }
         });
+    });
+
+    // Prevent form submission if there are validation errors
+    if (!isValid) {
+        event.preventDefault();
+    }
+});
+
+// Validate each required field in cloned form on blur
+function validateClonedInputs(form) {
+    form.querySelectorAll('input[required], select[required]').forEach(function(input) {
+        input.addEventListener('blur', function() {
+            if (input.value.trim() === '') {
+                displayValidationErrors(input);
+            }
+        });
+    });
+}
+
+// Initial setup for existing forms
+document.querySelectorAll('.address-form').forEach(function(form) {
+    handleCityDropdown(form);
+    validateClonedInputs(form); // Apply validation to existing form fields
+});
+
+// Handle city dropdown toggle
+function handleCityDropdown(form) {
+    form.querySelector('.city-dropdown').addEventListener('change', function() {
+        if (this.value === 'other') {
+            form.querySelector('.custom-city-input').style.display = 'block';
+        } else {
+            form.querySelector('.custom-city-input').style.display = 'none';
+        }
+    });
+}
+
+// Remove address form functionality
+document.addEventListener('click', function(event) {
+    if (event.target.classList.contains('remove-address')) {
+        if (document.querySelectorAll('.address-form').length > 1) {
+            event.target.closest('.address-form').remove();
+        } else {
+            alert('At least one address is required.');
+        }
+    }
+});
+
     </script>
 </div>
 @endsection

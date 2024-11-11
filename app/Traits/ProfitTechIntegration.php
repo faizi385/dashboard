@@ -68,7 +68,7 @@ trait ProfitTechIntegration
             $cleanSheetData['province_slug'] = $provinceSlug;
             $cleanSheetData['province_id'] =  $provinceId ;
             $cleanSheetData['sku'] = $sku;
-            $cleanSheetData['product_name'] =  $productName;
+            $cleanSheetData['product_name'] =  $product->product_name;
             $cleanSheetData['category'] = $product->category;
             $cleanSheetData['brand'] = $product->brand;
             $cleanSheetData['sold'] = $profitTechReport->quantity_sold_instore_units ?? '0';

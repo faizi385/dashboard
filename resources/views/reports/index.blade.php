@@ -3,7 +3,6 @@
 @section('content')
 <h1 class="text-white" id="text">Reports</h1>
 
-<!-- Loader -->
 <div id="loader" class="loader-overlay">
     <div class="loader"></div>
 </div>
@@ -11,8 +10,11 @@
 <div class="container p-3">
     <div class="row mb-4">
         <div class="col text-end">
-            {{-- Uncomment the button below to enable report addition --}}
-            {{-- <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#addReportModal">Add Report</button> --}}
+            {{-- @if(auth()->user()->hasRole('Retailer'))
+            <a href="{{ route('retailers.reports.create', ['retailer' => auth()->user()->id]) }}" class="btn btn-primary mt-3">Add Report</a>
+        @endif --}}
+        
+        
         </div>
     </div>
 
@@ -24,12 +26,12 @@
                         <th>Retailer DBA</th>
                         <th>Location</th>
                         <th>POS</th>
-                        <th>Status</th>
                         <th>File 1</th>
                         <th>File 2</th>
                         <th>Date</th>
                         <th>Payout without Tax</th>
                         <th>Payout with Tax</th>
+                        <th>Status</th>
                         <th class="text-center">Action</th>
                     </tr>
                 </thead>
@@ -39,7 +41,6 @@
                         <td>{{ $report->retailer->dba ?? '-' }}</td>
                         <td>{{ $report->location }}</td>
                         <td>{{ $report->pos }}</td>
-                        <td>{{ $report->status }}</td>
                         <td>
                             <a href="{{ route('reports.downloadFile', ['reportId' => $report->id, 'fileNumber' => 1]) }}" download="{{ basename($report->file_1) }}">
                                 Download File 1
@@ -51,13 +52,10 @@
                             </a>
                         </td>
                         <td>{{ \Carbon\Carbon::parse($report->date)->format('Y-m-d') }}</td>
-                        
-                        <!-- Display Payout without Tax and Payout with Tax -->
-                        <td>${{ number_format($retailerSums[$report->retailer_id]['total_payout'] ?? 0, 2) }}</td>
+                        <td>${{ number_format($retailerSums[$report->retailer_id]['total_fee_sum'] ?? 0, 2) }}</td>
                         <td>${{ number_format($retailerSums[$report->retailer_id]['total_payout_with_tax'] ?? 0, 2) }}</td>
-                        
+                        <td>{{ $report->status }}</td>
                         <td class="text-center">
-                          
                             <form action="{{ route('reports.destroy', ['report' => $report->id]) }}" method="POST" style="display:inline;" class="delete-form">
                                 @csrf
                                 @method('DELETE')
@@ -65,12 +63,12 @@
                                     <i style="color: black" class="fas fa-trash"></i>
                                 </button>
                             </form>
-                        
+
                             <!-- Export CleanSheet Icon -->
                             <a href="{{ route('reports.exportCleanSheets', $report->id) }}" class="icon-action" data-bs-toggle="tooltip" data-bs-placement="top" title="Export CleanSheet">
                                 <i style="color: black" class="fas fa-file-export"></i>
                             </a>
-                        
+
                             <!-- Export Retailer Statement Icon -->
                             <a href="{{ route('reports.exportStatement', $report->id) }}" class="icon-action" data-bs-toggle="tooltip" data-bs-placement="top" title="Export Retailer Statement">
                                 <i style="color: black" class="fas fa-file-download"></i>
@@ -78,7 +76,7 @@
                         </td>
                     </tr>
                     @empty
-                        <tr><td colspan="10">No reports found.</td></tr>
+                        <tr><td colspan="11">No reports found.</td></tr>
                     @endforelse
                 </tbody>
             </table>

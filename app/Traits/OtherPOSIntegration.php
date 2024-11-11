@@ -73,7 +73,7 @@ trait OtherPOSIntegration
             $cleanSheetData['province'] = $provinceName;
             $cleanSheetData['province_slug'] = $provinceSlug;
             $cleanSheetData['sku'] = $sku;
-            $cleanSheetData['product_name'] = $OtherPOSReport->name;
+            $cleanSheetData['product_name'] = $product->product_name;
             $cleanSheetData['category'] = $product->category;
             $cleanSheetData['brand'] = $product->brand;
             $cleanSheetData['sold'] = $OtherPOSReport->sold ?? '0';

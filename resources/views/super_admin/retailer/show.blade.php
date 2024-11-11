@@ -37,7 +37,8 @@
             <h6 class="card-subtitle mb-2 text-muted">Address Details</h6>
             <p><strong>Street No:</strong> {{ $address->street_no }}</p>
             <p><strong>Street Name:</strong> {{ $address->street_name }}</p>
-            <p><strong>Province:</strong> {{ $address->province }}</p>
+            <p><strong>Province:</strong> {{ $address->provinceDetails->name ?? 'Unknown' }}</p>
+
             <p><strong>City:</strong> {{ $address->city }}</p>
             <p><strong>Location:</strong> {{ $address->location }}</p>
             <p><strong>Contact Person Name:</strong> {{ $address->contact_person_name }}</p>

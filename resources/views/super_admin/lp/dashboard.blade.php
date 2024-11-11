@@ -1,106 +1,165 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="container">
-    <h1 class="text-white">LP Dashboard</h1>
+<div class="container p-2">
+    <h1 class="text-white text-center mb-4">LP Dashboard</h1>
     
-    <!-- Chart Container -->
-    <div class="chart-container col-lg-6">
-        <div id="chart"></div>
+    <div class="row gy-4 gx-5"> <!-- gy-4 adds vertical spacing, gx-5 adds horizontal spacing -->
+        <!-- First Chart Container -->
+        <div class="col-lg-6">
+            <div class="chart-container">
+                <div id="chart1"></div>
+            </div>
+        </div>
+        
+        <!-- Second Chart Container -->
+        <div class="col-lg-6">
+            <div class="chart-container">
+                <div id="chart2"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row gy-4 gx-5 mt-3">
+        <!-- Third Chart Container -->
+        <div class="col-lg-6">
+            <div class="chart-container">
+                <div id="chart3"></div>
+            </div>
+        </div>
+        
+        <!-- Fourth Chart Container -->
+        <div class="col-lg-6">
+            <div class="chart-container">
+                <div id="chart4"></div>
+            </div>
+        </div>
     </div>
 </div>
 
-
-
 <style>
-    /* Custom container style to center the chart and make it half width */
     .chart-container {
-        background-color: white; /* Set the background color to white */
-        padding: 20px; /* Add some padding around the chart */
-        border-radius: 8px; /* Optional: rounded corners for a sleek look */
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    #chart1, #chart2, #chart3, #chart4 {
+        min-height: 350px;
     }
 </style>
-
-
 
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
 <script>
-    // Ensure dates are in a proper format (e.g., "YYYY-MM-DD") for consistency
-    var rawDates = @json($purchases->pluck('date')); // Raw dates from the server
-    var rawPurchases = @json($purchases->pluck('purchase')); // Raw purchase data from the server
-
-    // Format dates to "YYYY-MM" (to group by month)
-    var formattedDates = rawDates.map(function(date) {
-        var formattedDate = new Date(date);
-        return formattedDate.getFullYear() + '-' + (formattedDate.getMonth() + 1).toString().padStart(2, '0'); // "2023-01", "2023-02", etc.
-    });
-
+    var displayDates = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    var rawDates = @json($purchases->pluck('date'));
+    var rawPurchases = @json($purchases->pluck('purchase'));
     var monthlyPurchases = {};
 
-    // Aggregate purchase data by month (formatted as "YYYY-MM")
     rawDates.forEach(function(date, index) {
-        var month = formattedDates[index];
-        if (!monthlyPurchases[month]) {
-            monthlyPurchases[month] = 0;
+        var parsedDate = new Date(date);
+        if (!isNaN(parsedDate)) {
+            var monthIndex = parsedDate.getMonth();
+            monthlyPurchases[monthIndex] = (monthlyPurchases[monthIndex] || 0) + rawPurchases[index];
         }
-        monthlyPurchases[month] += rawPurchases[index];
     });
 
-    // Get the distinct months and purchases
-    var distinctMonths = Object.keys(monthlyPurchases);
-    var purchases = distinctMonths.map(function(month) {
-        return monthlyPurchases[month];
-    });
+    var purchases = Array.from({ length: 12 }, (_, i) => monthlyPurchases[i] || 0);
+    var totalPurchases = purchases.reduce((a, b) => a + b, 0);
 
-    // Total sum of purchases
-    var totalPurchases = purchases.reduce(function(a, b) { return a + b; }, 0);
+    var options1 = {
+        series: [{ name: "Purchases", data: purchases }],
+        chart: { type: 'area', height: 350 },
+        dataLabels: { enabled: false },
+        stroke: { curve: 'smooth' },
+        title: { text: 'Total Purchases Over Time', align: 'left' },
+        subtitle: { text: 'Total Purchases: ' + totalPurchases.toFixed(2), align: 'left' },
+        labels: displayDates,
+        xaxis: { type: 'category' },
+        yaxis: { opposite: true },
+        legend: { horizontalAlign: 'left' }
+    };
+    var chart1 = new ApexCharts(document.querySelector("#chart1"), options1);
+    chart1.render();
 
-    var displayDates = distinctMonths.map(function(month) {
-        var [year, monthNum] = month.split('-');
-        return new Date(year, monthNum - 1).toLocaleString('default', { month: 'short', year: 'numeric' });
-    });
+    var provinceLabels = @json($provinces);
+    var provincePurchases = @json($purchaseData);
 
-    // ApexCharts options
-    var options = {
+    var options2 = {
+        series: [{ data: provincePurchases }],
+        chart: { type: 'bar', height: 350 },
+        plotOptions: { bar: { borderRadius: 4, horizontal: true } },
+        dataLabels: { enabled: false },
+        xaxis: { categories: provinceLabels },
+        title: { text: 'Purchases by Province', align: 'left' }
+    };
+    var chart2 = new ApexCharts(document.querySelector("#chart2"), options2);
+    chart2.render();
+
+    var offerProvinceLabels = @json($offerProvinceLabels);
+    var offerData = @json($offerData);
+    var colors = ['#1E90FF', '#00CED1', '#DC143C', '#FFD700', '#32CD32', '#FF69B4', '#FF6347', '#8A2BE2'];
+
+    var options3 = {
+        series: [{ data: offerData }],
+        chart: { height: 350, type: 'bar' },
+        colors: colors,
+        plotOptions: { bar: { columnWidth: '45%', distributed: true } },
+        dataLabels: { enabled: false },
+        legend: { show: false },
+        xaxis: { categories: offerProvinceLabels, labels: { style: { colors: colors, fontSize: '12px' } } },
+        title: { text: 'Total Offers by Province', align: 'left' }
+    };
+    var chart3 = new ApexCharts(document.querySelector("#chart3"), options3);
+    chart3.render();
+
+    
+    var retailerNames = @json(  $retailerNames); 
+    var retailerOfferCounts = @json($retailerOfferCounts); 
+
+    var options4 = {
         series: [{
-            name: "Purchases",
-            data: purchases // Sum of purchases for each month
+            name: 'Offers',
+            data: retailerOfferCounts
         }],
         chart: {
-            type: 'area',
-            height: 350,
-            zoom: {
-                enabled: false
+            type: 'bar',
+            height: 350
+        },
+        plotOptions: {
+            bar: {
+                borderRadius: 10,
+                dataLabels: { position: 'top' }
             }
         },
         dataLabels: {
-            enabled: false
+            enabled: true,
+            formatter: function (val) {
+                return val + " offers";
+            },
+            offsetY: -20,
+            style: {
+                fontSize: '12px',
+                colors: ["#304758"]
+            }
         },
-        stroke: {
-            curve: 'smooth'
-        },
-        title: {
-            text: 'Total Purchases Over Time',
-            align: 'left'
-        },
-        subtitle: {
-            text: 'Total Purchases: ' + totalPurchases, // Display the total sum of purchases
-            align: 'left'
-        },
-        labels: displayDates, // Use the human-readable month format
         xaxis: {
-            type: 'category', // Use 'category' type for categorical x-axis values
+            categories: retailerNames,
+            position: 'top'
         },
         yaxis: {
-            opposite: true
+            labels: { formatter: function (val) { return val + " offers"; } }
         },
-        legend: {
-            horizontalAlign: 'left'
+        title: {
+            text: 'Top 5 Retailers with Offers',
+            align: 'center'
         }
     };
 
-    var chart = new ApexCharts(document.querySelector("#chart"), options);
-    chart.render();
+    var chart4 = new ApexCharts(document.querySelector("#chart4"), options4);
+    chart4.render();
+
+
 </script>
 @endsection

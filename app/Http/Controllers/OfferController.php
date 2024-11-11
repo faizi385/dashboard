@@ -260,8 +260,8 @@ public function destroy($id)
             'lp_id' => $request->lp_id,
             'lp_name' => $lpName,
             'offer_date' => $request->offer_date,
-            'data_fee' => $dataFee, // General or exclusive data fee
-            'retailer_id' => $retailerId, // Set retailer ID for exclusive offer, null for general offer
+            'data_fee' => $dataFee, 
+            'retailer_id' => $retailerId, 
         ];
     }
 

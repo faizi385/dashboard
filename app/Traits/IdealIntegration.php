@@ -71,7 +71,7 @@ trait IdealIntegration
             $cleanSheetData['province_slug'] = $provinceSlug;
             $cleanSheetData['province_id'] =  $provinceId ;
             $cleanSheetData['sku'] = $sku;
-            $cleanSheetData['product_name'] = $productName;
+            $cleanSheetData['product_name'] = $product->product_name;
             $cleanSheetData['category'] = $product->category;
             $cleanSheetData['brand'] = $product->brand;
             $cleanSheetData['sold'] = $idealDaignosticReport->unit_sold ?? "0";

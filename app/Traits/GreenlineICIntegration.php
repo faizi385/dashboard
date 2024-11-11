@@ -74,7 +74,7 @@ trait GreenlineICIntegration
             $cleanSheetData['province_slug'] = $provinceSlug;
             $cleanSheetData['province_id'] =  $provinceId ;
             $cleanSheetData['sku'] = $sku;
-            $cleanSheetData['product_name'] = $greenlineReport->name;
+            $cleanSheetData['product_name'] = $product->product_name;
             $cleanSheetData['category'] = $product->category;
             $cleanSheetData['brand'] = $product->brand;
             $cleanSheetData['sold'] = $greenlineReport->sold;

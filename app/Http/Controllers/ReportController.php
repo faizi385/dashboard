@@ -32,79 +32,85 @@ use App\Models\RetailerAddress;
 
 class ReportController extends Controller
 {
-
     public function index(Request $request, $retailer = null)
     {
         // Get the currently authenticated user
         $user = auth()->user();
-        
-        // Initialize an array to hold retailer sums
+    
+        // Initialize arrays to hold retailer sums and tax sums by province
         $retailerSums = [];
+        $payoutWithTaxByProvince = [];
         
-        // Initialize total payout without tax for dashboard
-        $totalPayoutAllRetailers = 0;
+        // Initialize total payout without tax and total payout with tax
+        $totalPayoutWithoutTax = 0;
+        $totalPayoutWithTax = 0;
     
-        // Ensure we are working with fresh data
+        // Fetch all reports and statements, based on role
         if ($user->hasRole('Retailer')) {
-            // Fetch reports only for the logged-in retailer
-            $reports = Report::with('retailer')->where('retailer_id', $user->id)->get();
+            $retailer = Retailer::where('user_id', $user->id)->first();
             
-            // Get retailer statements for the logged-in retailer
-            $statements = RetailerStatement::where('retailer_id', $user->id)->get();
-            
-            // If statements are found, calculate the totals
-            $totalPayout = $statements->sum('total_payout');
-            $totalPayoutWithTax = $statements->sum('total_payout_with_tax');
-            
-            // Store the sums for the logged-in retailer
-            $retailerSums[$user->id] = [
-                'total_payout' => $totalPayout,
-                'total_payout_with_tax' => $totalPayoutWithTax,
-            ];
-            
-            // Add to total payout (without tax) for dashboard
-            $totalPayoutAllRetailers = $totalPayout;
-            
-        } else {
-            // Super admin: Fetch all reports
-            $reports = Report::with('retailer')->get();
-            
-            foreach ($reports as $report) {
-                $retailerId = $report->retailer_id; 
-                
-                // Ensure statements are fetched fresh for each retailer
-                $statements = RetailerStatement::where('retailer_id', $retailerId)->get();
-                
-                // Initialize totals for the current retailer
-                $totalPayout = 0;
-                $totalPayoutWithTax = 0;
-                
-                foreach ($statements as $statement) {
-                    // Ensure calculations are correct based on the data
-                    $payout = $statement->quantity_sold * $statement->average_price;
-                    $taxAmount = $payout * 0.13; // Assuming a fixed tax rate of 13%
-                    $payoutWithTax = $payout + $taxAmount;
-    
-                    $totalPayout += $payout;
-                    $totalPayoutWithTax += $payoutWithTax;
-                }
-                
-                // Store the calculated sums for each retailer
-                $retailerSums[$retailerId] = [
-                    'total_payout' => $totalPayout,
-                    'total_payout_with_tax' => $totalPayoutWithTax,
-                ];
-    
-                // Add to total payout (without tax) for dashboard
-                $totalPayoutAllRetailers += $totalPayout;
+            if ($retailer) {
+                // Fetch reports and statements for the retailer
+                $reports = Report::with('retailer')->where('retailer_id', $retailer->id)->get();
+                $statements = RetailerStatement::where('retailer_id', $retailer->id)->get();
+            } else {
+                $reports = collect();  // Empty collection if no retailer found
+                $statements = collect();
             }
+        } else {
+            // Super admin: Fetch all reports and statements
+            $reports = Report::with('retailer')->get();
+            $statements = RetailerStatement::all();
         }
     
-        // Pass the total payout without tax to the view (dashboard)
-        return view('reports.index', compact('reports', 'retailerSums', 'totalPayoutAllRetailers'));
+        // Loop through each statement to calculate total fees and taxes
+        foreach ($statements as $statement) {
+            $totalPayoutWithoutTax += $statement->total_fee;
+    
+            // Calculate payout with tax by province
+            $province = $statement->report->province ?? null;
+            $taxRate = $this->getProvinceTaxRate($province);
+            $payoutWithTax = $statement->total_fee * (1 + $taxRate);
+    
+            $totalPayoutWithTax += $payoutWithTax;
+    
+            // Sum payout with tax by province
+            if (!isset($payoutWithTaxByProvince[$province])) {
+                $payoutWithTaxByProvince[$province] = 0;
+            }
+            $payoutWithTaxByProvince[$province] += $payoutWithTax;
+    
+            // Store the sums for each retailer
+            $retailerId = $statement->retailer_id;
+            if (!isset($retailerSums[$retailerId])) {
+                $retailerSums[$retailerId] = [
+                    'total_fee_sum' => 0,
+                    'total_payout_with_tax' => 0,
+                ];
+            }
+            $retailerSums[$retailerId]['total_fee_sum'] += $statement->total_fee;
+            $retailerSums[$retailerId]['total_payout_with_tax'] += $payoutWithTax;
+        }
+    
+        // Pass data to the view
+        return view('reports.index', compact('reports', 'retailerSums', 'totalPayoutWithoutTax', 'totalPayoutWithTax', 'payoutWithTaxByProvince', 'retailer'));
     }
     
+    // Helper function to get the tax rate based on the province
+    private function getProvinceTaxRate($province)
+    {
+        $taxRates = [
+            'Alberta' => 0.05,
+            'Ontario' => 0.03,
+            'Manitoba' => 0.05,
+            'British Columbia' => 0.05,
+            'Saskatchewan' => 0.05,
+        ];
     
+        return $taxRates[$province] ?? 0;
+    }
+    
+
 
     public function create($retailerId)
     {
@@ -123,17 +129,25 @@ class ReportController extends Controller
         $report = Report::findOrFail($reportId);
         
         // Determine the file path based on the requested file number
-        $filePath = ($fileNumber == 1) ? $report->file_1 : $report->file_2;
+        if ($fileNumber == 1) {
+            $filePath = $report->file_1;
+        } elseif ($fileNumber == 2) {
+            // If file_2 is not available, use file_1 for both file numbers
+            $filePath = !empty($report->file_2) ? $report->file_2 : $report->file_1;
+        } else {
+            return redirect()->back()->with('error', 'Invalid file selection.');
+        }
     
-        // Check if the file path exists
-        if (!$filePath || !Storage::exists($filePath)) {
+        // Check if the file path is empty or if the file does not exist in storage
+        if (empty($filePath) || !Storage::exists($filePath)) {
             return redirect()->back()->with('error', 'File not found.');
         }
     
-        // Download the file
+        // Proceed to download the file if it exists
         return Storage::download($filePath);
     }
-
+    
+    
 
 
   

@@ -7,23 +7,80 @@ use App\Models\User;
 use App\Models\Offer;
 use App\Models\Product;
 use App\Mail\LpFormMail;
+use App\Models\Retailer;
 use App\Models\CleanSheet;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 
 class LpController extends Controller
 {
-    public function dashboard()
+    public function dashboard() 
     {
-        $purchases = CleanSheet::all(); // Adjust query as needed
+        // Fetch all purchase data
+        $purchases = CleanSheet::all();
+    
+        // Get total purchases
         $totalPurchases = $purchases->sum('purchase'); // Assuming 'purchase' is the column name
     
-        return view('super_admin.lp.dashboard', compact('purchases', 'totalPurchases'));
+        // Group by province and sum the purchases for each province
+        $provincePurchases = $purchases->groupBy('province')->map(function ($items) {
+            return $items->sum('purchase');
+        });
+    
+        // Get the province names and corresponding purchase totals
+        $provinces = $provincePurchases->keys()->toArray(); // Province names
+        $purchaseData = $provincePurchases->values()->toArray(); // Total purchases for each province
+    
+        // Fetch total offers by province
+        $provinceOffers = DB::table('offers')
+            ->select('province_id', DB::raw('count(*) as total_offers'))
+            ->groupBy('province_id')
+            ->pluck('total_offers', 'province_id');
+    
+        // Get province names for offers chart
+        $offerProvinces = DB::table('provinces')
+            ->whereIn('id', array_keys($provinceOffers->toArray()))
+            ->pluck('name', 'id')
+            ->toArray();
+    
+        // Convert province IDs to names and total offers for use in chart
+        $offerProvinceLabels = array_values($offerProvinces); // Province names for offers
+        $offerData = array_values($provinceOffers->toArray()); // Total offers for each province
+    
+       
+$topRetailers = CleanSheet::select('retailer_id', DB::raw('COUNT(DISTINCT offer_id) as offer_count'))
+->groupBy('retailer_id')
+->orderByDesc('offer_count')
+->take(5)
+->get();
+
+// Fetch retailer names by retrieving each retailer's first and last name based on the `retailer_id`
+$retailerNames = $topRetailers->map(function ($item) {
+$retailer = Retailer::select('first_name', 'last_name')->find($item->retailer_id);
+return $retailer ? $retailer->first_name . ' ' . $retailer->last_name : 'Unknown';
+})->toArray();
+
+$retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
+    
+    
+    
+        // Return the data to the view
+        return view('super_admin.lp.dashboard', compact(
+            'purchases',
+            'totalPurchases',
+            'provinces',
+            'purchaseData',
+            'offerProvinceLabels',
+            'offerData',
+            'retailerNames',
+            'retailerOfferCounts'
+        ));
     }
     
-    
+
     
     public function index()
     {

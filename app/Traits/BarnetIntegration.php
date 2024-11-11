@@ -73,7 +73,7 @@ trait BarnetIntegration
             $cleanSheetData['province'] = $provinceName;
             $cleanSheetData['province_slug'] = $provinceSlug;
             $cleanSheetData['sku'] = $sku;
-            $cleanSheetData['product_name'] = $barnetReport->product_name;
+            $cleanSheetData['product_name'] = $product->product_name;
             $cleanSheetData['category'] = $product->category;
             $cleanSheetData['brand'] = $product->brand;
             $cleanSheetData['sold'] = $barnetReport->quantity_sold_units ?? '0';

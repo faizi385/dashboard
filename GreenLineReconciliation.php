@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Log;
 
 
 $report = DB::table('reports')->where('pos', 'greenline')->where('status', 'pending')->first();
+// if($report){
 dump($report->id . '  -- ' . date('Y-m-d H:i:s'));
 try {
     DB::beginTransaction();

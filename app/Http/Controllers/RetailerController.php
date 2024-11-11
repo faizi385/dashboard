@@ -1,14 +1,18 @@
 <?php
 namespace App\Http\Controllers;
+use App\Models\Role;
 use App\Models\User;
+use App\Models\Report;
+use App\Models\Province;
 use App\Models\Retailer;
-use App\Models\RetailerAddress; // Address model
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Mail\RetailerFormMail;
-use App\Models\Province;
-use Illuminate\Support\Facades\Mail;
+use App\Models\RetailerStatement;
 use Illuminate\Support\Facades\Hash;
-use App\Models\Role;
+use Illuminate\Support\Facades\Mail;
+use App\Models\RetailerAddress; // Address model
+
 class RetailerController extends Controller
 {
     public function index()
@@ -18,9 +22,48 @@ class RetailerController extends Controller
     }
     public function dashboard()
     {
-      
-        return view('super_admin.retailer.dashboard');
+        $user = auth()->user();
+        $totalIrccDollarAllRetailers = 0;
+        $retailerIrccDollars = []; // Array to store each retailer's IRCC dollar data
+    
+        // Fetch all reports and loop through them
+        $reports = Report::with('retailer')->get();
+    
+        foreach ($reports as $report) {
+            $retailerId = $report->retailer_id;
+            
+            // Fetch statements for each retailer
+            $statements = RetailerStatement::where('retailer_id', $retailerId)->get();
+    
+  
+            $totalIrccDollar = 0;
+    
+            foreach ($statements as $statement) {
+                // Calculate total IRCC dollar sum
+                $totalIrccDollar += $statement->ircc_dollar;
+                
+              
+            }
+    
+            // Store the calculated data for each retailer
+            $retailerIrccDollars[] = [
+                'retailer_id' => $retailerId,
+                'total_ircc_dollar' => $totalIrccDollar,
+              
+            ];
+    
+            // Add to the global total for all retailers
+            $totalIrccDollarAllRetailers += $totalIrccDollar;
+        }
+    
+        // Pass the total IRCC dollar sum and individual retailer data to the view
+        return view('super_admin.retailer.dashboard', compact('totalIrccDollarAllRetailers', 'retailerIrccDollars'));
     }
+    
+
+    
+
+    
     public function create()
     {
         return view('super_admin.retailer.create');
@@ -45,6 +88,7 @@ class RetailerController extends Controller
                 'required',
                 'email',
                 'unique:retailers,email',
+                'unique:users,email',  // Ensure the email is unique in the users table as well
                 'regex:/^[\w\.-]+@[\w\.-]+\.\w{2,4}$/'  // Example regex for standard email formats
             ],
             'phone' => [
@@ -54,19 +98,45 @@ class RetailerController extends Controller
                 'regex:/^\+?\d{1,3}\s*\(?\d{3}?\)?\s*\d{3}[-\s]?\d{4}$/'  // Accepts formats like +1 (425) 274-9782
             ],
         ]);
-        // Add user_id and status to the validated data
-        $validatedData['user_id'] = auth()->id();  // Add the authenticated user's ID
-        $validatedData['status'] = 'requested'; // Set initial status
-        // Create the retailer
-        $retailer = Retailer::create($validatedData);
-        // Generate a token and the link
+    
+        // Create the user who will be the actual retailer
+        $user = User::create([
+            'first_name' => $validatedData['first_name'],
+            'last_name' => $validatedData['last_name'],
+            'email' => $validatedData['email'],
+            'phone' => $validatedData['phone'],
+            'password' => Hash::make(Str::random(10)), // Generate a temporary password
+        ]);
+    
+        // Assign the retailer role to the user
+        $role = Role::where('original_name', 'Retailer')->first();
+        if ($role) {
+            $user->assignRole($role->name);
+        } else {
+            return redirect()->back()->with('error', 'Role not found.');
+        }
+    
+        // Create the retailer with the actual user's ID
+        $retailer = Retailer::create([
+            'user_id' => $user->id,  // Set the user ID as the actual retailer's user ID
+            'first_name' => $validatedData['first_name'],
+            'last_name' => $validatedData['last_name'],
+            'email' => $validatedData['email'],
+            'phone' => $validatedData['phone'],
+            'status' => 'requested',
+        ]);
+    
+        // Generate a token and the link for completing the retailer information
         $token = base64_encode($retailer->id);
         $link = route('retailer.fillForm', ['token' => $token]);
+    
         // Send an email with the link
         Mail::to($validatedData['email'])->send(new RetailerFormMail($link));
+    
         // Redirect back with a success message
         return redirect()->route('retailer.create')->with('success', 'Retailer created and email sent successfully!');
     }
+    
     public function showForm($token)
     {
         $retailerId = base64_decode($token);
@@ -203,7 +273,7 @@ class RetailerController extends Controller
     }
     public function storeAddress(Request $request, $id)
     {
-        // Validate the request with custom error messages
+        
         $request->validate([
             'addresses.*.street_no' => 'required|string|max:50',
             'addresses.*.street_name' => 'required|string|max:255',
