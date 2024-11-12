@@ -52,7 +52,11 @@
 </div>
 
 
-
+<style>
+    
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled{
+        color: white  !important;}
+</style>
 @push('scripts')
 <!-- DataTables JS -->
 <script>

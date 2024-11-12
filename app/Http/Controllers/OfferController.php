@@ -114,11 +114,10 @@ public function destroy($id)
             'source' => 'required|integer', // Ensure source is included
         ]);
     
-        // Retrieve the LP ID and source from the request
+   
         $lpId = $request->lp_id;
-        $lpName = $request->lp_name; // Retrieve LP name
         $source = $request->source;
-    
+        $lpName = Lp::where('id', $lpId)->value('name');
         // Handle Offer Imports
         if ($request->hasFile('offerExcel')) {
             $filePath = $request->file('offerExcel')->store('uploads');
@@ -155,7 +154,7 @@ public function destroy($id)
         $rules = [
             'product_name' => 'required|string|max:255|regex:/^[^\d]*$/', // Ensure no integers
             'provincial_sku' => 'required|string|max:255',
-             'gtin' => 'required|digits_between:1,255', // Accepts only numeric characters with a length between 1 and 255
+             'gtin' => 'required|digits_between:1,100', // Accepts only numeric characters with a length between 1 and 255
             'province' => 'required|string|max:255|regex:/^[^\d]*$/', // Ensure no integers
             'general_data_fee' => 'required|numeric|min:0',
             'exclusive_data_fee' => 'nullable|numeric|min:0', // Keep as nullable

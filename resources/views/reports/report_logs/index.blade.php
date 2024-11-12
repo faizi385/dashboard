@@ -126,6 +126,10 @@
         </tbody>
     </table>
 </div>
+<style>
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled{
+        color: white  !important;}
+</style>
 @endsection
 
 @push('scripts')

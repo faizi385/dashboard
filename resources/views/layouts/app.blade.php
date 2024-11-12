@@ -194,7 +194,7 @@
         <li class="nav-item">
             <a href="{{ route('offer.logs.index') }}" class="nav-link {{ Route::currentRouteName() == 'offer.logs.index' ? 'active' : '' }}">
                 <i class="nav-icon"></i>
-                <p>Offers Logs</p>
+                <p>Deals Logs</p>
             </a>
         </li>
         <li class="nav-item">
@@ -256,7 +256,7 @@
                        <a href="{{ route('offers.index') }}"
                           class="nav-link {{ (Route::currentRouteName() == 'offers.index' && !request()->get('from_lp_show')) ? 'active' : '' }}">
                            <i class="nav-icon fas fa-tag"></i>
-                           <p>Offers</p>
+                           <p>Deals</p>
                        </a>
                    </li>
                    @endif
@@ -290,7 +290,7 @@
                             </a>
                         </li>
                     @endif
-                    
+                    @if(auth()->user()->hasRole('Super Admin') || auth()->user()->hasRole('Retailer'))
                     <li class="nav-item">
                         <a href="{{ route('super_admin.reports.index') }}" class="nav-link {{ request()->routeIs('super_admin.reports.index') ? 'active' : '' }}">
                             <i class="nav-icon fas fa-file-alt"></i>
@@ -298,9 +298,7 @@
                         </a>
                     </li>
                     
-                    
-                    
-                    
+                    @endif
                     
                     </ul>
                 </nav>

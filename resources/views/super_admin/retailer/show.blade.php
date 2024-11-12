@@ -10,6 +10,8 @@
             <a href="{{ route('retailers.reports.create', $retailer->id) }}" class="btn btn-primary">
                 Add Report
             </a>
+            <!-- View Statement Button -->
+            <a href="{{ route('retailer.statement.view', $retailer->id) }}" class="btn btn-primary">View Statement</a>
         </div>
     </div>
 
@@ -50,6 +52,35 @@
     @endif
 </div>
 
+<!-- Table for displaying the statement data -->
+@if(isset($statements) && $statements->count() > 0)
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="card-title">Statement Information</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Province</th>
+                        <th>Retailer DBA</th>
+                        <th>LP DBA</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($statements as $statement)
+                        <tr>
+                            <td>{{ $statement->province ?? 'N/A' }}</td>
+                            <td>{{ $retailer->dba ?? 'N/A' }}</td>
+                            <td>{{ $statement->lp_dba ?? 'N/A' }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+@endif
+
 <style>
     .container {
         margin-top: 20px;
@@ -83,20 +114,4 @@
     }
 </style>
 
-{{-- <script>
-    $(document).ready(function() {
-        @if (session('success'))
-            toastr.success("{{ session('success') }}");
-        @endif
-
-        @if (session('error'))
-            toastr.error("{{ session('error') }}");
-        @endif
-        
-        // Display specific Greenline errors
-        @if (session('greenline_error'))
-            toastr.error("{{ session('greenline_error') }}");
-        @endif
-    });
-</script> --}}
 @endsection

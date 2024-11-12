@@ -59,4 +59,8 @@ class RetailerStatement extends Model
     {
         return $this->belongsTo(ProductVariation::class);
     }
+    public function Lp()
+    {
+        return $this->belongsTo(Lp::class);
+    }
 }

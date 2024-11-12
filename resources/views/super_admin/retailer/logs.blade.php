@@ -32,7 +32,7 @@
                         @elseif($log->retailer_dba)
                             {{ $log->retailer_dba }}
                         @else
-                            N/A
+                          -
                         @endif
                     </td>
                     <td>{{ $log->created_at->format('d-M-Y h:i A') }}</td>
@@ -135,6 +135,10 @@
         </tbody>
     </table>
 </div>
+<style>
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled{
+        color: white  !important;}
+</style>
 @endsection
 
 @push('scripts')

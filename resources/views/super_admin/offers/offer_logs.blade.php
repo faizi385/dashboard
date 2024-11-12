@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container">
-    <h1 class="text-white">Offer Logs</h1>
+    <h1 class="text-white">Deal Logs</h1>
 
     <!-- Loader -->
     <div id="loader" class="loader-overlay">
@@ -150,6 +150,10 @@
         </tbody>
     </table>
 </div>
+<style>
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled{
+        color: white  !important;}
+</style>
 @endsection
 
 @push('scripts')
@@ -172,3 +176,96 @@
     });
 </script>
 @endpush
+
+
+public function exportLpStatement(Request $request, Lp $lp)
+{
+    set_time_limit(900);
+    $lp = Lp::where('id', $request->lp_id)->with('user')->first();
+
+    $sortedCollection = $this->generateLpStatement($request->lp_id, $request->month);
+
+    return Excel::download(new LpStatementExport(true, $sortedCollection), str_replace(' ', '_', trim($lp->user->name)) . '-' . Carbon::parse($request->month)->format('M-Y') . '-Statement' . '.xlsx');
+}
+
+
+
+
+class LpStatementExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithBatchInserts, WithChunkReading, WithEvents, WithTitle, WithMultipleSheets
+{
+    /**
+     * @return \Illuminate\Support\Collection
+     */
+
+//    private $uid;
+    private $includeTotalFeePercentage;
+    private $lp_id;
+
+    public function __construct($includeTotalFeePercentage = true,$sortedCollection)
+    {
+        $this->includeTotalFeePercentage = $includeTotalFeePercentage;
+        $this->sortedCollection = $sortedCollection;
+    }
+    public function collection()
+    {
+        return $this->sortedCollection;
+    }
+    public function map($row): array
+    {
+        $data = [
+            $row->provice,
+            $row->retailer_dba,
+            $row->retailer,
+            $row->product,
+            $row->sku,
+            $row->category,
+            $row->brand,
+            $row->quantity_purchased,
+            !empty($row->sold) ? $row->sold : '0',
+            !empty(str_replace('$','',$row->average_price)) ? $row->average_price : number_format((float)"0.00",2,'.',','),
+//            $row->opening_inventory_units,
+            !empty($row->opening_inventory_units) ? $row->opening_inventory_units : '0',
+            !empty($row->closing_inventory_units) ? $row->closing_inventory_units : '0',
+//            $row->closing_inventory_units,
+            $row->unit_cost,
+            $row->total_purchased_cost,
+//            $row->total_fee_percentage,
+//            number_format($row->total_fee_dollars,2),
+            number_format((float)$row->total_fee_dollars , 2, '.', '') ?? 0.00,
+            $row->calculated_value
+        ];
+        if ($this->includeTotalFeePercentage) {
+            $data[] = $row->total_fee_percentage;
+        }
+
+        return $data;
+    }
+
+    public function headings(): array
+    {
+        $headings = [
+            "Province",
+            "Retailer DBA",
+            "Location",
+            'Product',
+            "SKU",
+            "Category",
+            "Brand",
+            "Quantity Received",
+            "Quantity Sold",
+            "Average Price($)",
+            "Opening Inventory Units",
+            "Closing Inventory Units",
+            "Unit Cost($)",
+            "Total Purchase Cost($)",
+//            "Total Fee(%)",
+            "Total Fee($)",
+            "Total Fee With Tax($)"
+        ];
+        if ($this->includeTotalFeePercentage) {
+            $headings[] = "Total Fee(%)";
+        }
+
+        return $headings;
+    }
+}

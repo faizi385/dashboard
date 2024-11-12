@@ -3,7 +3,7 @@
 @section('content')
 <div class="container p-2">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="text-white"><i class="fas fa-plus-circle text-white"></i> Add Single Offer</h1>
+        <h1 class="text-white"><i class="fas fa-plus-circle text-white"></i> Add Single Deal</h1>
         <a href="{{ url()->previous() }}" class="btn btn-primary">
             <i class="fas fa-arrow-left"></i> Back
         </a>
@@ -247,7 +247,7 @@
             <div class="form-check mb-3">
                 <input class="form-check-input" type="checkbox" id="addExclusiveOfferCheckbox" name="exclusive_offer" value="1">
                 <label class="form-check-label" for="addExclusiveOfferCheckbox">
-                    Add An Exclusive Offer
+                    Add An Exclusive Deal
                 </label>
             </div>
             
@@ -286,7 +286,7 @@
             <div class="form-check mb-3">
                 <input class="form-check-input" type="checkbox" id="makeExclusiveOfferCheckbox" name="makeExclusiveOfferCheckbox" value="1" onclick="toggleExclusiveFields()">
                 <label class="form-check-label" for="makeExclusiveOfferCheckbox">
-                    Make It an Exclusive Offer for Specific Retailers
+                    Make It an Exclusive Deal for Specific Retailers
                 </label>
             </div>
             
@@ -310,7 +310,7 @@
                 </div>
             </div>
             
-            <button type="submit" class="btn btn-primary">Add Offer</button>
+            <button type="submit" class="btn btn-primary">Add Deal</button>
         </form>
     </div>
 </div>

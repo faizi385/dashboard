@@ -182,49 +182,61 @@ class ReportController extends Controller
     public function store(Request $request, $retailerId)
     {
 
-    $request->validate([
-        'location' => 'required|string|max:255',
-        'pos' => 'required|string',
-    ]);
-
-
-    $retailer = Retailer::find($retailerId);
-    $address = RetailerAddress::find($request->location);
-    if (!$retailer || !$address) {
-        return redirect()->back()->withErrors('Retailer or Retailer Address not found.');
-    }
-
-    $province = Province::where('id', $address->province)->first();
-    // dd($address);
-    if (!$province) {
-        return redirect()->back()->with('error','Province not found.');
-    }
-
-    $locationString = "{$address->street_no} {$address->street_name}, {$address->city}, {$province->name}";
-    // Check if a report already exists for the given location and POS in the current month
-    $existingReport = Report::where('retailer_id', $retailerId)
-        ->where('location', $request->location)
-        ->whereYear('date', now()->year)
-        ->whereMonth('date', now()->month)
-        ->first();
-
-    if ($existingReport) {
-        return redirect()->back()->with('error', 'A report has already been uploaded for this location and POS this month.');
-    }
-
-    // Create the report record with province details, submitted_by, and status
-    $report = Report::create([
-        'retailer_id' => $retailerId,
-        'location' => $locationString,
-        'pos' => $request->pos,
-        'province' => $province->name,
-        'province_id' => $province->id,
-        'province_slug' => $province->slug,
-        'submitted_by' => auth()->id(), // Assuming you're using Laravel's auth
-        'status' => 'pending', // Default status
-        'date' => now()->startOfMonth(),
-    ]);
+        $request->validate([
+            'location' => 'required|string|max:255',
+            'pos' => 'required|string',
+        ]);
+    
+        $retailer = Retailer::find($retailerId);
+        $address = RetailerAddress::find($request->location);
+        
+        if (!$retailer || !$address) {
+            return redirect()->back()->withErrors('Retailer or Retailer Address not found.');
+        }
+        
        
+        $existingLocation = Report::where('retailer_id', $retailerId)
+            ->where('location', $address->id) // Check if this location is already used by the retailer
+            ->first();
+        
+        if ($existingLocation) {
+            return redirect()->back()->with('error', 'This location has already been used for a report.');
+        }
+    
+        // If location is valid, proceed to check for the province and other details
+        $province = Province::where('id', $address->province)->first();
+        
+        if (!$province) {
+            return redirect()->back()->with('error', 'Province not found.');
+        }
+    
+        // Check if a report already exists for the given retailer, POS, and province in the current month
+        $existingReport = Report::where('retailer_id', $retailerId)
+            ->where('pos', $request->pos)
+            ->where('province', $province->name) // Check the province
+            ->whereYear('date', now()->year)     // Check for the same year
+            ->whereMonth('date', now()->month)   // Check for the same month
+            ->first();
+    
+        if ($existingReport) {
+            return redirect()->back()->with('error', 'A report has already been uploaded for this POS and province this month.');
+        }
+    
+        // Create the report record with the province details, submitted_by, and status
+        $report = Report::create([
+            'retailer_id' => $retailerId,
+            'location' => $address->id,  // Store the address ID instead of concatenated string
+            'pos' => $request->pos,
+            'province' => $province->name,  // Store the province as well
+            'province_id' => $province->id,
+            'province_slug' => $province->slug,
+            'submitted_by' => auth()->id(), // Assuming you're using Laravel's auth
+            'status' => 'Pending', // Default status
+            'date' => now()->startOfMonth(), // Store the start of the current month
+        ]);
+        
+        // Additional logic after the report is successfully created can go here
+        
         $file1Path = null;
         $file2Path = null;
 

@@ -12,7 +12,7 @@
     <div class="col text-end mb-3">
         <a href="{{ route('lp.create') }}" class="btn btn-primary">Create LP</a>
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addOfferModal">
-            Add Offer
+            Add Deal
         </button>
     </div>  
 
@@ -65,7 +65,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="addOfferModalLabel">Add Offers</h5>
+                <h5 class="modal-title" id="addOfferModalLabel">Add Deals</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -85,7 +85,7 @@
                                 </select>
                             </div>
                             <div class="mb-3">
-                                <label for="offerExcel" class="form-label">Upload Bulk Offers (Excel)</label>
+                                <label for="offerExcel" class="form-label">Upload Bulk Deals (Excel)</label>
                                 <input type="file" class="form-control" id="offerExcel" name="offerExcel" accept=".xlsx, .xls, .csv" required>
                             </div>
                             <button type="submit" class="btn btn-primary">
@@ -97,7 +97,7 @@
                     <!-- Single Offer Add Option -->
                     <div>
                         <a href="{{ route('offers.create') }}" class="btn btn-primary">
-                            <i class="fas fa-plus-circle"></i> Add Single Offer
+                            <i class="fas fa-plus-circle"></i> Add Single Deal
                         </a>
                     </div>
                 </div>
@@ -107,7 +107,11 @@
 </div>
 
 
-
+<style>
+    
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled{
+        color: white  !important;}
+</style>
 
 
 @push('scripts')

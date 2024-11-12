@@ -151,12 +151,14 @@ $(document).ready(function() {
     $("#loader").fadeOut("slow");
 
     $('#carveoutTable').DataTable({
-        responsive: true,
-        "scrollX": true,
-        "language": {
-            "emptyTable": "No carveouts found."
-        }
-    });
+    responsive: true,
+    scrollX: true,
+    autoWidth: false, 
+    language: {
+        emptyTable: "No carveouts found."
+    }
+});
+
 
     // Initialize Bootstrap tooltips
     $('[data-bs-toggle="tooltip"]').tooltip();

@@ -94,7 +94,8 @@
         // Initialize DataTable
         $('#productsTable').DataTable({
             responsive: true,
-            "scrollX": true, // Enable horizontal scrolling
+            "scrollX": true, 
+            autoWidth: false, 
             "language": {
                 "emptyTable": "No products found." // Custom message for no data
             },

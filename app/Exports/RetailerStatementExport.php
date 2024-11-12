@@ -33,7 +33,7 @@ class RetailerStatementExport implements FromCollection, WithMapping, WithHeadin
         $totalFeeWithTax = $row->total_fee + $taxAmount;
 
         return [
-            $row->lp_id ?? 'Unknown LP',
+            $row->lp->dba ?? 'Unknown LP',
             $province,
             $this->clearValue($row->report->retailer->dba ?? 'Unknown DBA'),
             trim($this->clearValue($row->report->retailer->first_name ?? '') . ' ' . $this->clearValue($row->report->retailer->last_name ?? '')) ?: 'Unknown Retailer',

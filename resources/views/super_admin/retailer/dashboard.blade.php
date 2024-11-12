@@ -1,18 +1,24 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="container">
-    <h1 class="text-white">Retailer Dashboard</h1>
+<div class="container p-2">
+    <h1 class="text-white text-center mb-4">Retailer Dashboard</h1>
     
-    <div class="col-lg-6">
-        <div class="chart-container">
-            <div id="chart"></div>
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="chart-container">
+                <div id="chart"></div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="chart-container">
+                <div id="chart1"></div>
+            </div>
         </div>
     </div>
-
-    <div class="col-lg-6">
+    <div class="col-lg-6 mt-4">
         <div class="chart-container">
-            <div id="chart1"></div>
+            <div id="chart2"></div>
         </div>
     </div>
 </div>
@@ -23,9 +29,6 @@
         padding: 20px;
         border-radius: 8px;
         box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    #chart, #chart1 {
         min-height: 350px;
     }
 </style>
@@ -34,89 +37,141 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Data for the first chart (IRCC Revenue)
-        var totalIrccDollarAllRetailers = @json($totalIrccDollarAllRetailers);
+    // First chart configuration (Total IRCC Revenue)
+// Convert IRCC Revenue data to thousands (k format)
+var totalIrccDollarAllRetailers = @json($totalIrccDollarAllRetailers) / 1000;
 
-        // First chart configuration: Total IRCC Revenue
-        var optionsChart1 = {
+// Chart configuration (Total IRCC Revenue)
+var optionsChart1 = {
+    series: [{
+        name: "IRCC Revenue",
+        data: [totalIrccDollarAllRetailers] // Displayed in 'k' format
+    }],
+    chart: {
+        height: 350,
+        type: 'line',
+        zoom: { enabled: false }
+    },
+    dataLabels: { enabled: false },
+    stroke: { curve: 'straight' },
+    title: { text: 'Total IRCC Revenue', align: 'left' },
+    grid: {
+        row: {
+            colors: ['#f3f3f3', 'transparent'],
+            opacity: 0.5
+        },
+    },
+    xaxis: { categories: ['Total'] },
+    yaxis: {
+        labels: {
+            formatter: function(value) {
+                return value + "k"; // Y-axis in 'k' format
+            }
+        }
+    }
+};
+
+var chart1 = new ApexCharts(document.querySelector("#chart"), optionsChart1);
+chart1.render();
+
+
+        // Second chart configuration (Total Purchases)
+        var totalPurchaseSum = @json($totalPurchaseSum);
+        var optionsChart2 = {
             series: [{
-                name: "IRCC Revenue",
-                data: [totalIrccDollarAllRetailers]  // Use the total IRCC dollar data from the controller
+                name: "Overall Purchases",
+                data: [totalPurchaseSum]
+            }],
+            chart: {
+                type: 'area',
+                height: 350,
+                zoom: { enabled: false }
+            },
+            dataLabels: { enabled: false },
+            stroke: { curve: 'smooth' },
+            title: { text: 'Overall Purchases', align: 'left' },
+            xaxis: { categories: ['Total'] },
+            yaxis: { opposite: true },
+            legend: { horizontalAlign: 'left' }
+        };
+        var chart2 = new ApexCharts(document.querySelector("#chart1"), optionsChart2);
+        chart2.render();
+
+        // Third chart configuration: Total Purchase Cost by Province
+        var provinceData = @json($provinceData);  // Array of objects with province and total purchase
+        var provinces = provinceData.map(function(item) { return item.province; });
+        var purchases = provinceData.map(function(item) { return item.total_purchase; });
+
+        var options = {
+            series: [{
+                name: 'Total Purchases',
+                data: purchases
             }],
             chart: {
                 height: 350,
-                type: 'line',
-                zoom: {
-                    enabled: false
+                type: 'bar',
+            },
+            plotOptions: {
+                bar: {
+                    borderRadius: 10,
+                    dataLabels: {
+                        position: 'top', // Position at the top of the bars
+                    },
                 }
             },
             dataLabels: {
-                enabled: false
-            },
-            stroke: {
-                curve: 'straight'
-            },
-            title: {
-                text: 'Total IRCC Revenue',
-                align: 'left'
-            },
-            grid: {
-                row: {
-                    colors: ['#f3f3f3', 'transparent'],
-                    opacity: 0.5
+                enabled: true,
+                formatter: function (val) {
+                    return '$' + val.toFixed(2);  // Format the value as currency
                 },
+                offsetY: -20,
+                style: {
+                    fontSize: '12px',
+                    colors: ["#304758"]
+                }
             },
             xaxis: {
-                categories: ['Total']  // Example static category; adjust as needed
+                categories: provinces,  // Provinces dynamically on the X-axis
+                position: 'top',
+                axisBorder: { show: false },
+                axisTicks: { show: false },
+                crosshairs: {
+                    fill: {
+                        type: 'gradient',
+                        gradient: {
+                            colorFrom: '#D8E3F0',
+                            colorTo: '#BED1E6',
+                            stops: [0, 100],
+                            opacityFrom: 0.4,
+                            opacityTo: 0.5,
+                        }
+                    }
+                },
+                tooltip: { enabled: true },
+            },
+            yaxis: {
+                axisBorder: { show: false },
+                axisTicks: { show: false },
+                labels: {
+                    show: true,
+                    formatter: function (val) {
+                        return '$' + val.toFixed(2);  // Format the value as currency
+                    }
+                }
+            },
+            title: {
+                text: 'Total Purchase Cost by Location',
+                floating: true,
+                offsetY: 330,
+                align: 'center',
+                style: {
+                    color: '#444'
+                }
             }
         };
 
-        // Render the first chart
-        var chart1 = new ApexCharts(document.querySelector("#chart"), optionsChart1);
-        chart1.render();
-
-        // Second chart configuration: Sample Stock Data
-        var optionsChart2 = {
-          series: [{
-            name: "Stock Price",
-            data: [31, 40, 28, 51, 42, 109, 100]  // Sample data for demonstration
-          }],
-          chart: {
-            type: 'area',
-            height: 350,
-            zoom: {
-              enabled: false
-            }
-          },
-          dataLabels: {
-            enabled: false
-          },
-          stroke: {
-            curve: 'straight'
-          },
-          title: {
-            text: 'Fundamental Analysis of Stocks',
-            align: 'left'
-          },
-          subtitle: {
-            text: 'Price Movements',
-            align: 'left'
-          },
-          labels: ["2023-01-01", "2023-02-01", "2023-03-01", "2023-04-01", "2023-05-01", "2023-06-01", "2023-07-01"],
-          xaxis: {
-            type: 'datetime'
-          },
-          yaxis: {
-            opposite: true
-          },
-          legend: {
-            horizontalAlign: 'left'
-          }
-        };
-
-        // Render the second chart
-        var chart2 = new ApexCharts(document.querySelector("#chart1"), optionsChart2);
-        chart2.render();
+        var chart = new ApexCharts(document.querySelector("#chart2"), options);
+        chart.render();
     });
 </script>
 

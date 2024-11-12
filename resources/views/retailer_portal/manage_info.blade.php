@@ -1,79 +1,160 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 
 @section('content')
-<div class="container">
-    <div class="d-flex justify-content-between mb-4">
-        <h3>Manage Info</h3>
-        <div>
-            <a href="{{ route('retailer.addLocation') }}" class="btn btn-primary ml-2">Add Location</a>
-        </div>
-    </div>
+<div class="container p-4">
+    <h1 class="mb-4 text-white">Manage Info</h1>
 
-    <!-- Retailer Profile Form -->
-    <form id="profileForm" action="{{ route('retailer.updateProfile') }}" method="POST">
-        @csrf
-        @method('PUT')
-
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="card-title">Retailer Information</h5>
-            </div>
-            <div class="card-body">
-                <div class="form-group">
-                    <label for="first_name">First Name</label>
-                    <input type="text" class="form-control" id="first_name" name="first_name" value="{{ old('first_name', $retailer->first_name) }}" required>
-                </div>
-                <div class="form-group">
-                    <label for="last_name">Last Name</label>
-                    <input type="text" class="form-control" id="last_name" name="last_name" value="{{ old('last_name', $retailer->last_name) }}" required>
-                </div>
-                <div class="form-group">
-                    <label for="phone">Phone</label>
-                    <input type="text" class="form-control" id="phone" name="phone" value="{{ old('phone', $retailer->phone) }}" required>
-                </div>
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" class="form-control" id="email" name="email" value="{{ old('email', $retailer->email) }}" required>
-                </div>
-                <div class="form-group">
-                    <label for="corporate_name">Corporate Name</label>
-                    <input type="text" class="form-control" id="corporate_name" name="corporate_name" value="{{ old('corporate_name', $retailer->corporate_name) }}">
-                </div>
-                <div class="form-group">
-                    <label for="dba">DBA</label>
-                    <input type="text" class="form-control" id="dba" name="dba" value="{{ old('dba', $retailer->dba) }}">
-                </div>
-            </div>
-            <div class="card-footer text-right">
-                <button type="submit" class="btn btn-success">Update Profile</button>
-            </div>
+    @if(session('success'))
+        <div class="alert alert-success">
+            {{ session('success') }}
         </div>
-    </form>
+    @endif
 
-    <!-- Retailer Addresses -->
-    <div class="card">
-        <div class="card-header">
-            <h5 class="card-title">Retailer Addresses</h5>
+    @if(session('error'))
+        <div class="alert alert-danger">
+            {{ session('error') }}
         </div>
-        <div class="card-body">
-            @if ($addresses->isNotEmpty())
-                @foreach ($addresses as $address)
-                    <div class="border rounded p-3 mb-3">
-                        <h6>Address {{ $loop->iteration }}</h6>
-                        <p><strong>Street No:</strong> {{ $address->street_no }}</p>
-                        <p><strong>Street Name:</strong> {{ $address->street_name }}</p>
-                        <p><strong>Province:</strong> {{ $address->province }}</p>
-                        <p><strong>City:</strong> {{ $address->city }}</p>
-                        <p><strong>Location:</strong> {{ $address->location }}</p>
-                        <p><strong>Contact Person:</strong> {{ $address->contact_person_name }}</p>
-                        <p><strong>Contact Phone:</strong> {{ $address->contact_person_phone }}</p>
-                        <a href="{{ route('retailer.editAddress', $address->id) }}" class="btn btn-sm btn-warning">Edit Address</a>
+    @endif
+
+    <div class="bg-white p-4 rounded shadow-sm">
+        <form action="{{ route('retailer.manage-info.update') }}" method="POST">
+            @csrf
+
+            <!-- Retailer information -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="name">Name <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                            </div>
+                            <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name', $retailer->name) }}" required>
+                        </div>
+                        @error('name')
+                            <div class="invalid-feedback">
+                                {{ $message }}
+                            </div>
+                        @enderror
                     </div>
-                @endforeach
-            @else
-                <p>No addresses available yet.</p>
-            @endif
-        </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="email">Email <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                            </div>
+                            <input type="email" name="email" id="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email', $retailer->email) }}" required>
+                        </div>
+                        @error('email')
+                            <div class="invalid-feedback">
+                                {{ $message }}
+                            </div>
+                        @enderror
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="phone">Phone</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                            </div>
+                            <input type="text" name="phone" id="phone" class="form-control @error('phone') is-invalid @enderror" value="{{ old('phone', $retailer->phone) }}">
+                        </div>
+                        @error('phone')
+                            <div class="invalid-feedback">
+                                {{ $message }}
+                            </div>
+                        @enderror
+                    </div>
+                </div>
+            </div>
+
+            <h2 class="mt-4">Address</h2>
+
+            @forelse($retailer->addresses as $address)
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="street_number_{{ $address->id }}">Street Number</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-home"></i></span>
+                                </div>
+                                <input type="text" name="address[{{ $address->id }}][street_number]" class="form-control @error('address.'.$address->id.'.street_number') is-invalid @enderror" value="{{ old('address.'.$address->id.'.street_number', $address->street_number) }}">
+                            </div>
+                            @error('address.'.$address->id.'.street_number')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="street_name_{{ $address->id }}">Street Name</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-road"></i></span>
+                                </div>
+                                <input type="text" name="address[{{ $address->id }}][street_name]" class="form-control @error('address.'.$address->id.'.street_name') is-invalid @enderror" value="{{ old('address.'.$address->id.'.street_name', $address->street_name) }}">
+                            </div>
+                            @error('address.'.$address->id.'.street_name')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="postal_code_{{ $address->id }}">Postal Code</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-map-pin"></i></span>
+                                </div>
+                                <input type="text" name="address[{{ $address->id }}][postal_code]" class="form-control @error('address.'.$address->id.'.postal_code') is-invalid @enderror" value="{{ old('address.'.$address->id.'.postal_code', $address->postal_code) }}">
+                            </div>
+                            @error('address.'.$address->id.'.postal_code')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="city_{{ $address->id }}">City</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-city"></i></span>
+                                </div>
+                                <input type="text" name="address[{{ $address->id }}][city]" class="form-control @error('address.'.$address->id.'.city') is-invalid @enderror" value="{{ old('address.'.$address->id.'.city', $address->city) }}">
+                            </div>
+                            @error('address.'.$address->id.'.city')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+            @empty
+                <p>No addresses available.</p>
+            @endforelse
+
+            <button type="submit" class="btn btn-primary">Update</button>
+        </form>
     </div>
 </div>
 @endsection

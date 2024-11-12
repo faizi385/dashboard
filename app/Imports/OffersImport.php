@@ -14,19 +14,20 @@ use Carbon\Carbon;
 class OffersImport implements ToModel, WithHeadingRow
 {
     protected $lpId;
-    protected $lpName; // Add a property to store lp_name
     protected $source;
+    protected $lpName;
     protected $errors = [];
     protected $hasCheckedHeaders = false;
 
-    // Constructor to accept the LP ID, LP Name, and source
-    public function __construct($lpId, $lpName, $source)
+  
+    public function __construct($lpId, $source, $lpName)
     {
         $this->lpId = $lpId;
-        $this->lpName = $lpName; // Initialize lp_name
         $this->source = $source;
+        $this->lpName = $lpName;
     }
 
+   
     public function model(array $row)
     {
         $requiredHeaders = [
@@ -85,7 +86,7 @@ class OffersImport implements ToModel, WithHeadingRow
             'comment' => $row['comment'] ?? null,
             'product_link' => $row['product_link'] ?? null,
             'lp_id' => $this->lpId,
-            'lp_name' => $this->lpName, // Add lp_name here
+            'lp_name' => $this->lpName, // Ensure lp_name is correctly assigned
             'offer_date' => now()->startOfMonth(),
             'retailer_id' => $row['retailer_id'] ?? null,
             'source' => $this->source,

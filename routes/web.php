@@ -192,6 +192,10 @@ Route::get('reports/download/{reportId}/{fileNumber}', [ReportController::class,
 Route::get('/reports/{report_id}/export-clean-sheets', [ReportController::class, 'exportCleanSheets'])->name('reports.exportCleanSheets');
 Route::get('/reports/{report_id}/export-statement', [ReportController::class, 'exportStatement'])->name('reports.exportStatement');
 Route::delete('/reports/{report}', [ReportController::class, 'destroy'])->name('reports.destroy');
+// Route for creating a report in the retailer dashboard
+// Route to view the statement
+Route::get('/retailers/{retailer}/statement', [RetailerController::class, 'viewStatement'])->name('retailer.statement.view');
+
 
 
 

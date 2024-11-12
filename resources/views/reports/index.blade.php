@@ -10,11 +10,12 @@
 <div class="container p-3">
     <div class="row mb-4">
         <div class="col text-end">
-            {{-- @if(auth()->user()->hasRole('Retailer'))
-            <a href="{{ route('retailers.reports.create', ['retailer' => auth()->user()->id]) }}" class="btn btn-primary mt-3">Add Report</a>
-        @endif --}}
-        
-        
+            {{-- <a href="{{ route('retailers.reports.create', $retailer->id) }}" class="btn btn-primary">
+                Add Report
+            </a>
+             --}}
+            
+            
         </div>
     </div>
 
@@ -76,14 +77,13 @@
                         </td>
                     </tr>
                     @empty
-                        <tr><td colspan="11">No reports found.</td></tr>
+                        {{-- <tr><td colspan="11">No reports found.</td></tr> --}}
                     @endforelse
                 </tbody>
             </table>
         </div>
     </div>
 </div>
-
 
 <style>
     /* General table styling */
@@ -124,7 +124,6 @@ table.dataTable tbody td.actions-column {
     text-align: center;
 }
 
-
 /* Set the background for alternating rows */
 table.dataTable tbody tr:nth-child(odd) {
     background-color: #f9f9f9;
@@ -133,11 +132,12 @@ table.dataTable tbody tr:nth-child(odd) {
 table.dataTable tbody tr:nth-child(even) {
     background-color: #fff;
 }
-.dataTables_wrapper .dataTables_paginate .paginate_button.disabled{
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
     color: white  !important;
 }
-
 </style>
+
 @push('scripts')
 <script>
     $(document).ready(function() {
@@ -147,9 +147,10 @@ table.dataTable tbody tr:nth-child(even) {
         // Initialize DataTable with responsive and horizontal scrolling options
         const table = $('#reportsTable').DataTable({
             responsive: true,
-            scrollX: true, // Enable horizontal scrolling
+            scrollX: true, 
+            autoWidth: false, // Enable horizontal scrolling
             language: {
-                emptyTable: "No offers found." // Custom message for no data
+                emptyTable: "No reports found." // Custom message for no data
             },
             initComplete: function() {
                 $('#loader').addClass('hidden'); // Hide the loader once the table is initialized
@@ -197,7 +198,6 @@ table.dataTable tbody tr:nth-child(even) {
         @endif
     });
 </script>
-
 @endpush
 
 @endsection

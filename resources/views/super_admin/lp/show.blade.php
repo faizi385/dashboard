@@ -8,12 +8,12 @@
             <a href="{{ route('lp.index') }}" class="btn btn-primary ">Back </a>
             
             <button class="btn btn-primary " data-bs-toggle="modal" data-bs-target="#addOfferModal">
-                Add Offer
+                Add Deal
             </button>
             
             <a href="{{ route('offers.index', ['lp_id' => $lp->id, 'from_lp_show' => 1]) }}" 
                 class="btn btn-primary">
-                View Offers
+                View Deal
              </a>
              
              
@@ -68,7 +68,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Add Offers to {{ $lp->name }}</h5>
+                <h5 class="modal-title">Add Deals to {{ $lp->name }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -83,7 +83,7 @@
                             <p><strong>LP:</strong> {{ $lp->name }} ({{ $lp->dba }})</p>
 
                             <div class="mb-3">
-                                <label for="offerExcel" class="form-label">Upload Bulk Offers (Excel)</label>
+                                <label for="offerExcel" class="form-label">Upload Bulk Deals (Excel)</label>
                                 <input type="file" class="form-control" id="offerExcel" name="offerExcel" accept=".xlsx, .xls, .csv" required>
                             </div>
                             <button type="submit" class="btn btn-primary">
@@ -95,7 +95,7 @@
                     <!-- Single Offer Add Option -->
                     <div>
                         <a href="{{ route('offers.create', ['lp_id' => $lp->id]) }}" class="btn btn-primary">
-                            <i class="fas fa-plus-circle"></i> Add Single Offer
+                            <i class="fas fa-plus-circle"></i> Add Single Deal
                         </a>
                     </div>
                 </div>

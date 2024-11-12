@@ -94,6 +94,9 @@
     .status-toggle {
         text-decoration: none; /* Remove underline from toggle button */
     }
+    
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled{
+        color: white  !important;}
 </style>
 @endpush
 

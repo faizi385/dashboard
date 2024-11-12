@@ -5,10 +5,12 @@ use App\Models\User;
 use App\Models\Report;
 use App\Models\Province;
 use App\Models\Retailer;
+use App\Models\CleanSheet;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Mail\RetailerFormMail;
 use App\Models\RetailerStatement;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Models\RetailerAddress; // Address model
@@ -25,44 +27,71 @@ class RetailerController extends Controller
         $user = auth()->user();
         $totalIrccDollarAllRetailers = 0;
         $retailerIrccDollars = []; // Array to store each retailer's IRCC dollar data
-    
+        
         // Fetch all reports and loop through them
         $reports = Report::with('retailer')->get();
-    
+        
         foreach ($reports as $report) {
             $retailerId = $report->retailer_id;
             
             // Fetch statements for each retailer
             $statements = RetailerStatement::where('retailer_id', $retailerId)->get();
-    
-  
+            
             $totalIrccDollar = 0;
-    
+            
             foreach ($statements as $statement) {
                 // Calculate total IRCC dollar sum
                 $totalIrccDollar += $statement->ircc_dollar;
-                
-              
             }
-    
+            
             // Store the calculated data for each retailer
             $retailerIrccDollars[] = [
                 'retailer_id' => $retailerId,
                 'total_ircc_dollar' => $totalIrccDollar,
-              
             ];
+            
     
-            // Add to the global total for all retailers
             $totalIrccDollarAllRetailers += $totalIrccDollar;
         }
+        
+        // Total purchase sum from Cleansheet
+        $totalPurchaseSum = Cleansheet::sum('purchase');
     
-        // Pass the total IRCC dollar sum and individual retailer data to the view
-        return view('super_admin.retailer.dashboard', compact('totalIrccDollarAllRetailers', 'retailerIrccDollars'));
+        // Get the total purchases grouped by province
+        $provinceData = Cleansheet::select('province', DB::raw('SUM(purchase) as total_purchase'))
+            ->groupBy('province')
+            ->get();
+    
+        // Pass the data to the view
+        return view('super_admin.retailer.dashboard', compact('totalIrccDollarAllRetailers', 'retailerIrccDollars', 'totalPurchaseSum', 'provinceData'));
     }
     
 
-    
+    public function manageInfo()
+    {
+        // Retrieve the retailer information. Modify this as needed based on your data structure.
+        $retailer = Retailer::with('address')->find(auth()->user()->id);
 
+        // Return the view with retailer data
+        return view('retailers.manage-info', compact('retailer'));
+    }
+    public function viewStatement($retailerId)
+    {
+        // Fetch the retailer by ID
+        $retailer = Retailer::findOrFail($retailerId);
+    
+        // Fetch the retailer's statement data (Modify the query as necessary)
+        $statements = RetailerStatement::where('retailer_id', $retailerId)->get();
+    
+        // Assume that `report_id` is available on each statement.
+        // Pass the first report ID found for this retailer if it exists.
+        $reportId = $statements->first()->report_id ?? null;
+    
+        // Return the view with the retailer, statements, and reportId data
+        return view('super_admin.retailer.view-statement', compact('retailer', 'statements', 'reportId'));
+    }
+    
+    
     
     public function create()
     {

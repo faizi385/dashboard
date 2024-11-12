@@ -1,9 +1,11 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
-    <h1>Settings</h1>
-    
+<div class="container p-2">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="text-white">Settings</h1>
+    </div>
+
     <!-- Display validation errors -->
     @if ($errors->any())
         <div class="alert alert-danger">
@@ -22,34 +24,71 @@
         </div>
     @endif
 
-    <!-- Settings form -->
-    <form action="{{ route('settings.update') }}" method="POST">
-        @csrf
-        <!-- Email field -->
-        <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" name="email" id="email" class="form-control" value="{{ $user->email }}" required>
-        </div>
+    <div class="bg-white p-4 rounded shadow-sm mb-4">
+        <!-- Settings form -->
+        <form action="{{ route('settings.update') }}" method="POST" id="settingsForm">
+            @csrf
 
-        <!-- Phone number field -->
-        <div class="form-group">
-            <label for="phone">Phone</label>
-            <input type="text" name="phone" id="phone" class="form-control" value="{{ $user->phone }}">
-        </div>
+            <div class="row">
+                <!-- Email Field -->
+                <div class="col-md-6 mb-3">
+                    <label for="email" class="form-label">
+                        <i class="fas fa-envelope"></i> Email <span class="text-danger">*</span>
+                    </label>
+                    <input type="email" name="email" id="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email', $user->email) }}" oninput="removeValidation(this)" required>
+                    @error('email')
+                        <div class="invalid-feedback">
+                            {{ $message }}
+                        </div>
+                    @enderror
+                </div>
 
-        <!-- Password update fields -->
-        <div class="form-group">
-            <label for="password">New Password (Leave blank if you don't want to change)</label>
-            <input type="password" name="password" id="password" class="form-control">
-        </div>
+                <!-- Phone Number Field -->
+                <div class="col-md-6 mb-3">
+                    <label for="phone" class="form-label">
+                        <i class="fas fa-phone-alt"></i> Phone Number
+                    </label>
+                    <input type="text" name="phone" id="phone" class="form-control @error('phone') is-invalid @enderror" value="{{ old('phone', $user->phone) }}" oninput="removeValidation(this)">
+                    @error('phone')
+                        <div class="invalid-feedback">
+                            {{ $message }}
+                        </div>
+                    @enderror
+                </div>
+            </div>
 
-        <div class="form-group">
-            <label for="password_confirmation">Confirm New Password</label>
-            <input type="password" name="password_confirmation" id="password_confirmation" class="form-control">
-        </div>
+            <div class="row">
+                <!-- Password Field -->
+                <div class="col-md-6 mb-3">
+                    <label for="password" class="form-label">
+                        <i class="fas fa-lock"></i> New Password (Leave blank if you don't want to change)
+                    </label>
+                    <input type="password" name="password" id="password" class="form-control @error('password') is-invalid @enderror" oninput="removeValidation(this)">
+                    @error('password')
+                        <div class="invalid-feedback">
+                            {{ $message }}
+                        </div>
+                    @enderror
+                </div>
 
-        <!-- Submit button -->
-        <button type="submit" class="btn btn-primary">Save Changes</button>
-    </form>
+                <!-- Confirm Password Field -->
+                <div class="col-md-6 mb-3">
+                    <label for="password_confirmation" class="form-label">
+                        <i class="fas fa-lock"></i> Confirm New Password
+                    </label>
+                    <input type="password" name="password_confirmation" id="password_confirmation" class="form-control @error('password_confirmation') is-invalid @enderror" oninput="removeValidation(this)">
+                    @error('password_confirmation')
+                        <div class="invalid-feedback">
+                            {{ $message }}
+                        </div>
+                    @enderror
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+        </form>
+    </div>
 </div>
 @endsection
