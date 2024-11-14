@@ -41,7 +41,10 @@ class Lp extends Model
     {
         return $this->hasMany(Carveout::class);
     }
-
+    public function reports()
+    {
+        return $this->hasMany(Report::class, 'lp_id'); // assuming 'lp_id' is the foreign key in the reports table
+    }
     // Override the delete method to modify email
     public function delete()
     {

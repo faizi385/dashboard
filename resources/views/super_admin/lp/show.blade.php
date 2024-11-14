@@ -25,6 +25,11 @@
             <button class="btn btn-primary" onclick="window.location.href='{{ route('lp.products.by.id', ['lp_id' => $lp->id]) }}'">
                 View Products
             </button>
+
+            <!-- View LP Statement Button -->
+            <button class="btn btn-primary" onclick="window.location.href='{{ route('lp.statement.view', ['lp_id' => $lp->id]) }}'">
+                View LP Statement
+            </button>
             
 
         </div>

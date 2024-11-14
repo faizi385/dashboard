@@ -195,6 +195,10 @@ Route::delete('/reports/{report}', [ReportController::class, 'destroy'])->name('
 // Route for creating a report in the retailer dashboard
 // Route to view the statement
 Route::get('/retailers/{retailer}/statement', [RetailerController::class, 'viewStatement'])->name('retailer.statement.view');
+Route::get('superadmin/lp/{lp_id}/statement', [LpController::class, 'viewStatement'])->name('lp.statement.view');
+
+Route::get('lp/statement/export/{lp_id}/{date}', [LpController::class, 'exportLpStatement'])->name('lp.statement.export');
+
 
 
 

@@ -63,7 +63,9 @@ class RoleController extends Controller
         // Sync permissions if provided
         $validPermissions = Permission::whereIn('id', $request->permissions)->pluck('id')->toArray();
         $role->syncPermissions($validPermissions);
-    
+        // if (!empty($request->permissions)) {
+        //     $role->syncPermissions($request->permissions);
+        // }
         return redirect()->route('roles.index')->with('toast_success', 'Role created successfully.');
     }
     

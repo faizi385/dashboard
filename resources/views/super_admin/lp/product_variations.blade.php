@@ -65,6 +65,7 @@
         $('#productsTable').DataTable({
             responsive: true,
             "scrollX": true,
+            autoWidth: false, 
             "language": {
                 "emptyTable": "No product variations found for this GTIN."
             },

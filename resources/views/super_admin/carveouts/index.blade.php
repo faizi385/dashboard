@@ -147,70 +147,94 @@
 <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 
 <script>
-$(document).ready(function() {
-    $("#loader").fadeOut("slow");
+    $(document).ready(function() {
+        $("#loader").fadeOut("slow");
+    
+     
+    var table = $('#carveoutTable').DataTable({
+        responsive: true,
+        scrollX: true,
+        autoWidth: false, 
+        language: {
+            emptyTable: "No carveouts found."
+        },
+        dom: '<"d-flex justify-content-between"lf>rtip',
+        initComplete: function() {
+            $('#loader').addClass('hidden'); // Hide loader once table is initialized
 
-    $('#carveoutTable').DataTable({
-    responsive: true,
-    scrollX: true,
-    autoWidth: false, 
-    language: {
-        emptyTable: "No carveouts found."
-    }
-});
+            // Add "Filter" label and month filter input next to the search box
+            $("#carveoutTable_filter").prepend(`
+                <span class="me-2" style="font-weight: bold;">Filter:</span>
+                <label class="me-3">
+                    <input type="month" id="monthFilter" class="form-control form-control-sm" placeholder="Select month" />
+                </label>
+            `);
 
-
-    // Initialize Bootstrap tooltips
-    $('[data-bs-toggle="tooltip"]').tooltip();
-
-    // Handle delete button click using event delegation
-    $('#carveoutTable tbody').on('click', '.delete-btn', function (event) {
-        event.preventDefault(); // Prevent form submission
-        const form = $(this).closest('form'); // Get the parent form
-
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "You won't be able to revert this!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, delete it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                form.submit(); // Submit the form if confirmed
-            }
+            // Month filter functionality to filter table by selected month
+            $('#monthFilter').on('change', function() {
+                const selectedMonth = $(this).val(); // Format YYYY-MM
+                if (selectedMonth) {
+                    table.column(5).search('^' + selectedMonth, true, false).draw(); // Use regex for partial match
+                } else {
+                    table.column(5).search('').draw();
+                }
+            });
+        }
+    });
+    
+        // Initialize Bootstrap tooltips
+        $('[data-bs-toggle="tooltip"]').tooltip();
+    
+        // Handle delete button click using event delegation
+        $('#carveoutTable tbody').on('click', '.delete-btn', function (event) {
+            event.preventDefault(); // Prevent form submission
+            const form = $(this).closest('form'); // Get the parent form
+    
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit(); // Submit the form if confirmed
+                }
+            });
         });
+    
+        // Clear form data when modal is closed
+        $('#addCarveoutModal').on('hidden.bs.modal', function () {
+            $(this).find('form')[0].reset(); // Reset the form
+            $(this).find('.form-control').removeClass('is-invalid'); // Remove any validation classes if present
+        });
+    
+        // Display errors with toastr if there are any
+        @if ($errors->any())
+            toastr.error("{{ $errors->first() }}");
+        @endif
     });
-
-    // Clear form data when modal is closed
-    $('#addCarveoutModal').on('hidden.bs.modal', function () {
-        $(this).find('form')[0].reset(); // Reset the form
-        $(this).find('.form-control').removeClass('is-invalid'); // Remove any validation classes if present
-    });
-
-    @if ($errors->any())
-        toastr.error("{{ $errors->first() }}");
-    @endif
-});
-document.addEventListener('DOMContentLoaded', function () {
+    
+    document.addEventListener('DOMContentLoaded', function () {
         const retailerSelect = document.getElementById('retailer');
         const locationSelect = document.getElementById('location');
-
+    
         retailerSelect.addEventListener('change', function () {
             const retailerId = this.value;
-
+    
             // Clear existing options
             locationSelect.innerHTML = '<option value="" disabled selected>Select Location</option>';
-
+    
             if (retailerId) {
                 fetch(`/retailers/${retailerId}/addresses`) // Update this URL according to your routes
                     .then(response => response.json())
                     .then(data => {
                         data.forEach(address => {
                             // Format the address as desired
-                            const formattedAddress = `${address.street_no} ${address.street_name} ${address.province} ${address.city} ${address.location}`;
-
+                            const formattedAddress = `${address.street_no} ${address.street_name}, ${address.province}, ${address.city}, ${address.location}`;
+                            
                             const option = document.createElement('option');
                             option.value = address.id; // Assuming the address has an ID
                             option.textContent = formattedAddress; // Set the formatted address as the option text
@@ -222,7 +246,8 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     });
-</script>
+    </script>
+    
 
 <style>
     .container {
@@ -242,7 +267,12 @@ document.addEventListener('DOMContentLoaded', function () {
         font-size: 0.85rem; /* Adjust header font size to be smaller */
         padding: 0.75rem; /* Optional: Adjust padding to reduce height */
     }
-
+    .dataTables_wrapper .dataTables_filter label,
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+        color: black;
+    }   
     .mb-4 {
         margin-bottom: 1.5rem;
     }

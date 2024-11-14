@@ -81,7 +81,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
 
-<script>
+  <script>
     $(document).ready(function() {
         $("#loader").fadeOut("slow");
         
@@ -92,23 +92,42 @@
         });
 
         // Initialize DataTable
-        $('#productsTable').DataTable({
+        var table = $('#productsTable').DataTable({
             responsive: true,
-            "scrollX": true, 
+            scrollX: true, 
             autoWidth: false, 
-            "language": {
-                "emptyTable": "No products found." // Custom message for no data
+            language: {
+                emptyTable: "No products found." // Custom message for no data
             },
-            "initComplete": function() {
-                // Hide the loader once the table is initialized
-                $('#loader').addClass('hidden');
+            dom: '<"d-flex justify-content-between"lf>rtip',
+            initComplete: function() {
+                $('#loader').addClass('hidden'); // Hide loader once table is initialized
+
+                // Add "Filter" label and month filter input next to the search box
+                $("#productsTable_filter").prepend(`
+                    <span class="me-2 " style="font-weight: bold;">Filter:</span>
+                    <label class="me-3">
+                       
+                        <input type="month" id="monthFilter" class="form-control form-control-sm" placeholder="Select month" />
+                    </label>
+                    
+                `);
+
+                // Month filter functionality to filter table by selected month
+                $('#monthFilter').on('change', function() {
+                    const selectedMonth = $(this).val();
+                    if (selectedMonth) {
+                        table.column(8).search(selectedMonth).draw(); 
+                    } else {
+                        table.column(8).search('').draw();
+                    }
+                });
             }
         });
 
         // SweetAlert for Delete Confirmation
         $('.delete-btn').on('click', function() {
             var form = $(this).closest('form'); // Get the form
-            var productId = $(this).data('id'); // Get product ID
 
             Swal.fire({
                 title: 'Are you sure?',

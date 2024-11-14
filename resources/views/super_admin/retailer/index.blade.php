@@ -71,7 +71,7 @@
     $("#loader").fadeOut("slow");
     $('#retailersTable').DataTable({
         "initComplete": function() {
-            // Hide the loader once the table is initialized
+      
         }
     });
 

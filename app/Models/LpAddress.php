@@ -14,6 +14,7 @@ class LpAddress extends Model
         'street_name',
         'postal_code',
         'city',
+        'province_id',
     ];
 
     public function lp()

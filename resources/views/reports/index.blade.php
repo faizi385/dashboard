@@ -6,19 +6,20 @@
 <div id="loader" class="loader-overlay">
     <div class="loader"></div>
 </div>
-
+ 
 <div class="container p-3">
     <div class="row mb-4">
         <div class="col text-end">
-            {{-- <a href="{{ route('retailers.reports.create', $retailer->id) }}" class="btn btn-primary">
-                Add Report
+            @if(auth()->user()->hasRole('Retailer'))
+            <a href="{{ route('retailers.reports.create', ['retailer' => $retailers->id]) }}" class="btn btn-primary">
+                <i class="fas fa-plus-circle"></i> Add Report
             </a>
-             --}}
             
+            @endif
             
         </div>
     </div>
-
+    
     <div class="row">
         <div class="col">
             <table id="reportsTable" class="table table-hover table-bordered text-center align-middle">
@@ -53,8 +54,8 @@
                             </a>
                         </td>
                         <td>{{ \Carbon\Carbon::parse($report->date)->format('Y-m-d') }}</td>
-                        <td>${{ number_format($retailerSums[$report->retailer_id]['total_fee_sum'] ?? 0, 2) }}</td>
-                        <td>${{ number_format($retailerSums[$report->retailer_id]['total_payout_with_tax'] ?? 0, 2) }}</td>
+                        <td>${{ number_format($retailerSumsByLocation[$report->location]['total_fee_sum'] ?? 0, 2) }}</td>
+                        <td>${{ number_format($retailerSumsByLocation[$report->location]['total_payout_with_tax'] ?? 0, 2) }}</td>
                         <td>{{ $report->status }}</td>
                         <td class="text-center">
                             <form action="{{ route('reports.destroy', ['report' => $report->id]) }}" method="POST" style="display:inline;" class="delete-form">
@@ -85,59 +86,9 @@
     </div>
 </div>
 
-<style>
-    /* General table styling */
-table.dataTable {
-    width: 100%;
-    background-color: white;
-    border-collapse: collapse;
-}
 
-table.dataTable th, 
-table.dataTable td {
-    padding: 12px;
-    border: 1px solid #ddd;
-}
 
-table.dataTable thead th {
-    background-color: #f5f5f5;
-    color: #333;
-}
-
-/* Alignment and centering */
-table.dataTable thead th {
-    text-align: center;
-}
-
-table.dataTable tbody td {
-    text-align: center;
-    vertical-align: middle; /* Center vertically */
-}
-
-table.dataTable tbody td. {
-    text-align: left; /* Left-align for specific columns */
-}
-
-/* Actions column */
-table.dataTable tbody td.actions-column {
-    width: 100px;
-    text-align: center;
-}
-
-/* Set the background for alternating rows */
-table.dataTable tbody tr:nth-child(odd) {
-    background-color: #f9f9f9;
-}
-
-table.dataTable tbody tr:nth-child(even) {
-    background-color: #fff;
-}
-
-.dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
-    color: white  !important;
-}
 </style>
-
 @push('scripts')
 <script>
     $(document).ready(function() {
@@ -148,12 +99,30 @@ table.dataTable tbody tr:nth-child(even) {
         const table = $('#reportsTable').DataTable({
             responsive: true,
             scrollX: true, 
-            autoWidth: false, // Enable horizontal scrolling
+            autoWidth: false,
             language: {
-                emptyTable: "No reports found." // Custom message for no data
+                emptyTable: "No reports found."
             },
             initComplete: function() {
                 $('#loader').addClass('hidden'); // Hide the loader once the table is initialized
+
+                // Prepend month filter to DataTable search box section
+                $("#reportsTable_filter").prepend(`
+                    <span class="me-2 text-white" style="font-weight: bold;">Filter:</span>
+    <label class="me-3">
+        <input type="month" id="monthFilter" class="form-control form-control-sm" placeholder="Select month" />
+    </label>
+                `);
+
+                // Attach month filter change event to filter table
+                $('#monthFilter').on('change', function() {
+                    const selectedMonth = $(this).val();
+                    if (selectedMonth) {
+                        table.column(5).search(selectedMonth).draw(); // Assumes date column is column index 5
+                    } else {
+                        table.column(5).search('').draw();
+                    }
+                });
             }
         });
 
@@ -199,5 +168,9 @@ table.dataTable tbody tr:nth-child(even) {
     });
 </script>
 @endpush
-
+<style>
+    
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled{
+        color: white  !important;}
+</style>
 @endsection

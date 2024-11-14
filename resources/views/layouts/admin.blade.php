@@ -193,13 +193,7 @@
                     
                         
         
-                        <!-- Retailer Management (Visible only to Super Admin) -->
-                        <li class="nav-item">
-                            <a href="{{ route('retailer.index') }}" class="nav-link {{ Route::currentRouteName() == 'retailer.index' ? 'active' : '' }}">
-                                <i class="nav-icon fas fa-user"></i>
-                                <p>Retailer Management</p>
-                            </a>
-                        </li>
+                   
                         <li class="nav-item">
                             <a href="{{ route('lp.management') }}" 
                                class="nav-link {{ (request()->is('lp/management*') || Route::currentRouteName() == 'lp.management' || Route::currentRouteName() == 'lp.show') ? 'active' : '' }}">
@@ -214,7 +208,7 @@
                         
                         
                         @endif
-        
+                    
                         <!-- Manage Info (Visible only to LPs) -->
                         @if(auth()->user()->hasRole('LP'))
                         <li class="nav-item {{ request()->is('manage-info*') ? 'menu-open' : '' }}">
@@ -224,8 +218,14 @@
                             </a>
                         </li>
                         @endif
-        
-                        <!-- Offers Tab (Visible to Super Admin and LPs) -->
+                        @if(auth()->user()->hasRole('Super Admin') || auth()->user()->hasRole('LP'))
+                        <li class="nav-item">
+                            <a href="{{ route('retailer.index') }}" class="nav-link {{ Route::currentRouteName() == 'retailer.index' ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-user"></i>
+                                <p>Retailer Management</p>
+                            </a>
+                        </li>
+                        @endif
                       
                     
                     <!-- Offers Tab (Visible to Super Admin and LPs) -->
@@ -257,7 +257,7 @@
                         </li>
                         
                         @endif
-        
+                     
                         <!-- Products Tab (Visible only to LPs) -->
                     @if(auth()->user()->hasRole('Super Admin') || auth()->user()->hasRole('LP'))
     <li class="nav-item">
@@ -279,7 +279,30 @@
 
 @endif
 
-     
+@if(auth()->user()->hasRole('LP'))
+<li class="nav-item">
+    <a href="{{ route('retailer.create') }}" class="nav-link {{ Route::currentRouteName() == 'retailer.create' ? 'active' : '' }}">
+        <i class="nav-icon fas fa-plus"></i>
+        <p>Create Retailer</p>
+    </a>
+</li>
+@endif
+
+@php
+    $lpId = \App\Models\Lp::where('user_id', auth()->id())->value('id');
+@endphp
+@if(auth()->user()->hasRole('LP'))
+@if($lpId)
+<li class="nav-item">
+    <a href="{{ route('lp.statement.view', ['lp_id' => $lpId]) }}"
+       class="nav-link {{ Route::currentRouteName() == 'lp.statement.view' ? 'active' : '' }}">
+        <i class="nav-icon fas fa-file-invoice"></i>
+        <p>Statement</p>
+    </a>
+</li>
+@endif
+@endif
+
                     </ul>
                 </nav>
             </div>

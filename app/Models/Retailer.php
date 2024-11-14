@@ -19,6 +19,8 @@ class Retailer extends Model
         'user_id',
         'status',
         'postal_code',
+        'lp_id',
+        'type',
     ];
 
     public function user()

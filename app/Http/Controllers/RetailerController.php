@@ -1,5 +1,6 @@
 <?php
 namespace App\Http\Controllers;
+use App\Models\LP;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Report;
@@ -19,9 +20,21 @@ class RetailerController extends Controller
 {
     public function index()
     {
-        $retailers = Retailer::with('address')->get(); // Fetch all retailers with addresses
-        return view(' super_admin.retailer.index', compact('retailers'));
+        // Check if the user is a Super Admin
+        if (auth()->user()->hasRole('Super Admin')) {
+            // Super Admin can view all retailers
+            $retailers = Retailer::with('address')->get();
+        } else {
+            // For LPs, get only retailers created by the logged-in LP
+            $lpId = LP::where('user_id', auth()->id())->value('id');
+            $retailers = Retailer::with('address')
+                ->where('lp_id', $lpId)
+                ->get();
+        }
+    
+        return view('super_admin.retailer.index', compact('retailers'));
     }
+    
     public function dashboard()
     {
         $user = auth()->user();
@@ -95,7 +108,8 @@ class RetailerController extends Controller
     
     public function create()
     {
-        return view('super_admin.retailer.create');
+        $lps = Lp::all();
+        return view('super_admin.retailer.create', compact('lps'));
     }
     public function store(Request $request)
     {
@@ -126,6 +140,9 @@ class RetailerController extends Controller
                 'max:20',
                 'regex:/^\+?\d{1,3}\s*\(?\d{3}?\)?\s*\d{3}[-\s]?\d{4}$/'  // Accepts formats like +1 (425) 274-9782
             ],
+            'type' => 'required|string', 
+            // For Super Admin, validate LP if the user is Super Admin
+            'lp_id' => auth()->user()->hasRole('Super Admin') ? 'required|exists:lps,id' : 'nullable',
         ]);
     
         // Create the user who will be the actual retailer
@@ -145,14 +162,25 @@ class RetailerController extends Controller
             return redirect()->back()->with('error', 'Role not found.');
         }
     
-        // Create the retailer with the actual user's ID
+        // Check if the user is a Super Admin
+        if (auth()->user()->hasRole('Super Admin')) {
+            // For Super Admin, assign the selected LP ID from the dropdown
+            $lpId = $request->input('lp_id');
+        } else {
+            // For LP portal, use the authenticated user's LP ID
+            $lpId = LP::where('user_id', auth()->id())->value('id');
+        }
+    
+        // Create the retailer record and link it to the selected or current LP
         $retailer = Retailer::create([
-            'user_id' => $user->id,  // Set the user ID as the actual retailer's user ID
+            'user_id' => $user->id,
             'first_name' => $validatedData['first_name'],
             'last_name' => $validatedData['last_name'],
             'email' => $validatedData['email'],
             'phone' => $validatedData['phone'],
             'status' => 'requested',
+            'lp_id' => $lpId, // Assign the lp_id
+            'type' => $request->input('type'),
         ]);
     
         // Generate a token and the link for completing the retailer information
@@ -165,6 +193,7 @@ class RetailerController extends Controller
         // Redirect back with a success message
         return redirect()->route('retailer.create')->with('success', 'Retailer created and email sent successfully!');
     }
+    
     
     public function showForm($token)
     {
@@ -229,8 +258,9 @@ class RetailerController extends Controller
 }
     public function edit($id)
     {
+        $lps = Lp::all();
         $retailer = Retailer::with('address')->findOrFail($id);
-        return view('super_admin.retailer.edit', compact('retailer'));
+        return view('super_admin.retailer.edit', compact('retailer','lps'));
     }
     public function update(Request $request, $id)
     {

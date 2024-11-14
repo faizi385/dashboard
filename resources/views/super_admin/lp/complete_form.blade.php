@@ -111,8 +111,20 @@
                     </select>
                     <div class="invalid-feedback">Please select a city.</div>
                 </div>
-                <!-- Add an empty col-md-4 div if you want to keep the row with three columns -->
-                <div class="col-md-4 form-group"></div>
+             
+                <div class="col-md-4 form-group">
+                    <label for="province"><i class="fas fa-map-marker-alt"></i> Province <span class="text-danger">*</span></label>
+                    <select class="form-control" name="address[province]" id="province" required>
+                        <option value="">Select Province</option>
+                        @foreach($provinces as $province)
+                            <option value="{{ $province->id }}">{{ $province->name }}</option> <!-- Sending province ID here -->
+                        @endforeach
+                    </select>
+                    <div class="invalid-feedback">Please select a province.</div>
+                </div>
+                
+                
+                
             </div>
 
             <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Submit</button>

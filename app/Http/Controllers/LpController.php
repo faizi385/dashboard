@@ -2,21 +2,29 @@
 namespace App\Http\Controllers;
 
 use App\Models\Lp;
+use Carbon\Carbon;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Offer;
 use App\Models\Product;
 use App\Mail\LpFormMail;
+use App\Models\Province;
 use App\Models\Retailer;
 use App\Models\CleanSheet;
 use Illuminate\Http\Request;
+use App\Traits\LPStatementTrait;
+use App\Models\RetailerStatement;
+use App\Exports\LpStatementExport;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Maatwebsite\Excel\Facades\Excel;
 
 class LpController extends Controller
 {
+    use LPStatementTrait;
+
     public function dashboard() 
     {
         // Fetch all purchase data
@@ -79,6 +87,62 @@ $retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
             'retailerOfferCounts'
         ));
     }
+    
+
+    public function exportLpStatement($lp_id,$date)
+    {
+        set_time_limit(900); 
+        $date = '2024-10-01';
+
+        $lp = Lp::where('id', $lp_id)->with('user')->first();
+   
+        $sortedCollection = $this->generateLpStatement($lp_id, $date);
+        $lpName = $lp->name ?? 'LP_Name';
+$formattedDate = Carbon::parse($date)->format('M-Y') ?? 'Date';
+
+    return Excel::download(
+        new LpStatementExport(true, $sortedCollection),
+        str_replace(' ', '_', trim($lpName)) . '-' . $formattedDate . '-Statement.xlsx'
+    );
+  
+    }
+    
+    public function viewStatement($lp_id)
+    {
+        // Retrieve the LP by its ID
+        $lp = Lp::findOrFail($lp_id);
+    
+        // Retrieve the related retailer statements based on lp_id
+        $statements = RetailerStatement::where('lp_id', $lp_id)->get();
+    
+        // Calculate the total fee sum
+        $totalFeeSum = $statements->sum('total_fee');
+        
+        // Define province tax rates
+        $taxRates = [
+            'Alberta' => 0.05,
+            'Ontario' => 0.03,
+            'Manitoba' => 0.05,
+            'British Columbia' => 0.05,
+            'Saskatchewan' => 0.05
+        ];
+    
+        // Calculate total fee with tax for each statement based on province
+        $totalFeeWithTaxSum = 0;
+        foreach ($statements as $statement) {
+            $province = $statement->province;
+            $taxRate = $taxRates[$province] ?? 0; // Default to 0% if no tax rate found for province
+            
+            // Calculate total fee with tax
+            $totalFeeWithTaxSum += $statement->total_fee * (1 + $taxRate);
+        }
+    
+        // Return the view with the necessary data
+        return view('super_admin.lp.statement', compact('lp', 'totalFeeSum', 'totalFeeWithTaxSum', 'statements'));
+    }
+    
+
+    
     
 
     
@@ -156,9 +220,10 @@ $retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
     public function completeForm($id)
     {
         $lp = Lp::findOrFail($id);
-        return view('super_admin.lp.complete_form', compact('lp'));
+        $provinces = Province::all();  // Fetch all provinces
+        return view('super_admin.lp.complete_form', compact('lp', 'provinces'));
     }
-
+    
     public function submitCompleteForm(Request $request)
     {
         // Validate the request data
@@ -174,11 +239,12 @@ $retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
             'address.street_name' => 'nullable|string|max:255',
             'address.postal_code' => 'nullable|string|max:20',
             'address.city' => 'required|string|max:255',
+            'address.province' => 'nullable|exists:provinces,id',  // Validate that the province exists in the provinces table by its ID
         ]);
-    
+        
         // Find the LP based on the provided ID
         $lp = Lp::findOrFail($request->lp_id);
-    
+        
         // Create or update the User record for the LP
         $user = User::updateOrCreate(
             ['email' => $validatedData['primary_contact_email']], // Unique identifier
@@ -188,7 +254,7 @@ $retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
                 'password' => Hash::make($validatedData['password']),
             ]
         );
-    
+        
         // Fetch the role by original name (Ensure the role exists)
         $role = Role::where('original_name', 'LP')->first(); // Adjust 'LP' if necessary
         if ($role) {
@@ -197,7 +263,7 @@ $retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
         } else {
             return redirect()->back()->with('error', 'Role not found.');
         }
-    
+        
         // Update LP details with the correct user_id and status set to 'approved'
         $lp->update([
             'name' => $validatedData['name'],
@@ -208,8 +274,8 @@ $retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
             'user_id' => $user->id,  // Set the user_id to the newly created/updated user
             'status' => 'approved' // Set the status to 'approved'
         ]);
-    
-        // Create or update the address
+        
+        // Create or update the address with province
         $lp->address()->updateOrCreate(
             ['lp_id' => $lp->id],
             [
@@ -217,12 +283,14 @@ $retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
                 'street_name' => $validatedData['address']['street_name'],
                 'postal_code' => $validatedData['address']['postal_code'],
                 'city' => $validatedData['address']['city'],
+                'province_id' => $validatedData['address']['province'], // Store the province ID
             ]
         );
-    
+        
         // Redirect to the login page with a success message
         return redirect()->route('login')->with('success', 'LP information completed successfully. Please log in.');
     }
+    
     
  
 

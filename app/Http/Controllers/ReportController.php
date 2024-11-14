@@ -32,70 +32,70 @@ use App\Models\RetailerAddress;
 
 class ReportController extends Controller
 {
-    public function index(Request $request, $retailer = null)
+    public function index(Request $request, $retailers='')
     {
         // Get the currently authenticated user
         $user = auth()->user();
-    
-        // Initialize arrays to hold retailer sums and tax sums by province
-        $retailerSums = [];
-        $payoutWithTaxByProvince = [];
         
-        // Initialize total payout without tax and total payout with tax
-        $totalPayoutWithoutTax = 0;
-        $totalPayoutWithTax = 0;
-    
-        // Fetch all reports and statements, based on role
         if ($user->hasRole('Retailer')) {
-            $retailer = Retailer::where('user_id', $user->id)->first();
+            // Attempt to find the retailer associated with the user
+            $retailers = Retailer::where('user_id', $user->id)->first();
             
-            if ($retailer) {
+            if ($retailers) {
                 // Fetch reports and statements for the retailer
-                $reports = Report::with('retailer')->where('retailer_id', $retailer->id)->get();
-                $statements = RetailerStatement::where('retailer_id', $retailer->id)->get();
+                $reports = Report::with('retailer')->where('retailer_id', $retailers->id)->get();
+                $statements = RetailerStatement::where('retailer_id', $retailers->id)->get();
             } else {
-                $reports = collect();  // Empty collection if no retailer found
+                // Empty collections if no retailer found
+                $reports = collect();
                 $statements = collect();
             }
         } else {
-            // Super admin: Fetch all reports and statements
+            // For Super Admin: Fetch all reports and statements
             $reports = Report::with('retailer')->get();
             $statements = RetailerStatement::all();
         }
+
+        // Initialize arrays for sums
+        $retailerSumsByLocation = [];
+        $totalPayoutWithoutTax = 0;
+        $totalPayoutWithTax = 0;
     
-        // Loop through each statement to calculate total fees and taxes
+        // Loop through each statement to calculate total fees and taxes by location
         foreach ($statements as $statement) {
-            $totalPayoutWithoutTax += $statement->total_fee;
-    
-            // Calculate payout with tax by province
+            // Get the location of the statement (from the Report model)
+            $location = $statement->report->location ?? null;
+            
+            // Calculate the tax rate for the location (based on province)
             $province = $statement->report->province ?? null;
             $taxRate = $this->getProvinceTaxRate($province);
+            
+            // Calculate the payout with tax
             $payoutWithTax = $statement->total_fee * (1 + $taxRate);
-    
+            
+            // Add to total payout without tax and with tax
+            $totalPayoutWithoutTax += $statement->total_fee;
             $totalPayoutWithTax += $payoutWithTax;
     
-            // Sum payout with tax by province
-            if (!isset($payoutWithTaxByProvince[$province])) {
-                $payoutWithTaxByProvince[$province] = 0;
-            }
-            $payoutWithTaxByProvince[$province] += $payoutWithTax;
-    
-            // Store the sums for each retailer
-            $retailerId = $statement->retailer_id;
-            if (!isset($retailerSums[$retailerId])) {
-                $retailerSums[$retailerId] = [
+            // Sum total fees and payout with tax by location
+            if (!isset($retailerSumsByLocation[$location])) {
+                $retailerSumsByLocation[$location] = [
                     'total_fee_sum' => 0,
                     'total_payout_with_tax' => 0,
                 ];
             }
-            $retailerSums[$retailerId]['total_fee_sum'] += $statement->total_fee;
-            $retailerSums[$retailerId]['total_payout_with_tax'] += $payoutWithTax;
+            
+            // Update sums for the specific location
+            $retailerSumsByLocation[$location]['total_fee_sum'] += $statement->total_fee;
+            $retailerSumsByLocation[$location]['total_payout_with_tax'] += $payoutWithTax;
         }
-    
+
         // Pass data to the view
-        return view('reports.index', compact('reports', 'retailerSums', 'totalPayoutWithoutTax', 'totalPayoutWithTax', 'payoutWithTaxByProvince', 'retailer'));
+        return view('reports.index', compact('reports', 'retailers', 'retailerSumsByLocation', 'totalPayoutWithoutTax', 'totalPayoutWithTax'));
     }
     
+
+
     // Helper function to get the tax rate based on the province
     private function getProvinceTaxRate($province)
     {
@@ -188,29 +188,34 @@ class ReportController extends Controller
         ]);
     
         $retailer = Retailer::find($retailerId);
-        $address = RetailerAddress::find($request->location);
+        $address = RetailerAddress::find($request->location); // Assumes location is an address ID
         
         if (!$retailer || !$address) {
             return redirect()->back()->withErrors('Retailer or Retailer Address not found.');
         }
-        
-       
+    
+        // Concatenate address fields to create the location string
+        $locationString = $address->street_no . ', ' . 
+                          $address->street_name . ', ' . 
+                          $address->city . ', ' . 
+                          $address->province;
+    
+        // Check if this location string is already used by the retailer
         $existingLocation = Report::where('retailer_id', $retailerId)
-            ->where('location', $address->id) // Check if this location is already used by the retailer
+            ->where('location', $locationString) // Now checking the full address string
             ->first();
-        
+    
         if ($existingLocation) {
             return redirect()->back()->with('error', 'This location has already been used for a report.');
         }
     
-        // If location is valid, proceed to check for the province and other details
         $province = Province::where('id', $address->province)->first();
         
         if (!$province) {
             return redirect()->back()->with('error', 'Province not found.');
         }
     
-        // Check if a report already exists for the given retailer, POS, and province in the current month
+ 
         $existingReport = Report::where('retailer_id', $retailerId)
             ->where('pos', $request->pos)
             ->where('province', $province->name) // Check the province
@@ -222,21 +227,18 @@ class ReportController extends Controller
             return redirect()->back()->with('error', 'A report has already been uploaded for this POS and province this month.');
         }
     
-        // Create the report record with the province details, submitted_by, and status
+        // Create the report record with the full location string, province details, and other data
         $report = Report::create([
             'retailer_id' => $retailerId,
-            'location' => $address->id,  // Store the address ID instead of concatenated string
+            'location' => $locationString,  // Storing the full address string
             'pos' => $request->pos,
-            'province' => $province->name,  // Store the province as well
+            'province' => $province->name,  // Store the province name
             'province_id' => $province->id,
             'province_slug' => $province->slug,
             'submitted_by' => auth()->id(), // Assuming you're using Laravel's auth
             'status' => 'Pending', // Default status
             'date' => now()->startOfMonth(), // Store the start of the current month
         ]);
-        
-        // Additional logic after the report is successfully created can go here
-        
         $file1Path = null;
         $file2Path = null;
 
