@@ -8,15 +8,20 @@
 </div>
 
 <div class="container p-2">
-    <div class="d-flex justify-content-between mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
         <h3 class="text-white">Deals List</h3>
-
-        @if(isset($lp))  <!-- Assuming $lp is the LP associated with the logged-in user -->
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addOfferModal">
-            <i class="fas fa-upload"></i> Upload Offer
-        </button>
-    @endif
+        <div class="d-flex">
+            @if(isset($lp)) <!-- Assuming $lp is the LP associated with the logged-in user -->
+                <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addOfferModal">
+                    <i class="fas fa-upload"></i> Upload Offer
+                </button>
+            @endif
+            <a href="{{ url()->previous() }}" class="btn btn-primary">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
     </div>
+    
 
     <div class="card">
         <div class="card-header">

@@ -51,13 +51,15 @@ public function store(Request $request)
             'max:255',
             'regex:/^[a-zA-Z\s]+$/', // Only alphabets and spaces allowed
         ],
-        'email' => [
-            'required',
-            'string',
-            'email',
-            'max:255',
-            'unique:users,email,NULL,id,deleted_at,NULL', // Check uniqueness only for active users
-        ],
+       'email' => [
+    'required',
+    'string',
+    'email',
+    'max:255',
+    'unique:users,email,NULL,id,deleted_at,NULL', // Check uniqueness only for active users
+    'regex:/^([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\.)com$/', // Ensure email ends with .com
+],
+
         'password' => [
             !isset($user) ? 'required' : 'nullable', // Password is required for new users, optional for updates
             'string',

@@ -88,8 +88,12 @@
                             <p><strong>LP:</strong> {{ $lp->name }} ({{ $lp->dba }})</p>
 
                             <div class="mb-3">
-                                <label for="offerExcel" class="form-label">Upload Bulk Deals (Excel)</label>
-                                <input type="file" class="form-control" id="offerExcel" name="offerExcel" accept=".xlsx, .xls, .csv" required>
+                                <label for="offerExcel" class="form-label">Upload Bulk Deals (Excel) <span class="text-danger">*</span></label>
+                                <input type="file" class="form-control" id="offerExcel" name="offerExcel" accept=".xlsx, .xls, .csv"  >
+                                <!-- Error message if validation fails -->
+                                @error('offerExcel')
+                                    <div class="text-danger">{{ $message }}</div>
+                                @enderror
                             </div>
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-upload"></i> Upload Excel
@@ -107,7 +111,7 @@
             </div>
         </div>
     </div>
-</div>
+</div
 
 <!-- Toastr CSS -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />

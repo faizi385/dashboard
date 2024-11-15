@@ -130,7 +130,7 @@
         const singleUpload = document.getElementById('singleUpload');
 
         // Show/hide uploads based on POS selection
-        if (['greenline', 'techpos', 'barnet', 'profittech','otherpos'].includes(selectedPos)) {
+        if (['greenline', 'techpos', 'barnet', 'profittech', 'otherpos'].includes(selectedPos)) {
             multipleUploads.style.display = 'none';
             salesSummaryUpload.style.display = 'none';
             singleUpload.style.display = 'block';
@@ -145,22 +145,39 @@
         }
     }
 
-    // Update the text with selected file name
+    function removeValidation(element) {
+        element.classList.remove('is-invalid');
+        const errorFeedback = element.nextElementSibling;
+        if (errorFeedback && errorFeedback.classList.contains('invalid-feedback')) {
+            errorFeedback.style.display = 'none';
+        }
+    }
+
+    // Update the text with selected file name and remove validation error when file is chosen
     document.querySelectorAll('.file-upload-input').forEach(input => {
         input.addEventListener('change', function () {
             const fileName = this.files[0]?.name || 'Choose Excel File';
             const uploadBox = this.closest('.file-upload-box');
             uploadBox.querySelector('p').textContent = fileName;
+
+            // Remove validation error
+            removeValidation(this);
         });
     });
-    // @if(session('success'))
-    //         toastr.success("{{ session('success') }}");
-    //     @endif
 
-        // Show error message
-        @if(session('error'))
-            toastr.error("{{ session('error') }}");
-        @endif
+    // Remove validation error on dropdown change
+    document.getElementById('location').addEventListener('change', function () {
+        removeValidation(this);
+    });
+
+    document.getElementById('pos').addEventListener('change', function () {
+        removeValidation(this);
+    });
+
+    // Show error message if session error is set
+    @if(session('error'))
+        toastr.error("{{ session('error') }}");
+    @endif
 </script>
 
 <!-- Custom CSS for styling the upload area -->

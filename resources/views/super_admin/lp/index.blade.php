@@ -16,13 +16,13 @@
         </button>
     </div>  
 
-  
     <table id="lpTable" class="table table-striped table-bordered mt-3">
         <thead>
             <tr>
                 <th>LP Name</th>
                 <th>DBA</th>
                 <th>Primary Contact Email</th>
+                <th>Status</th>
                 <th class="text-center">Action</th>
             </tr>
         </thead>
@@ -32,33 +32,61 @@
                     <td>{{ $lp->name }}</td>
                     <td>{{ $lp->dba }}</td>
                     <td>{{ $lp->primary_contact_email }}</td>
+                    <td>
+                       
+                        
+                            {{ ucfirst($lp->status) }}
+                        
+                    </td>
                     <td class="text-center">
-                        <!-- View Icon -->
+                        <!-- Approve Icon (only show if status is not approved yet) -->
+                        @if($lp->status !== 'approved')
+                        <form action="{{ route('lp.updateStatus', $lp->id) }}" method="POST" class="d-inline" id="approveForm{{ $lp->id }}">
+                            @csrf
+                            @method('PATCH')
+                            <input type="hidden" name="status" value=""> <!-- Hidden input to store status -->
+                            <button type="submit" class="btn btn-link p-0" data-bs-toggle="tooltip" data-bs-placement="top" title="Approve LP">
+                                <i style="color: green;" class="fas fa-check-circle"></i>
+                            </button>
+                        </form>
+                        @endif
+
+                        <!-- Reject Icon (only show if status is not rejected yet) -->
+                        @if($lp->status !== 'rejected')
+                        <form action="{{ route('lp.updateStatus', $lp->id) }}" method="POST" class="d-inline" id="rejectForm{{ $lp->id }}">
+                            @csrf
+                            @method('PATCH')
+                            <input type="hidden" name="status" value=""> <!-- Hidden input to store status -->
+                            <button type="submit" class="btn btn-link p-0" data-bs-toggle="tooltip" data-bs-placement="top" title="Reject LP">
+                                <i style="color: red;" class="fas fa-times-circle"></i>
+                            </button>
+                        </form>
+                        @endif
+                        
                         <a href="{{ route('lp.show', $lp->id) }}" class="icon-action text-decoration-none" data-bs-toggle="tooltip" data-bs-placement="top" title="View LP">
-                            <i style="color: black"  class="fas fa-eye"></i>
+                            <i style="color: black" class="fas fa-eye"></i>
                         </a>
-        
+
                         <!-- Edit Icon -->
                         <a href="{{ route('lp.edit', $lp) }}" class="icon-action text-decoration-none" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit LP">
-                            <i style="color: black"  class="fas fa-edit "></i>
+                            <i style="color: black" class="fas fa-edit"></i>
                         </a>
-        
+
                         <!-- Delete Icon -->
                         <form action="{{ route('lp.destroy', $lp) }}" method="POST" class="d-inline delete-form">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="btn btn-link p-0" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete LP" style="color: inherit; text-decoration: none;">
-                                <i style="color: black" class="fas fa-trash "></i>
+                                <i style="color: black" class="fas fa-trash"></i>
                             </button>
                         </form>
+
                     </td>
                 </tr>
             @endforeach
         </tbody>
-        
     </table>
 </div>
-
 <!-- Add Offer Modal -->
 <<!-- Add Offer Modal -->
 <div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
@@ -113,40 +141,79 @@
         color: white  !important;}
 </style>
 
-
 @push('scripts')
-
-
+@push('scripts')
 <script>
     $(document).ready(function() {
         $("#loader").fadeOut("slow");
+        
+        // Initialize DataTable
         $('#lpTable').DataTable({
-            "initComplete": function() {
-        
-            }
+            "initComplete": function() {}
         });
-        
+
         // Initialize tooltips
         $('[data-bs-toggle="tooltip"]').tooltip();
 
-        // Delete confirmation
-        document.querySelectorAll('.delete-form').forEach(form => {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: "You won't be able to revert this!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Yes, delete it!'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        form.submit();
-                    }
-                });
+        // Delete confirmation with SweetAlert
+        $(document).on('submit', '.delete-form', function(e) {
+            e.preventDefault();
+            const form = this;
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
+
+        // Approve LP with SweetAlert
+        $(document).on('submit', 'form[id^="approveForm"]', function(e) {
+            e.preventDefault();
+            const form = this;
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You want to approve this LP?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, approve it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $(form).find('input[name="status"]').val('approved');
+                    form.submit();
+                }
+            });
+        });
+
+        // Reject LP with SweetAlert
+        $(document).on('submit', 'form[id^="rejectForm"]', function(e) {
+            e.preventDefault();
+            const form = this;
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You want to reject this LP?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, reject it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $(form).find('input[name="status"]').val('rejected');
+                    form.submit();
+                }
             });
         });
 
@@ -160,4 +227,7 @@
     });
 </script>
 @endpush
+
+@endpush
+
 @endsection

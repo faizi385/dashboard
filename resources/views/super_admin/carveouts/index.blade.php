@@ -11,6 +11,10 @@
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCarveoutModal">
                 Add Carveout
             </button>
+
+            <a href="{{ url()->previous() }}" class="btn btn-primary">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
         </div>
     </div>
 
@@ -33,8 +37,8 @@
                 <thead>
                     <tr>
                         <th>DBA</th>
-                        <th>Address</th>
-                        <th>Carveout</th>
+                        {{-- <th>Address</th>
+                        <th>Carveout</th> --}}
                         <th>Location</th>
                         <th>SKU</th>
                         <th>Date</th>
@@ -47,8 +51,8 @@
                         @foreach($carveouts as $carveout)
                         <tr>
                             <td>{{ $carveout->retailer->dba ?? 'N/A' }}</td> <!-- Display retailer's DBA -->
-                            <td>{{ $carveout->address ?? '-'}}</td>
-                            <td>{{ $carveout->carveout ?? '-' }}</td>
+                            {{-- <td>{{ $carveout->address ?? '-'}}</td>
+                            <td>{{ $carveout->carveout ?? '-' }}</td> --}}
                             <td>{{ $carveout->location  }}</td>
                             <td>{{ $carveout->sku ?? '-' }}</td>
                             <td>{{ \Carbon\Carbon::parse($carveout->date)->format('Y-m-d') }}</td>

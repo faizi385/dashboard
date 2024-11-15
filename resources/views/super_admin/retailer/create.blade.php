@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="container">
+<div class="container p-2">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="text-white">
             <i class="fas fa-user-plus"></i> 
@@ -109,7 +109,6 @@
     </div> <!-- End of white background div -->
 </div>
 @endsection
-n
 
 
 @push('scripts')

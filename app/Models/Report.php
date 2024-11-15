@@ -22,6 +22,7 @@ class Report extends Model
         'province_id',
         'province', 
         'province_slug',
+        'lp_id'
     ];
     public function retailer()
     {

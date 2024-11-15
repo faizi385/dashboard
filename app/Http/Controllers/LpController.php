@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Mail\LPStatusChangeMail;
 
 class LpController extends Controller
 {
@@ -170,6 +171,50 @@ $formattedDate = Carbon::parse($date)->format('M-Y') ?? 'Date';
         return view('super_admin.lp.create');
     }
 
+    public function updateStatus(Request $request, $id)
+{
+    $lp = Lp::findOrFail($id); // Find the LP by ID
+
+    $status = $request->input('status');
+    if (!in_array($status, ['approved', 'rejected'])) {
+        return redirect()->back()->with('error', 'Invalid status value');
+    }
+
+    // Update the LP status
+    $lp->status = $status;
+    $lp->save();
+
+    // If approved, assign the 'LP' role to the associated user
+    if ($status === 'approved') {
+        $user = $lp->user; // Assuming there's a relationship between LP and User
+        if ($user) {
+            // Find the LP role by its original_name
+            $role = Role::where('original_name', 'LP')->first();
+            if ($role) {
+                // Assign the role to the user
+                $user->assignRole($role->name);
+            } else {
+                return redirect()->back()->with('error', 'Role not found.');
+            }
+        }
+    }
+
+    try {
+        // Send status update email
+        Mail::to($lp->primary_contact_email)->send(new LPStatusChangeMail($lp, $status));
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'LP status updated but email could not be sent.');
+    }
+
+    // Redirect with success message
+    return redirect()->route('lp.index')->with('toast_success', 'LP status updated and email sent successfully');
+}
+
+
+
+
+
+
     public function store(Request $request) 
     {
         $validatedData = $request->validate([
@@ -200,7 +245,7 @@ $formattedDate = Carbon::parse($date)->format('M-Y') ?? 'Date';
             'password' => Hash::make($validatedData['password'] ?? 'defaultPassword'),
         ]);
     
-        // Create LP record with status set to 'requested' and associate with the newly created user
+        
         $lp = Lp::create(array_merge(
             $validatedData,
             [
@@ -245,7 +290,7 @@ $formattedDate = Carbon::parse($date)->format('M-Y') ?? 'Date';
         // Find the LP based on the provided ID
         $lp = Lp::findOrFail($request->lp_id);
         
-        // Create or update the User record for the LP
+   
         $user = User::updateOrCreate(
             ['email' => $validatedData['primary_contact_email']], // Unique identifier
             [
@@ -264,15 +309,15 @@ $formattedDate = Carbon::parse($date)->format('M-Y') ?? 'Date';
             return redirect()->back()->with('error', 'Role not found.');
         }
         
-        // Update LP details with the correct user_id and status set to 'approved'
+        
         $lp->update([
             'name' => $validatedData['name'],
             'dba' => $validatedData['dba'],
             'primary_contact_email' => $validatedData['primary_contact_email'],
             'primary_contact_phone' => $validatedData['primary_contact_phone'],
             'primary_contact_position' => $validatedData['primary_contact_position'],
-            'user_id' => $user->id,  // Set the user_id to the newly created/updated user
-            'status' => 'approved' // Set the status to 'approved'
+            'user_id' => $user->id,  
+            'status' => 'pending' 
         ]);
         
         // Create or update the address with province

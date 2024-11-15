@@ -49,14 +49,14 @@
                         <label for="location" class="form-label">
                             <i class="fas fa-map-marker"></i> Location
                         </label>
-                        <input type="text" class="form-control" id="location" name="location" value="{{ $carveout->location }}" required>
+                        <input type="text" class="form-control" id="location" name="location" value="{{ $carveout->location }}" >
                     </div>
 
                     <div class="col-md-6 mb-3">
                         <label for="sku" class="form-label">
                             <i class="fas fa-barcode"></i> SKU
                         </label>
-                        <input type="text" class="form-control" id="sku" name="sku" value="{{ $carveout->sku }}" required>
+                        <input type="text" class="form-control" id="sku" name="sku" value="{{ $carveout->sku }}" >
                     </div>
                 </div>
 

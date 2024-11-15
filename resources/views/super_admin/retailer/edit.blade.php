@@ -68,58 +68,58 @@
             </div>
         </div>
 
-        <!-- Address Information Card (If addresses are available) -->
-        @if($retailer->address->isNotEmpty())
-            <div class="card mt-4">
+      <!-- Address Information Card (If addresses are available) -->
+@if($retailer->address->isNotEmpty())
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="card-title">Address Information</h5>
+    </div>
+    <div class="card-body">
+        @foreach ($retailer->address as $index => $address)
+            <div class="card mb-3">
                 <div class="card-header">
-                    <h5 class="card-title">Address Information</h5>
+                    <h6 class="card-title">Address {{ $index + 1 }}</h6>
                 </div>
                 <div class="card-body">
-                    @foreach ($retailer->address as $index => $address)
-                        <div class="card mb-3">
-                            <div class="card-header">
-                                <h6 class="card-title">Address {{ $index + 1 }}</h6>
-                            </div>
-                            <div class="card-body">
-                                <div class="form-row">
-                                    <div class="col-md-6 form-group">
-                                        <label for="street_no_{{ $index }}"><i class="fas fa-home"></i> Street No</label>
-                                        <input type="text" name="address[{{ $index }}][street_no]" id="street_no_{{ $index }}" class="form-control @error('address.' . $index . '.street_no') is-invalid @enderror" value="{{ old('address.' . $index . '.street_no', $address->street_no) }}">
-                                        @error('address.' . $index . '.street_no')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                    <div class="col-md-6 form-group">
-                                        <label for="street_name_{{ $index }}"><i class="fas fa-road"></i> Street Name</label>
-                                        <input type="text" name="address[{{ $index }}][street_name]" id="street_name_{{ $index }}" class="form-control @error('address.' . $index . '.street_name') is-invalid @enderror" value="{{ old('address.' . $index . '.street_name', $address->street_name) }}">
-                                        @error('address.' . $index . '.street_name')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
-                                <div class="form-row">
-                                    <div class="col-md-6 form-group">
-                                        <label for="province_{{ $index }}"><i class="fas fa-map-marker-alt"></i> Province</label>
-                                        <input type="text" name="address[{{ $index }}][province]" id="province_{{ $index }}" class="form-control @error('address.' . $index . '.province') is-invalid @enderror" value="{{ old('address.' . $index . '.province', $address->province) }}">
-                                        @error('address.' . $index . '.province')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                    <div class="col-md-6 form-group">
-                                        <label for="city_{{ $index }}"><i class="fas fa-city"></i> City</label>
-                                        <input type="text" name="address[{{ $index }}][city]" id="city_{{ $index }}" class="form-control @error('address.' . $index . '.city') is-invalid @enderror" value="{{ old('address.' . $index . '.city', $address->city) }}">
-                                        @error('address.' . $index . '.city')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
-                                <!-- Additional address fields here with error handling as needed -->
-                            </div>
+                    <div class="form-row">
+                        <div class="col-md-6 form-group">
+                            <label for="street_no_{{ $index }}"><i class="fas fa-home"></i> Street No <span class="text-danger">*</span></label>
+                            <input type="text" name="address[{{ $index }}][street_no]" id="street_no_{{ $index }}" class="form-control @error('address.' . $index . '.street_no') is-invalid @enderror" value="{{ old('address.' . $index . '.street_no', $address->street_no) }}">
+                            @error('address.' . $index . '.street_no')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
-                    @endforeach
+                        <div class="col-md-6 form-group">
+                            <label for="street_name_{{ $index }}"><i class="fas fa-road"></i> Street Name <span class="text-danger">*</span></label>
+                            <input type="text" name="address[{{ $index }}][street_name]" id="street_name_{{ $index }}" class="form-control @error('address.' . $index . '.street_name') is-invalid @enderror" value="{{ old('address.' . $index . '.street_name', $address->street_name) }}">
+                            @error('address.' . $index . '.street_name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-md-6 form-group">
+                            <label for="province_{{ $index }}"><i class="fas fa-map-marker-alt"></i> Province <span class="text-danger">*</span></label>
+                            <input type="text" name="address[{{ $index }}][province]" id="province_{{ $index }}" class="form-control @error('address.' . $index . '.province') is-invalid @enderror" value="{{ old('address.' . $index . '.province', $address->province) }}">
+                            @error('address.' . $index . '.province')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label for="city_{{ $index }}"><i class="fas fa-city"></i> City <span class="text-danger">*</span></label>
+                            <input type="text" name="address[{{ $index }}][city]" id="city_{{ $index }}" class="form-control @error('address.' . $index . '.city') is-invalid @enderror" value="{{ old('address.' . $index . '.city', $address->city) }}">
+                            @error('address.' . $index . '.city')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    <!-- Additional address fields here with error handling as needed -->
                 </div>
             </div>
-        @endif
+        @endforeach
+    </div>
+</div>
+@endif
 
         <!-- Submit Button -->
         <div class="form-group mt-4">

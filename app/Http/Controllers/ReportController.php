@@ -186,62 +186,67 @@ class ReportController extends Controller
             'location' => 'required|string|max:255',
             'pos' => 'required|string',
         ]);
-    
+        
         $retailer = Retailer::find($retailerId);
         $address = RetailerAddress::find($request->location); // Assumes location is an address ID
         
         if (!$retailer || !$address) {
             return redirect()->back()->withErrors('Retailer or Retailer Address not found.');
         }
-    
+        
         // Concatenate address fields to create the location string
         $locationString = $address->street_no . ', ' . 
                           $address->street_name . ', ' . 
                           $address->city . ', ' . 
                           $address->province;
-    
+        
         // Check if this location string is already used by the retailer
         $existingLocation = Report::where('retailer_id', $retailerId)
-            ->where('location', $locationString) // Now checking the full address string
+            ->where('location', $locationString)
             ->first();
-    
+        
         if ($existingLocation) {
             return redirect()->back()->with('error', 'This location has already been used for a report.');
         }
-    
+        
         $province = Province::where('id', $address->province)->first();
         
         if (!$province) {
             return redirect()->back()->with('error', 'Province not found.');
         }
-    
- 
+        
+        // Check if a report for this POS, province, and month already exists
         $existingReport = Report::where('retailer_id', $retailerId)
             ->where('pos', $request->pos)
-            ->where('province', $province->name) // Check the province
-            ->whereYear('date', now()->year)     // Check for the same year
-            ->whereMonth('date', now()->month)   // Check for the same month
+            ->where('province', $province->name)
+            ->whereYear('date', now()->year)
+            ->whereMonth('date', now()->month)
             ->first();
-    
+        
         if ($existingReport) {
             return redirect()->back()->with('error', 'A report has already been uploaded for this POS and province this month.');
         }
-    
-        // Create the report record with the full location string, province details, and other data
+        
+        // Retrieve the lp_id associated with the retailer
+        $lpId = $retailer->lp_id ?? null; // Assuming `lp_id` is a field in the `retailers` table
+        
+        
         $report = Report::create([
             'retailer_id' => $retailerId,
-            'location' => $locationString,  // Storing the full address string
+            'location' => $locationString,
             'pos' => $request->pos,
-            'province' => $province->name,  // Store the province name
+            'province' => $province->name,
             'province_id' => $province->id,
             'province_slug' => $province->slug,
-            'submitted_by' => auth()->id(), // Assuming you're using Laravel's auth
-            'status' => 'Pending', // Default status
-            'date' => now()->startOfMonth(), // Store the start of the current month
+            'submitted_by' => auth()->id(),
+            'status' => 'Pending',
+            'date' => now()->startOfMonth(),
+            'lp_id' => $lpId, // Store the lp_id in the report
         ]);
+        
         $file1Path = null;
         $file2Path = null;
-
+        
         if ($request->pos === 'cova') {
             if ($request->hasFile('diagnostic_report') && $request->hasFile('sales_summary_report')) {
                 $file1Path = $request->file('diagnostic_report')->storeAs('uploads', $request->file('diagnostic_report')->getClientOriginalName());

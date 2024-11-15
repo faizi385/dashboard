@@ -119,8 +119,8 @@ class CarveoutController extends Controller
         $request->validate([
             'province' => 'required',
             'retailer' => 'required|exists:retailers,id',
-            'location' => 'required|string|max:255',
-            'sku' => 'required|string|max:255',
+            'location' => 'nullable|string|max:255',
+            'sku' => 'nullable|string|max:255',
             'carveout_date' => 'required|date',
             'lp_id' => 'required|exists:lps,id', // Ensure lp_id exists
         ]);

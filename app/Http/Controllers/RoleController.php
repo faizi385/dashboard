@@ -99,18 +99,21 @@ class RoleController extends Controller
             'name' => $request->name . '_' . auth()->id(),
         ]);
     
-        // Sync permissions
-        if ($request->has('permissions')) {
-            // Retrieve only existing permissions that match the current guard
-            $validPermissions = Permission::whereIn('id', $request->permissions)
-                                          ->where('guard_name', $role->guard_name)
-                                          ->pluck('id')
-                                          ->toArray();
-            $role->syncPermissions($validPermissions);
-        } else {
-            $role->syncPermissions([]);
+        // Check if permissions are provided
+        if (!$request->has('permissions') || empty($request->permissions)) {
+            return redirect()->back()->with('error', 'Please select at least one permission.');
         }
     
+        // Retrieve only existing permissions that match the current guard
+        $validPermissions = Permission::whereIn('id', $request->permissions)
+            ->where('guard_name', $role->guard_name)
+            ->pluck('id')
+            ->toArray();
+    
+        // Sync the valid permissions
+        $role->syncPermissions($validPermissions);
+    
+        // Redirect with success message
         return redirect()->route('roles.index')->with('toast_success', 'Role updated successfully.');
     }
     

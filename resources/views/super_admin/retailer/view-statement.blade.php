@@ -2,8 +2,12 @@
 
 @section('content')
 <div class="container p-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="text-white" id="text">Retailer Statement</h1>
-
+    <a href="{{ url()->previous() }}" class="btn btn-primary">
+        <i class="fas fa-arrow-left"></i> Back
+    </a>
+    </div>
     <div class="row">
         <div class="col">
             <table id="statementsTable" class="table table-hover table-bordered text-center align-middle">

@@ -7,6 +7,7 @@ use App\Models\Report;
 use App\Models\Province;
 use App\Models\Retailer;
 use App\Models\CleanSheet;
+use App\Models\RetailerLp;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Mail\RetailerFormMail;
@@ -183,6 +184,15 @@ class RetailerController extends Controller
             'type' => $request->input('type'),
         ]);
     
+        // Store the retailer data in the retailer_lps table
+        RetailerLp::create([
+            'retailer_id' => $retailer->id,
+            'lp_id' => $lpId, // Store the LP ID as well
+            'first_name' => $retailer->first_name,
+            'last_name' => $retailer->last_name,
+            'email' => $retailer->email,
+        ]);
+    
         // Generate a token and the link for completing the retailer information
         $token = base64_encode($retailer->id);
         $link = route('retailer.fillForm', ['token' => $token]);
@@ -262,7 +272,7 @@ class RetailerController extends Controller
         $retailer = Retailer::with('address')->findOrFail($id);
         return view('super_admin.retailer.edit', compact('retailer','lps'));
     }
-    public function update(Request $request, $id)
+    public function update(Request $request, $id) 
     {
         $validatedData = $request->validate([
             'first_name' => 'required|string|max:255',
@@ -270,19 +280,25 @@ class RetailerController extends Controller
             'corporate_name' => 'nullable|string|max:255',
             'dba' => 'nullable|string|max:255',
             'phone' => 'required|string|max:20',
-            'email' => 'required|email|max:255',
-            'street_no' => 'nullable|string|max:50',
-            'street_name' => 'nullable|string|max:255',
-            'province' => 'nullable|string|max:255',
-            'city' => 'nullable|string|max:255',
-            'location' => 'nullable|string|max:255',
-            'contact_person_name' => 'nullable|string|max:255',
-            'contact_person_phone' => 'nullable|string|max:20',
-            'postal_code' => 'nullable|string|max:20', // Add postal_code validation
+            'email' => 'required|email|regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/|max:255', // Updated email validation
+            'address.*.street_no' => 'required|string|max:50',
+            'address.*.street_name' => 'required|string|max:255',
+            'address.*.province' => 'required|string|max:255',
+            'address.*.city' => 'required|string|max:255',
+            'address.*.location' => 'nullable|string|max:255',
+            'address.*.contact_person_name' => 'nullable|string|max:255',
+            'address.*.contact_person_phone' => 'nullable|string|max:20',
+            'address.*.postal_code' => 'nullable|string|max:20',
+        ], [
+            'address.*.street_no.required' => 'Street No is required.',
+            'address.*.street_name.required' => 'Street Name is required.',
+            'address.*.province.required' => 'Province is required.',
+            'address.*.city.required' => 'City is required.',
         ]);
+    
         $retailer = Retailer::findOrFail($id);
         $retailer->update($request->only([
-            'first_name', 'last_name', 'corporate_name', 'dba', 'phone', 'email','status'
+            'first_name', 'last_name', 'corporate_name', 'dba', 'phone', 'email', 'status'
         ]));
         $retailer->address()->updateOrCreate(
             ['retailer_id' => $retailer->id],
@@ -291,8 +307,10 @@ class RetailerController extends Controller
                 'contact_person_name', 'contact_person_phone'
             ])
         );
+    
         return redirect()->route('retailer.index')->with('success', 'Retailer updated successfully.');
     }
+    
     public function destroy($id)
     {
         $retailer = Retailer::findOrFail($id);

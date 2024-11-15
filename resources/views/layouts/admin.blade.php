@@ -49,7 +49,7 @@
                 <!-- User Dropdown -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-user"></i> {{ Auth::user()->first_name }}
+                        <i class="fas fa-user"></i> {{ Auth::user()->first_name ?? null }}
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                         <li><a class="dropdown-item" href="{{ route('profile') }}"><i class="fas fa-user-circle mr-2"></i> Profile</a></li>

@@ -198,6 +198,7 @@ Route::get('/retailers/{retailer}/statement', [RetailerController::class, 'viewS
 Route::get('superadmin/lp/{lp_id}/statement', [LpController::class, 'viewStatement'])->name('lp.statement.view');
 
 Route::get('lp/statement/export/{lp_id}/{date}', [LpController::class, 'exportLpStatement'])->name('lp.statement.export');
+Route::patch('/lp/{lp}/status', [LPController::class, 'updateStatus'])->name('lp.updateStatus');
 
 
 
