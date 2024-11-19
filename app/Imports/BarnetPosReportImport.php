@@ -10,13 +10,17 @@ class BarnetPosReportImport implements ToModel, WithHeadingRow
 {
     protected $location;
     protected $reportId;
+    protected $retailerId; // New property for retailer ID
+    protected $lpId;
     protected $errors = []; // Array to store error messages
     protected $hasCheckedHeaders = false; // Flag to check if headers have been validated
 
-    public function __construct($location, $reportId)
+    public function __construct($location, $reportId, $retailerId, $lpId = null)
     {
         $this->location = $location;
         $this->reportId = $reportId;
+        $this->retailerId = $retailerId; // Assign retailer ID
+        $this->lpId = $lpId;  
     }
 
     public function model(array $row)
@@ -87,6 +91,8 @@ class BarnetPosReportImport implements ToModel, WithHeadingRow
             'low_inv' => $row['low_inv'] ?? null,
             'report_id' => $this->reportId,
             'location' => $this->location,
+            'retailer_id' => $this->retailerId, // Include retailer ID
+            'lp_id' => $this->lpId,
         ]);
     }
 

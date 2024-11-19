@@ -31,6 +31,8 @@ class GlobalTillDiagnosticReport extends Model
         'product_url',
         'inventory_transactions_url',
         'status',  
+        'retailer_id',
+        'lp_id',
     ];
 
     public function report()

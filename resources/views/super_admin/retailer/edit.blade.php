@@ -3,7 +3,7 @@
 @section('content')
 <div class="container p-3">
     <div class="d-flex justify-content-between mb-4">
-        <h3 class="text-white">Edit Retailer</h3>
+        <h3 class="text-white">Edit Distributor </h3>
         <a href="{{ route('retailer.index') }}" class="btn btn-primary"><i class="fas fa-arrow-left"></i> Back </a>
     </div>
 
@@ -14,7 +14,7 @@
         <!-- Retailer Information Card -->
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title">Retailer Information</h5>
+                <h5 class="card-title">Distributor  Information</h5>
             </div>
             <div class="card-body">
                 <div class="form-row">
@@ -123,7 +123,7 @@
 
         <!-- Submit Button -->
         <div class="form-group mt-4">
-            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Update Retailer</button>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Update Distributor </button>
         </div>
     </form>
 </div>

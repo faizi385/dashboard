@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container p-2">
-    <h1 class="text-white text-center mb-4">Retailer Dashboard</h1>
+    <h1 class="text-white text-center mb-4">Distributor Dashboard</h1>
     
     <div class="row">
         <div class="col-lg-6">

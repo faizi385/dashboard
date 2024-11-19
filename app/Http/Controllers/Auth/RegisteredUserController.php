@@ -106,7 +106,8 @@ class RegisteredUserController extends Controller
         Mail::to($validatedData['email'])->send(new LpPendingStatusMail($validatedData['name'], $validatedData['email']));
     
         // Redirect to the login page with a success message
-        return redirect()->route('login')->with('success', 'Your account has been created. Check your email to complete LP registration.');
+        return redirect()->route('login')->with('success', 'Your account has been created. You will be informed via email once the super admin approves or rejects your registration.');
+
     }
     
     

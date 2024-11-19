@@ -11,7 +11,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3 class="text-white">Deals List</h3>
         <div class="d-flex">
-            @if(isset($lp)) <!-- Assuming $lp is the LP associated with the logged-in user -->
+            @if(auth()->user()->hasRole('LP'))
                 <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addOfferModal">
                     <i class="fas fa-upload"></i> Upload Offer
                 </button>
@@ -26,9 +26,9 @@
     <div class="card">
         <div class="card-header">
             @if(isset($lp))
-                <h5 class="card-title">Deals for LP: {{ $lp->name }} ({{ $lp->dba }})</h5>
+                <h5 class="card-title">Deals for Supplier: {{ $lp->name }} ({{ $lp->dba }})</h5>
             @else
-                <h5 class="card-title">Deals for All LPs</h5>
+                <h5 class="card-title">Deals for All Suppliers</h5>
             @endif
         </div>
         
@@ -38,7 +38,7 @@
             <table id="offersTable" class="table table-striped">
                 <thead>
                     <tr>
-                        <th>LP DBA</th>
+                        <th>Supplier DBA</th>
                         <th>Province</th>
                         <th>Product</th>
                         <th>Category</th>

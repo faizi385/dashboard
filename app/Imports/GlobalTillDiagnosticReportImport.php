@@ -12,14 +12,18 @@ class GlobalTillDiagnosticReportImport implements ToModel, WithHeadingRow
 {
     protected $location;
     protected $reportId;
+    protected $retailerId; // New property for retailer ID
+    protected $lpId;
     protected $errors = []; // Array to store error messages
     protected $hasCheckedHeaders = false; // Flag to check if headers have been validated
     protected $diagnosticReportId; // To store the ID of the last imported diagnostic report
 
-    public function __construct($location, $reportId)
+    public function __construct($location, $reportId, $retailerId, $lpId = null)
     {
         $this->location = $location;
         $this->reportId = $reportId;
+        $this->retailerId = $retailerId; // Assign retailer ID
+        $this->lpId = $lpId;  
     }
 
     /**
@@ -101,6 +105,8 @@ class GlobalTillDiagnosticReportImport implements ToModel, WithHeadingRow
             'closing_inventory' => $this->cleanNumericValue($row['closing_inventory']),
             'product_url' => $row['product_url'] ?? null,
             'inventory_transactions_url' => $row['inventory_transactions_url'] ?? null,
+            'retailer_id' => $this->retailerId, // Include retailer ID
+            'lp_id' => $this->lpId,
         ]);
 
         $diagnosticReport->save();

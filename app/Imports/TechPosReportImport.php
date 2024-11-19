@@ -11,11 +11,14 @@ class TechPOSReportImport implements ToModel, WithHeadingRow
     protected $location;
     protected $reportId;
     protected $errors = []; // To store missing header errors
-
-    public function __construct($location, $reportId)
+    protected $retailerId; // New property for retailer ID
+    protected $lpId;
+    public function __construct($location, $reportId, $retailerId, $lpId = null)
     {
         $this->location = $location;
         $this->reportId = $reportId;
+        $this->retailerId = $retailerId; // Assign retailer ID
+        $this->lpId = $lpId; 
     }
 
     public function model(array $row)
@@ -105,6 +108,8 @@ class TechPOSReportImport implements ToModel, WithHeadingRow
             'closinginventoryvalue' => $row['closinginventoryvalue'],
             'report_id' => $this->reportId,
             'location' => $this->location,
+            'retailer_id' => $this->retailerId, // Include retailer ID
+            'lp_id' => $this->lpId,
         ]);
     }
 

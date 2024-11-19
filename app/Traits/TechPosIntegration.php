@@ -38,7 +38,7 @@ trait TechPosIntegration
         $provinceName = $report->province;
         $provinceSlug = $report->province_slug;
         $product = null;
-
+        $lpId = $report->lp_id;
         $retailer = Retailer::find($retailer_id);
         if ($retailer) {
             $retailerName = trim("{$retailer->first_name} {$retailer->last_name}");
@@ -47,10 +47,10 @@ trait TechPosIntegration
         }
 
         if (!empty($sku)) {
-        $product = $this->matchICSku($techPOSReport->sku,$provinceName,$provinceSlug,$provinceId);
+        $product = $this->matchICSku($techPOSReport->sku,$provinceName,$provinceSlug,$provinceId, $lpId );
         }
         if (!empty($productName) && empty($product)){
-            $product = $this->matchICProductName($techPOSReport->productname,$provinceName,$provinceSlug,$provinceId);
+            $product = $this->matchICProductName($techPOSReport->productname,$provinceName,$provinceSlug,$provinceId, $lpId );
         }
         if ($product) {
             $lp = Lp::where('id',$product->lp_id)->first();
@@ -109,7 +109,7 @@ trait TechPosIntegration
             $cleanSheetData['product_variation_id'] = $product->id;
             $cleanSheetData['dqi_per'] = 0.00;
             $cleanSheetData['dqi_fee'] = 0.00;
-            $offer = $this->DQISummaryFlag($report,$techPOSReport->sku,'',$techPOSReport->productname,$provinceName,$provinceSlug,$provinceId);
+            $offer = $this->DQISummaryFlag($report,$techPOSReport->sku,'',$techPOSReport->productname,$provinceName,$provinceSlug,$provinceId,$lpId );
             if (!empty($offer)) {
                 $cleanSheetData['offer_id'] = $offer->id;
                 $cleanSheetData['lp_id'] = $offer->lp_id;
@@ -147,10 +147,10 @@ trait TechPosIntegration
         } else {
             $offer = null;
             if (!empty($sku)) {
-                $offer = $this->matchOfferSku($report->date,$sku,$provinceName,$provinceSlug,$provinceId,$report->retailer_id);
+                $offer = $this->matchOfferSku($report->date,$sku,$provinceName,$provinceSlug,$provinceId,$report->retailer_id, $lpId );
             }
             if (!empty($productName) && empty($offer)) {
-                $offer = $this->matchOfferProductName($report->date,$productName,$provinceName,$provinceSlug,$provinceId,$report->retailer_id);
+                $offer = $this->matchOfferProductName($report->date,$productName,$provinceName,$provinceSlug,$provinceId,$report->retailer_id, $lpId );
             }
             if ($offer) {
                 $cleanSheetData['retailer_id'] = $retailer_id;

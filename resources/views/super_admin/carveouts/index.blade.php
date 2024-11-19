@@ -22,13 +22,13 @@
         <div class="card-header">
             @if(isset($lp)) <!-- Check if $lp is set -->
             <div class="d-flex justify-content-between">
-                <h5 class="card-title">Carveouts for LP: {{ $lp->name }} ({{ $lp->dba }})</h5>
+                <h5 class="card-title">Carveouts for Supplier: {{ $lp->name }} ({{ $lp->dba }})</h5>
                 {{-- <button class="btn btn-info" onclick="window.location.href='{{ route('offers.index', ['lp_id' => $lp->id]) }}'">
                     View Offers
                 </button> --}}
             </div>
             @else
-                <h5 class="card-title">Carveouts for All LPs</h5> <!-- Fallback when $lp is not available -->
+                <h5 class="card-title">Carveouts for All Suppliers</h5> <!-- Fallback when $lp is not available -->
             @endif
         </div>
         
@@ -42,7 +42,7 @@
                         <th>Location</th>
                         <th>SKU</th>
                         <th>Date</th>
-                        <th>Licence Producer</th>
+                        <th>Supplier</th>
                         <th>Action</th>
                     </tr>
                 </thead>

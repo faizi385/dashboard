@@ -8,8 +8,8 @@
 
 <div class="container p-2">
     <div class="d-flex justify-content-between mb-4">
-        <h3 class="text-white">Retailer Management</h3>
-        <a href="{{ route('retailer.create') }}" class="btn btn-primary">Create Retailer</a>
+        <h3 class="text-white">Distributor Management</h3>
+        <a href="{{ route('retailer.create') }}" class="btn btn-primary">Create Distributor </a>
     </div>
 
     <table id="retailersTable" class="table table-striped">
@@ -31,12 +31,12 @@
                     <td>{{ $retailer->email }}</td>
                     <td class="text-center">
                         <!-- View Icon -->
-                        <a href="{{ route('retailer.show', $retailer->id) }}" class="icon-action text-decoration-none " data-bs-toggle="tooltip" data-bs-placement="top" title="View Retailer">
+                        <a href="{{ route('retailer.show', $retailer->id) }}" class="icon-action text-decoration-none " data-bs-toggle="tooltip" data-bs-placement="top" title="View Distributor ">
                             <i style="color: black" class="fas fa-eye "></i>
                         </a>
         
                         <!-- Edit Icon -->
-                        <a href="{{ route('retailer.edit', $retailer->id) }}" class="icon-action text-decoration-none" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Retailer">
+                        <a href="{{ route('retailer.edit', $retailer->id) }}" class="icon-action text-decoration-none" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Distributor ">
                             <i style="color: black" class="fas fa-edit "></i>
                         </a>
         
@@ -44,7 +44,7 @@
                         <form action="{{ route('retailer.destroy', $retailer->id) }}" method="POST" class="d-inline delete-form">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn btn-link p-0" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete Retailer" style="color: inherit; text-decoration: none;">
+                            <button type="submit" class="btn btn-link p-0" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete Distributor " style="color: inherit; text-decoration: none;">
                                 <i style="color: black" class="fas fa-trash "></i>
                             </button>
                         </form>

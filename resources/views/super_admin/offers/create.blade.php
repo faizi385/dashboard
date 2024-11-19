@@ -16,7 +16,7 @@
             <div class="row">
                 <!-- LP -->
                 <div class="mb-3 col-md-6">
-                    <label for="lp_id" class="form-label">LP  <span class="text-danger">*</span></label>
+                    <label for="lp_id" class="form-label">Supplier  <span class="text-danger">*</span></label>
                     @if(request('lp_id') && $lp)
 
                     <input type="hidden" name="lp_id" value="{{ request('lp_id') }}">
@@ -24,7 +24,7 @@
                 @else
                     
                     <select name="lp_id" id="lp_id" class="form-control @error('lp_id') is-invalid @enderror">
-                        <option value="">Select LP</option>
+                        <option value="">Select Supplier</option>
                         @foreach($lps as $lp)
                             <option value="{{ $lp->id }}">{{ $lp->name }}</option>
                         @endforeach
@@ -267,7 +267,7 @@
             
                     <!-- Retailers -->
                     <div class="mb-3 col-md-6">
-                        <label for="retailer_ids" class="form-label">Select Retailers</label>
+                        <label for="retailer_ids" class="form-label">Select Distributor </label>
                         <select name="retailer_ids[]" id="retailer_ids" class="form-control select2 @error('retailer_ids') is-invalid @enderror" multiple>
                             @foreach($retailers as $retailer)
                                 <option value="{{ $retailer->id }}">{{ $retailer->dba }}</option>
@@ -286,7 +286,7 @@
             <div class="form-check mb-3">
                 <input class="form-check-input" type="checkbox" id="makeExclusiveOfferCheckbox" name="makeExclusiveOfferCheckbox" value="1" onclick="toggleExclusiveFields()">
                 <label class="form-check-label" for="makeExclusiveOfferCheckbox">
-                    Make It an Exclusive Deal for Specific Retailers
+                    Make It an Exclusive Deal for Specific Distributor 
                 </label>
             </div>
             
@@ -295,7 +295,7 @@
                 <div class="row">
                     <!-- Retailer Names for Second Checkbox -->
                     <div class="mb-3 col-md-6">
-                        <label for="exclusive_retailer_ids" class="form-label">Select Retailers</label>
+                        <label for="exclusive_retailer_ids" class="form-label">Select Distributor </label>
                         <select name="exclusive_retailer_ids[]" id="exclusive_retailer_ids" class="form-control select2 @error('exclusive_retailer_ids') is-invalid @enderror" multiple>
                             @foreach($retailers as $retailer)
                                 <option value="{{ $retailer->id }}">{{ $retailer->dba }}</option>

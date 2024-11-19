@@ -21,15 +21,21 @@ class GreenlineReport extends Model
         'average_price',
         'average_cost',
       'status',  
-        'report_id',  // Include report_id in the fillable fields
+        'report_id', 
+        'retailer_id', 
+        'lp_id',// Include report_id in the fillable fields
     ];
     public function report()
     {
         return $this->belongsTo(Report::class);
     }
     public function retailer()
-{
-    return $this->belongsTo(Retailer::class);
-}
+    {
+        return $this->belongsTo(Retailer::class, 'retailer_id');
+    }
 
+public function lp()
+{   
+    return $this->belongsTo(Lp::class, 'lp_id');
+}
 }

@@ -11,14 +11,18 @@ class IdealDiagnosticReportImport implements ToModel, WithHeadingRow
 {
     protected $location;
     protected $reportId;
+    protected $retailerId; // New property for retailer ID
+    protected $lpId;
     protected $errors = []; // Array to store error messages
     protected $hasCheckedHeaders = false; // Flag to check if headers have been validated
     protected $diagnosticReportId; // Stores the last imported diagnostic report ID
 
-    public function __construct($location, $reportId)
+    public function __construct($location, $reportId, $retailerId, $lpId = null)
     {
         $this->location = $location;
         $this->reportId = $reportId;
+        $this->retailerId = $retailerId; // Assign retailer ID
+        $this->lpId = $lpId;  
     }
 
     public function model(array $row)
@@ -70,6 +74,8 @@ class IdealDiagnosticReportImport implements ToModel, WithHeadingRow
             'write_offs' => $row['write_offs'],
             'closing' => $row['closing'],
             'net_sales_ex' => $row['net_sales_ex'],
+            'retailer_id' => $this->retailerId, // Include retailer ID
+            'lp_id' => $this->lpId,
         ]);
 
         // Store the ID of the last inserted diagnostic report

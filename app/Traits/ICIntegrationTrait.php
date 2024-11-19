@@ -70,133 +70,188 @@ trait ICIntegrationTrait
         }
     }
 
-    public function matchICBarcode($barcode, $provinceName, $provinceSlug, $provinceId)
+    public function matchICBarcode($barcode, $provinceName, $provinceSlug, $provinceId, $lpId)
     {
-        $product = $this->matchBarcode($barcode);
+        // Match the barcode based on the lpId
+        $product = $this->matchBarcode($barcode, $lpId); // Ensure the matchBarcode method is updated to handle lpId
+    
+        // If a product is found, filter by province-related conditions
         if (!empty($product)) {
             $product = $this->matchProvince($product, $provinceName, $provinceSlug, $provinceId);
         }
+    
         return $product;
     }
+    
 
-    public function matchBarcode($barcode)
+    public function matchBarcode($barcode, $lpId)
     {
         $GeneralFunction = new GeneralFunctions;
         $Filterbarcode = $GeneralFunction->CleanGTIN($barcode);
-        $product = ProductVariation::where('gtin', $Filterbarcode)->get();
-        if (empty($product)) {
-            $product = ProductVariation::where('gtin', '00' . $Filterbarcode)->get();
+    
+        // Match by GTIN and lpId
+        $product = ProductVariation::where('gtin', $Filterbarcode)
+            ->where('lp_id', $lpId) // Filter by lpId
+            ->get();
+    
+        // If no product is found, try matching with a '00' prefix
+        if ($product->isEmpty()) {
+            $product = ProductVariation::where('gtin', '00' . $Filterbarcode)
+                ->where('lp_id', $lpId) // Filter by lpId
+                ->get();
         }
+    
         return $product;
     }
+    
 
-    public function matchICSku($sku, $provinceName, $provinceSlug, $provinceId)
+    public function matchICSku($sku, $provinceName, $provinceSlug, $provinceId, $lpId)
     {  
+        // Attempt to match based on SKU and lpId
+        $product = ProductVariation::where('provincial_sku', trim($sku))
+            ->where('lp_id', $lpId) // Filter by lpId
+            ->get();
       
-        $product = ProductVariation::where('provincial_sku', trim($sku))->get();
-      
+        // If products are found, filter by province-related conditions
         if (!empty($product)) {
             $product = $this->matchProvince($product, $provinceName, $provinceSlug, $provinceId);
-           
-            //  if (!empty($product)) {
-            //     return null;
-            // }
-            //  dump(  $product);
         }
+    
         return $product;
     }
+    
     public function matchProvince($product, $provinceName, $provinceSlug, $provinceId)
     {
         $product = $product->where('province', trim($provinceName))->first();
         return $product;
     }
-
-    public function matchICBarcodeSku($barcode, $sku, $provinceName, $provinceSlug, $provinceId)
+    public function matchICBarcodeSku($barcode, $sku, $provinceName, $provinceSlug, $provinceId, $lpId)
     {
         $GeneralFunction = new GeneralFunctions;
         $Filterbarcode = $GeneralFunction->CleanGTIN($barcode);
-        $product = ProductVariation::where('provincial_sku', trim($sku))->where('gtin', $barcode)->first();
+        
+        // First attempt: Match based on SKU, GTIN, and lpId
+        $product = ProductVariation::where('provincial_sku', trim($sku))
+            ->where('gtin', $barcode)
+            ->where('lp_id', $lpId) // Filter by lpId
+            ->first();
+    
+        // If no product is found, attempt with cleaned barcode
         if (empty($product)) {
-            $product = ProductVariation::where('gtin', $Filterbarcode)->where('provincial_sku', trim($sku))->first();
+            $product = ProductVariation::where('gtin', $Filterbarcode)
+                ->where('provincial_sku', trim($sku))
+                ->where('lp_id', $lpId) // Filter by lpId
+                ->first();
+            
+            // If still no product is found, attempt with barcode prefixed with '00'
             if (empty($product)) {
-                $product = ProductVariation::where('gtin', '00' . $Filterbarcode)->where('provincial_sku', trim($sku))->first();
+                $product = ProductVariation::where('gtin', '00' . $Filterbarcode)
+                    ->where('provincial_sku', trim($sku))
+                    ->where('lp_id', $lpId) // Filter by lpId
+                    ->first();
             }
         }
-        if (!($product)) {
-            $product = ProductVariation::where('provincial_sku', trim($sku))->where('province', $provinceName)->first();
+    
+        // If no product is found, attempt based on SKU and province name
+        if (empty($product)) {
+            $product = ProductVariation::where('provincial_sku', trim($sku))
+                ->where('province', $provinceName)
+                ->where('lp_id', $lpId) // Filter by lpId
+                ->first();
         }
-
+    
         return $product;
     }
+    
 
-    public function matchOfferBarcode($date, $barcode, $provinceName, $provinceSlug, $provinceId, $retailerId)
+    public function matchOfferBarcode($date, $barcode, $provinceName, $provinceSlug, $provinceId, $retailerId, $lpId)
     {
         $GeneralFunction = new GeneralFunctions;
         $barcode = $GeneralFunction->CleanGTIN($barcode);
-        $barcode = '00'.$barcode;
-
+        $barcode = '00' . $barcode;
+    
+        // First attempt: Match based on offer date, barcode, province, retailer and lp_id
         $offer = Offer::where('offer_date', $date)
             ->where('GTin', $barcode)
             ->where('province_id', $provinceId)
             ->where('retailer_id', $retailerId)
+            ->where('lp_id', $lpId) // Filter by LP
             ->first();
-        if(empty($offer)) {
+    
+        // If no offer is found, attempt without matching the lp_id
+        if (empty($offer)) {
             $offer = Offer::where('offer_date', $date)
                 ->where('GTin', $barcode)
                 ->where('province_id', $provinceId)
+                ->where('lp_id', $lpId)
                 ->first();
         }
-        if(empty($offer)){
-            $offer = $this->matchOfferBarcodeWithOutZero($date, $barcode, $provinceName, $provinceSlug, $provinceId, $retailerId);
+    
+        // If still no offer found, attempt with a different matching logic
+        if (empty($offer)) {
+            $offer = $this->matchOfferBarcodeWithOutZero($date, $barcode, $provinceName, $provinceSlug, $provinceId, $retailerId, $lpId);
         }
-
-
+    
         return $offer;
     }
-
-    public function matchOfferBarcodeWithOutZero($date, $barcode, $provinceName, $provinceSlug, $provinceId, $retailerId)
+    
+    public function matchOfferBarcodeWithOutZero($date, $barcode, $provinceName, $provinceSlug, $provinceId, $retailerId, $lpId)
     {
         $GeneralFunction = new GeneralFunctions;
         $barcode = $GeneralFunction->CleanGTIN($barcode);
-
+    
+        // Attempt to match with lp_id
         $offer = Offer::where('offer_date', $date)
             ->where('gtin', $barcode)
             ->where('province_id', $provinceId)
             ->where('retailer_id', $retailerId)
+            ->where('lp_id', $lpId) // Filter by LP
             ->first();
-        if(empty($offer)) {
+            
+        // If no offer found, attempt without the lp_id
+        if (empty($offer)) {
             $offer = Offer::where('offer_date', $date)
                 ->where('gtin', $barcode)
                 ->where('province_id', $provinceId)
+                ->where('lp_id', $lpId)
                 ->first();
         }
+    
         return $offer;
     }
-
-    public function matchOfferSku($date, $sku, $provinceName, $provinceSlug, $provinceId, $retailerId)
+    
+    public function matchOfferSku($date, $sku, $provinceName, $provinceSlug, $provinceId, $retailerId, $lpId)
     {
         $sku = trim($sku);
-
+    
+        
         $offer = Offer::where('offer_date', $date)
             ->where('provincial_sku', $sku)
             ->where('province_id', $provinceId)
             ->where('retailer_id', $retailerId)
+            ->where('lp_id', $lpId) 
             ->first();
-        if(empty($offer)) {
+    
+
+        if (empty($offer)) {
             $offer = Offer::where('offer_date', $date)
                 ->where('provincial_sku', $sku)
                 ->where('province_id', $provinceId)
+                ->where('lp_id', $lpId)
                 ->first();
         }
+    
         return $offer;
     }
-
-    public function matchOfferProduct(string $sku, string $gtin)
+    
+    public function matchOfferProduct(string $sku, string $gtin, $lpId)
     {
+        // Attempt to match based on SKU or GTIN, and filter by lpId
         $offer = Offer::where('provincial_sku', $sku)
             ->orWhere('gtin', $gtin)
+            ->where('lp_id', $lpId) // Filter by lpId
             ->first();
-
+    
         if ($offer) {
             Log::info('Offer matched by SKU and GTIN:', [
                 'sku' => $sku,
@@ -205,35 +260,48 @@ trait ICIntegrationTrait
             ]);
             return $offer;
         }
-
+    
         Log::warning('No offer found for SKU and GTIN:', ['sku' => $sku, 'gtin' => $gtin]);
         return null;
     }
-
-    public function matchICProductName($productName, $provinceName, $provinceSlug,$provinceId)
+    
+    
+    public function matchOfferProductName($date, $productName, $provinceName, $provinceSlug, $provinceId, $retailerId, $lpId)
     {
-        $product = ProductVariation::where('product_name', $productName)->get();
-        if (!empty($product)) {
-            $product = $this->matchProvince($product, $provinceName, $provinceSlug,$provinceId);
-        }
-        return $product;
-    }
-
-    public function matchOfferProductName($date, $productName, $provinceName, $provinceSlug, $provinceId, $retailerId)
-    {
+        // Attempt to match by product name and lp_id
         $offer = Offer::where('offer_date', $date)
             ->where('product_name', $productName)
             ->where('province_id', $provinceId)
             ->where('retailer_id', $retailerId)
+            ->where('lp_id', $lpId) // Filter by LP
             ->first();
-        if(empty($offer)) {
+    
+        // If no offer is found, attempt without the lp_id
+        if (empty($offer)) {
             $offer = Offer::where('offer_date', $date)
                 ->where('product_name', $productName)
                 ->where('province_id', $provinceId)
+                ->where('lp_id', $lpId)
                 ->first();
         }
+    
         return $offer;
     }
+    
+    public function matchICProductName($productName, $provinceName, $provinceSlug, $provinceId, $lpId)
+    {
+        // Match by product name and lpId
+        $product = ProductVariation::where('product_name', $productName)
+            ->where('lp_id', $lpId) // Filter by lpId
+            ->get();
+    
+        if (!empty($product)) {
+            $product = $this->matchProvince($product, $provinceName, $provinceSlug, $provinceId);
+        }
+    
+        return $product;
+    }
+    
 
     protected function calculateDqiFee($greenlineReport, $item)
     {
@@ -245,17 +313,17 @@ trait ICIntegrationTrait
         return ($greenlineReport->sold ?? 0) / ($item->average_price ?? 1);
     }
 
-    public function DQISummaryFlag($report, $sku, $gtin, $productName, $provinceName, $provinceSlug, $provinceId)
+    public function DQISummaryFlag($report, $sku, $gtin, $productName, $provinceName, $provinceSlug, $provinceId ,$lpId)
     {
         $offer = null;
         if (!empty($sku)) {
-            $offer = $this->matchOfferSku($report->date, $sku, $provinceName, $provinceSlug, $provinceId, $report->retailer_id);
+            $offer = $this->matchOfferSku($report->date, $sku, $provinceName, $provinceSlug, $provinceId, $report->retailer_id,$lpId);
         }
         if (empty($offer) && !empty($barcode)) {
-            $offer = $this->matchOfferBarcode($report->date, $barcode, $provinceName, $provinceSlug,$provinceId, $report->retailer_id);
+            $offer = $this->matchOfferBarcode($report->date, $barcode, $provinceName, $provinceSlug,$provinceId, $report->retailer_id,$lpId);
         }
         if (empty($offer) && !empty($productName)) {
-            $offer = $this->matchOfferProductName($report->date, $productName, $provinceName, $provinceSlug, $provinceId, $report->retailer_id);
+            $offer = $this->matchOfferProductName($report->date, $productName, $provinceName, $provinceSlug, $provinceId, $report->retailer_id,$lpId);
         }
         if (!empty($offer)) {
             return $offer;

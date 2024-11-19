@@ -29,6 +29,7 @@ trait CovaICIntegration
         $provinceName = $report->province;
         $provinceSlug = $report->province_slug;
         $product = null;
+        $lpId = $report->lp_id;
         $retailer = Retailer::find($retailer_id);
         if ($retailer) {
             $retailerName = trim("{$retailer->first_name} {$retailer->last_name}");

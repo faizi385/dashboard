@@ -42,7 +42,7 @@ trait GlobalTillIntegration
         $provinceName = $report->province;
         $provinceSlug = $report->province_slug;
         $product = null;
-
+        $lpId = $report->lp_id;
         $retailer = Retailer::find($retailer_id);
         if ($retailer) {
             $retailerName = trim("{$retailer->first_name} {$retailer->last_name}");
@@ -51,16 +51,16 @@ trait GlobalTillIntegration
         }
 
         if (!empty($gtin) && !empty($sku)) {
-            $product = $this->matchICBarcodeSku($gobatellDiagnosticReport->compliance_code, $gobatellDiagnosticReport->supplier_sku,$provinceName,$provinceSlug,$provinceId);
+            $product = $this->matchICBarcodeSku($gobatellDiagnosticReport->compliance_code, $gobatellDiagnosticReport->supplier_sku,$provinceName,$provinceSlug,$provinceId,     $lpId);
         }
         if (!empty($sku) && empty($product)) {
-            $product = $this->matchICSku($gobatellDiagnosticReport->supplier_sku,$provinceName,$provinceSlug,$provinceId);
+            $product = $this->matchICSku($gobatellDiagnosticReport->supplier_sku,$provinceName,$provinceSlug,$provinceId,     $lpId);
         }
         if (!empty($gtin) && empty($product)) {
-            $product = $this->matchICBarcode($gobatellDiagnosticReport->compliance_code,$provinceName,$provinceSlug,$provinceId);
+            $product = $this->matchICBarcode($gobatellDiagnosticReport->compliance_code,$provinceName,$provinceSlug,$provinceId,     $lpId);
         }
         if (!empty($productName) && empty($product)){
-            $product = $this->matchICProductName($gobatellDiagnosticReport->product,$provinceName,$provinceSlug,$provinceId);
+            $product = $this->matchICProductName($gobatellDiagnosticReport->product,$provinceName,$provinceSlug,$provinceId,     $lpId);
         }
         if ($product) {
             $lp = Lp::where('id',$product->lp_id)->first();
@@ -111,7 +111,7 @@ trait GlobalTillIntegration
             $cleanSheetData['product_variation_id'] = $product->id;
             $cleanSheetData['dqi_per'] = 0.00;
             $cleanSheetData['dqi_fee'] = 0.00;
-            $offer = $this->DQISummaryFlag($report,$gobatellDiagnosticReport->supplier_sku,'',$gobatellDiagnosticReport->productname,$provinceName,$provinceSlug,$provinceId);
+            $offer = $this->DQISummaryFlag($report,$gobatellDiagnosticReport->supplier_sku,'',$gobatellDiagnosticReport->productname,$provinceName,$provinceSlug,$provinceId,$lpId );
             if (!empty($offer)) {
                 $cleanSheetData['offer_id'] = $offer->id;
                 $cleanSheetData['lp_id'] = $offer->lp_id;
@@ -150,11 +150,11 @@ trait GlobalTillIntegration
             $offer = null;
             $offer = null;
             if (!empty($sku)) {
-                $offer = $this->matchOfferSku($report->date,$gobatellDiagnosticReport->supplier_sku,$provinceName,$provinceSlug,$provinceId,$report->retailer_id);
+                $offer = $this->matchOfferSku($report->date,$gobatellDiagnosticReport->supplier_sku,$provinceName,$provinceSlug,$provinceId,$report->retailer_id,     $lpId);
             } if (!empty($gtin) && empty($offer)) {
-                $offer = $this->matchOfferBarcode($report->date,$gobatellDiagnosticReport->compliance_code,$provinceName,$provinceSlug,$provinceId,$report->retailer_id);
+                $offer = $this->matchOfferBarcode($report->date,$gobatellDiagnosticReport->compliance_code,$provinceName,$provinceSlug,$provinceId,$report->retailer_id,     $lpId);
             } if (!empty($productName) && empty($offer)) {
-                $offer = $this->matchOfferProductName($report->date,$gobatellDiagnosticReport->product,$provinceName,$provinceSlug,$provinceId,$report->retailer_id);
+                $offer = $this->matchOfferProductName($report->date,$gobatellDiagnosticReport->product,$provinceName,$provinceSlug,$provinceId,$report->retailer_id,     $lpId);
             }
             if ($offer) {
                 $cleanSheetData['retailer_id'] = $retailer_id;

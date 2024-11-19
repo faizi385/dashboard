@@ -49,12 +49,12 @@
                 </div>
             </div>
            
-             <!-- Mapped Offers -->
+             <!-- Mapped Deals -->
              <div class="col-lg-3 col-6">
                 <div class="small-box bg-primary">
                     <div class="inner">
                         <h3>{{ $totalMappedOffers }}</h3>
-                        <p>Mapped Offers</p>
+                        <p>Mapped Deals</p>
                     </div>
                     <div class="icon">
                         <i class="ion ion-map"></i>
@@ -68,7 +68,7 @@
                 <div class="small-box bg-secondary">
                     <div class="inner">
                         <h3>{{ $totalUnmappedOffers}}</h3>
-                        <p>Unmapped Offers</p>
+                        <p>Unmapped Deals</p>
                     </div>
                     <div class="icon">
                         <i class="ion ion-android-close"></i>

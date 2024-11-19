@@ -3,7 +3,7 @@
 @section('content')
 <div class="container p-2">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="text-white my-4">{{ isset($lp) ? 'Edit LP' : 'Create LP' }}</h1>
+        <h1 class="text-white my-4">{{ isset($lp) ? 'Edit Supplier' : 'Create Supplier' }}</h1>
         <a href="{{ route('lp.index') }}" class="btn btn-primary">
             <i class="fas fa-arrow-left"></i> Back
         </a>
@@ -20,7 +20,7 @@
                 <!-- LP Name -->
                 <div class="col-md-6 mb-3">
                     <label for="name" class="form-label">
-                        <i class="fas fa-building"></i> LP Name <span class="text-danger">*</span>
+                        <i class="fas fa-building"></i> Supplier Name <span class="text-danger">*</span>
                     </label>
                     <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" placeholder="Enter LP Name" value="{{ old('name', $lp->name ?? '') }}" >
                     @error('name')
@@ -78,7 +78,7 @@
             </div>
 
             <button type="submit" class="btn btn-primary">
-                {{ isset($lp) ? 'Update LP' : 'Create LP' }}
+                {{ isset($lp) ? 'Update Supplier' : 'Create Supplier' }}
             </button>
         </form>
     </div> <!-- End of white background div -->

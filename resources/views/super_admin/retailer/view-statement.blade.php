@@ -3,7 +3,7 @@
 @section('content')
 <div class="container p-3">
     <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="text-white" id="text">Retailer Statement</h1>
+    <h1 class="text-white" id="text">Distributor  Statement</h1>
     <a href="{{ url()->previous() }}" class="btn btn-primary">
         <i class="fas fa-arrow-left"></i> Back
     </a>
@@ -14,8 +14,8 @@
                 <thead>
                     <tr>
                         <th>Province</th>
-                        <th>Retailer DBA</th>
-                        <th>LP DBA</th>
+                        <th>Distributor  DBA</th>
+                        <th>Supplier DBA</th>
                         <th>Payout Without Tax</th>
                         <th>Payout With Tax</th>
                         <th class="text-center">Action</th>
@@ -59,7 +59,7 @@
                                 <td>{{ number_format($totalFeeWithoutTax, 2) }}</td>
                                 <td>{{ number_format($totalFeeWithoutTax + $totalTaxWithTax, 2) }}</td>
                                 <td class="text-center">
-                                    <a href="{{ route('reports.exportStatement', $reportId) }}" class="icon-action" data-bs-toggle="tooltip" data-bs-placement="top" title="Export Retailer Statement">
+                                    <a href="{{ route('reports.exportStatement', $reportId) }}" class="icon-action" data-bs-toggle="tooltip" data-bs-placement="top" title="Export Distributor  Statement">
                                         <i style="color: black" class="fas fa-file-download"></i>
                                     </a>
                                 </td>

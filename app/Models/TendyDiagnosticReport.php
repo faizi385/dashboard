@@ -42,6 +42,8 @@ class TendyDiagnosticReport extends Model
         'closing_inventory_units',
         'closing_inventory_value',
         'status',  
+        'retailer_id',
+        'lp_id',
     ];
     
     public function report()

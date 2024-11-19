@@ -19,13 +19,13 @@
 
     <div class="card">
         <div class="card-header">
-            <h5 class="card-title">Products for LP </h5>
+            <h5 class="card-title">Products for Supplier </h5>
         </div>
         <div class="card-body">
             <table id="productsTable" class="table table-striped">
                 <thead>
                     <tr>
-                        <th>LP DBA</th>
+                        <th>Supplier DBA</th>
                         <th>Province</th>
                         <th>Product</th>
                         <th>Provincial SKU</th>

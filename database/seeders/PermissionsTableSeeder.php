@@ -12,45 +12,23 @@ class PermissionsTableSeeder extends Seeder
         // Define permissions with their descriptions
         $permissions = [
             ['name' => 'view users', 'description' => 'View the list of users'],
-            ['name' => 'create users', 'description' => 'Create new users'],
-            ['name' => 'edit users', 'description' => 'Edit existing users'],
-            ['name' => 'delete users', 'description' => 'Delete users'],
-
-            ['name' => 'view roles', 'description' => 'View the list of roles'],
-            ['name' => 'create roles', 'description' => 'Create new roles'],
-            ['name' => 'edit roles', 'description' => 'Edit existing roles'],
-            ['name' => 'delete roles', 'description' => 'Delete roles'],
-
-            ['name' => 'view permissions', 'description' => 'View the list of permissions'],
-            ['name' => 'create permissions', 'description' => 'Create new permissions'],
-            ['name' => 'edit permissions', 'description' => 'Edit existing permissions'],
-            ['name' => 'delete permissions', 'description' => 'Delete permissions'],
-
+            ['name' => 'view provinces', 'description' => 'View the list of provinces'],
+            ['name' => 'view logs', 'description' => 'View logs'],
             ['name' => 'view retailer dashboard', 'description' => 'View the retailer dashboard'],
             ['name' => 'view lp dashboard', 'description' => 'View the LP dashboard'],
-
-            // Permissions for reports
+            ['name' => 'view deals', 'description' => 'View deals'],
+            ['name' => 'view supplier', 'description' => 'View suppliers'],
+            ['name' => 'view manage info', 'description' => 'Manage supplier information'],
+            ['name' => 'view distributor', 'description' => 'View distributors'],
+            ['name' => 'view carveouts', 'description' => 'View carveouts'],
+            ['name' => 'view products', 'description' => 'View products'],
             ['name' => 'view reports', 'description' => 'View the list of reports'],
-            ['name' => 'create reports', 'description' => 'Create new reports'],
-            ['name' => 'edit reports', 'description' => 'Edit existing reports'],
-            ['name' => 'delete reports', 'description' => 'Delete reports'],
-
-            // Permissions for managing provinces
-            ['name' => 'view provinces', 'description' => 'View the list of provinces'],
-            ['name' => 'create provinces', 'description' => 'Create new provinces'],
-            ['name' => 'edit provinces', 'description' => 'Edit existing provinces'],
-            ['name' => 'delete provinces', 'description' => 'Delete provinces'],
-
-            // Permissions for logs
-            ['name' => 'view logs', 'description' => 'View logs'],
-            ['name' => 'delete logs', 'description' => 'Delete logs'],
+            ['name' => 'view statement', 'description' => 'View statements'],
         ];
 
-        // Loop through each permission and check if it exists before creating
+        // Loop through each permission and create if it doesn't exist
         foreach ($permissions as $permission) {
-            if (!Permission::where('name', $permission['name'])->exists()) {
-                Permission::create($permission);
-            }
+            Permission::firstOrCreate(['name' => $permission['name']], $permission);
         }
     }
 }

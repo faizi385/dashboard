@@ -11,13 +11,17 @@ class TendyDiagnosticReportImport implements ToModel, WithHeadingRow
 {
     protected $reportId;
     protected $location;
+    protected $retailerId; // New property for retailer ID
+    protected $lpId;
     protected $errors = []; // Array to store error messages
     protected $hasCheckedHeaders = false; // Flag to check if headers have been validated
 
-    public function __construct($reportId, $location)
+    public function __construct($reportId, $location, $retailerId, $lpId = null)
     {
         $this->reportId = $reportId;
         $this->location = $location;
+        $this->retailerId = $retailerId; // Assign retailer ID
+        $this->lpId = $lpId;  
     }
 
     public function model(array $row)
@@ -101,6 +105,8 @@ class TendyDiagnosticReportImport implements ToModel, WithHeadingRow
             'other_reductions_value' => $row['other_reductions_value'] ?? null,
             'closing_inventory_units' => $row['closing_inventory_units'] ?? null,
             'closing_inventory_value' => $row['closing_inventory_value'] ?? null,
+            'retailer_id' => $this->retailerId, // Include retailer ID
+            'lp_id' => $this->lpId,
         ]);
     }
 

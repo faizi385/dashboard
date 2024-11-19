@@ -3,7 +3,7 @@
 @section('content')
 <div class="container">
     <div class="d-flex justify-content-between mb-4">
-        <h3 class="text-white">LP Details</h3>
+        <h3 class="text-white">Supplier Details</h3>
         <div>
             <a href="{{ route('lp.index') }}" class="btn btn-primary ">Back </a>
             
@@ -28,7 +28,7 @@
 
             <!-- View LP Statement Button -->
             <button class="btn btn-primary" onclick="window.location.href='{{ route('lp.statement.view', ['lp_id' => $lp->id]) }}'">
-                View LP Statement
+                View Supplier Statement
             </button>
             
 
@@ -37,11 +37,11 @@
 
     <div class="card">
         <div class="card-header">
-            <h5 class="card-title">LP Information</h5>
+            <h5 class="card-title">Supplier Information</h5>
         </div>
         <div class="card-body">
             <h6 class="card-subtitle mb-2 text-muted">General Information</h6>
-            <p><strong>LP Name:</strong> {{ $lp->name }}</p>
+            <p><strong>Supplier Name:</strong> {{ $lp->name }}</p>
             <p><strong>DBA:</strong> {{ $lp->dba }}</p>
             <p><strong>Primary Contact Email:</strong> {{ $lp->primary_contact_email }}</p>
             <p><strong>Primary Contact Phone:</strong> {{ $lp->primary_contact_phone }}</p>
@@ -68,12 +68,11 @@
 
 </div>
 
-<!-- Add Offer Modal -->
 <div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Add Deals to {{ $lp->name }}</h5>
+                <h5 class="modal-title" id="addOfferModalLabel">Add Deals</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -82,18 +81,18 @@
                     <div>
                         <form action="{{ route('offers.import') }}" method="POST" enctype="multipart/form-data">
                             @csrf
-                            <!-- Hidden LP ID -->
-                            <input type="hidden" name="lp_id" value="{{ $lp->id }}">
-                            <!-- Display LP Name -->
-                            <p><strong>LP:</strong> {{ $lp->name }} ({{ $lp->dba }})</p>
+                            <input type="hidden" name="lp_id" value="{{ $lp->id }}"> <!-- Hidden LP ID -->
+                            <input type="hidden" name="source" value="1"> <!-- Source for bulk upload -->
+
+                            <!-- Display LP Name instead of Dropdown -->
+                            <div class="mb-3">
+                                <label class="form-label">Supplier</label>
+                                <p><strong>{{ $lp->name }} ({{ $lp->dba }})</strong></p>
+                            </div>
 
                             <div class="mb-3">
-                                <label for="offerExcel" class="form-label">Upload Bulk Deals (Excel) <span class="text-danger">*</span></label>
-                                <input type="file" class="form-control" id="offerExcel" name="offerExcel" accept=".xlsx, .xls, .csv"  >
-                                <!-- Error message if validation fails -->
-                                @error('offerExcel')
-                                    <div class="text-danger">{{ $message }}</div>
-                                @enderror
+                                <label for="offerExcel" class="form-label">Upload Bulk Deals (Excel)</label>
+                                <input type="file" class="form-control" id="offerExcel" name="offerExcel" accept=".xlsx, .xls, .csv" required>
                             </div>
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-upload"></i> Upload Excel
@@ -111,12 +110,11 @@
             </div>
         </div>
     </div>
-</div
+</div>
 
-<!-- Toastr CSS -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />
 
-<!-- Toastr JS -->
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
 <style>

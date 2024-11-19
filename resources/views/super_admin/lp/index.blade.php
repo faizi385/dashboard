@@ -7,10 +7,10 @@
 </div>
 
 <div class="container">
-    <h1 class="text-white">LP Management</h1>
+    <h1 class="text-white">Supplier Management</h1>
 
     <div class="col text-end mb-3">
-        <a href="{{ route('lp.create') }}" class="btn btn-primary">Create LP</a>
+        <a href="{{ route('lp.create') }}" class="btn btn-primary">Create Supplier</a>
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addOfferModal">
             Add Deal
         </button>
@@ -19,7 +19,7 @@
     <table id="lpTable" class="table table-striped table-bordered mt-3">
         <thead>
             <tr>
-                <th>LP Name</th>
+                <th>Supplier Name</th>
                 <th>DBA</th>
                 <th>Primary Contact Email</th>
                 <th>Status</th>
@@ -45,7 +45,7 @@
                             @csrf
                             @method('PATCH')
                             <input type="hidden" name="status" value=""> <!-- Hidden input to store status -->
-                            <button type="submit" class="btn btn-link p-0" data-bs-toggle="tooltip" data-bs-placement="top" title="Approve LP">
+                            <button type="submit" class="btn btn-link p-0" data-bs-toggle="tooltip" data-bs-placement="top" title="Approve Supplier">
                                 <i style="color: green;" class="fas fa-check-circle"></i>
                             </button>
                         </form>
@@ -57,18 +57,18 @@
                             @csrf
                             @method('PATCH')
                             <input type="hidden" name="status" value=""> <!-- Hidden input to store status -->
-                            <button type="submit" class="btn btn-link p-0" data-bs-toggle="tooltip" data-bs-placement="top" title="Reject LP">
+                            <button type="submit" class="btn btn-link p-0" data-bs-toggle="tooltip" data-bs-placement="top" title="Reject Supplier">
                                 <i style="color: red;" class="fas fa-times-circle"></i>
                             </button>
                         </form>
                         @endif
                         
-                        <a href="{{ route('lp.show', $lp->id) }}" class="icon-action text-decoration-none" data-bs-toggle="tooltip" data-bs-placement="top" title="View LP">
+                        <a href="{{ route('lp.show', $lp->id) }}" class="icon-action text-decoration-none" data-bs-toggle="tooltip" data-bs-placement="top" title="View Supplier">
                             <i style="color: black" class="fas fa-eye"></i>
                         </a>
 
                         <!-- Edit Icon -->
-                        <a href="{{ route('lp.edit', $lp) }}" class="icon-action text-decoration-none" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit LP">
+                        <a href="{{ route('lp.edit', $lp) }}" class="icon-action text-decoration-none" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Supplier">
                             <i style="color: black" class="fas fa-edit"></i>
                         </a>
 
@@ -76,7 +76,7 @@
                         <form action="{{ route('lp.destroy', $lp) }}" method="POST" class="d-inline delete-form">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn btn-link p-0" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete LP" style="color: inherit; text-decoration: none;">
+                            <button type="submit" class="btn btn-link p-0" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete Supplier" style="color: inherit; text-decoration: none;">
                                 <i style="color: black" class="fas fa-trash"></i>
                             </button>
                         </form>
@@ -88,7 +88,7 @@
     </table>
 </div>
 <!-- Add Offer Modal -->
-<<!-- Add Offer Modal -->
+<!-- Add Offer Modal -->
 <div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -104,9 +104,9 @@
                             @csrf
                             <input type="hidden" name="source" value="1"> <!-- Source for bulk upload -->
                             <div class="mb-3">
-                                <label for="lpSelect" class="form-label">Select LP</label>
+                                <label for="lpSelect" class="form-label">Select Supplier</label>
                                 <select class="form-select" id="lpSelect" name="lp_id" required>
-                                    <option value="" selected disabled>Select LP</option>
+                                    <option value="" selected disabled>Select Supplier</option>
                                     @foreach($lps as $lp)
                                         <option value="{{ $lp->id }}">{{ $lp->name }} ({{ $lp->dba }})</option>
                                     @endforeach

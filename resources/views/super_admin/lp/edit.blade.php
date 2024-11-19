@@ -3,7 +3,7 @@
 @section('content')
 <div class="container p-3">
     <div class="d-flex justify-content-between mb-4">
-        <h3 class="text-white">Edit LP</h3>
+        <h3 class="text-white">Edit Supplier</h3>
         <a href="{{ route('lp.index') }}" class="btn btn-primary"><i class="fas fa-arrow-left"></i> Back </a>
     </div>
 
@@ -14,12 +14,12 @@
         <!-- LP Information Card -->
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title">LP Information</h5>
+                <h5 class="card-title">Supplier Information</h5>
             </div>
             <div class="card-body">
                 <div class="form-row">
                     <div class="col-md-6 form-group">
-                        <label for="name"><i class="fas fa-user"></i> LP Name <span class="text-danger">*</span></label>
+                        <label for="name"><i class="fas fa-user"></i> Supplier Name <span class="text-danger">*</span></label>
                         <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name', $lp->name) }}">
                         @error('name')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -105,7 +105,7 @@
         
         <!-- Submit Button -->
         <div class="form-group mt-4">
-            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Update LP</button>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Update Supplier</button>
         </div>
     </form>
 </div>

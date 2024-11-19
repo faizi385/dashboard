@@ -6,7 +6,7 @@ use App\Models\Retailer;
 use App\Models\Province;
 use Illuminate\Support\Facades\Storage;
 use App\Exports\CleanSheetsExport;
-
+use App\Models\LP;
 use App\Exports\RetailerStatementExport;
 
 use App\Models\RetailerStatement;
@@ -32,15 +32,15 @@ use App\Models\RetailerAddress;
 
 class ReportController extends Controller
 {
-    public function index(Request $request, $retailers='')
+    public function index(Request $request, $retailers = '')
     {
         // Get the currently authenticated user
         $user = auth()->user();
-        
+    
         if ($user->hasRole('Retailer')) {
             // Attempt to find the retailer associated with the user
             $retailers = Retailer::where('user_id', $user->id)->first();
-            
+    
             if ($retailers) {
                 // Fetch reports and statements for the retailer
                 $reports = Report::with('retailer')->where('retailer_id', $retailers->id)->get();
@@ -50,12 +50,27 @@ class ReportController extends Controller
                 $reports = collect();
                 $statements = collect();
             }
+        } elseif ($user->hasRole('LP')) {
+            // Get LP details based on the user ID
+            $lp = LP::where('user_id', $user->id)->first();
+    
+            if ($lp) {
+                // Fetch reports uploaded by the LP
+                $reports = Report::with('retailer')->where('lp_id', $lp->id)->get();
+                $statements = RetailerStatement::whereHas('report', function ($query) use ($lp) {
+                    $query->where('lp_id', $lp->id);
+                })->get();
+            } else {
+                // Empty collections if no LP found
+                $reports = collect();
+                $statements = collect();
+            }
         } else {
             // For Super Admin: Fetch all reports and statements
             $reports = Report::with('retailer')->get();
             $statements = RetailerStatement::all();
         }
-
+    
         // Initialize arrays for sums
         $retailerSumsByLocation = [];
         $totalPayoutWithoutTax = 0;
@@ -65,14 +80,14 @@ class ReportController extends Controller
         foreach ($statements as $statement) {
             // Get the location of the statement (from the Report model)
             $location = $statement->report->location ?? null;
-            
+    
             // Calculate the tax rate for the location (based on province)
             $province = $statement->report->province ?? null;
             $taxRate = $this->getProvinceTaxRate($province);
-            
+    
             // Calculate the payout with tax
             $payoutWithTax = $statement->total_fee * (1 + $taxRate);
-            
+    
             // Add to total payout without tax and with tax
             $totalPayoutWithoutTax += $statement->total_fee;
             $totalPayoutWithTax += $payoutWithTax;
@@ -84,15 +99,16 @@ class ReportController extends Controller
                     'total_payout_with_tax' => 0,
                 ];
             }
-            
+    
             // Update sums for the specific location
             $retailerSumsByLocation[$location]['total_fee_sum'] += $statement->total_fee;
             $retailerSumsByLocation[$location]['total_payout_with_tax'] += $payoutWithTax;
         }
-
+    
         // Pass data to the view
         return view('reports.index', compact('reports', 'retailers', 'retailerSumsByLocation', 'totalPayoutWithoutTax', 'totalPayoutWithTax'));
     }
+    
     
 
 
@@ -199,8 +215,7 @@ class ReportController extends Controller
                           $address->street_name . ', ' . 
                           $address->city . ', ' . 
                           $address->province;
-        
-        // Check if this location string is already used by the retailer
+      
         $existingLocation = Report::where('retailer_id', $retailerId)
             ->where('location', $locationString)
             ->first();
@@ -254,7 +269,7 @@ class ReportController extends Controller
 
                 try {
                     // Import diagnostic report and check for errors
-                    $diagnosticImport = new CovaDiagnosticReportImport($request->location, $report->id);
+                    $diagnosticImport = new CovaDiagnosticReportImport($request->location, $report->id, $report->retailer_id, $report->lp_id);
                     Excel::import($diagnosticImport, $file1Path);
 
                     if ($diagnosticImport->getErrors()) {
@@ -292,7 +307,7 @@ class ReportController extends Controller
 
                 try {
                     // Import Tendy diagnostic report and check for errors
-                    $diagnosticImport = new TendyDiagnosticReportImport($report->id, $request->location);
+                    $diagnosticImport = new TendyDiagnosticReportImport($report->id, $request->location, $report->retailer_id, $report->lp_id);
                     Excel::import($diagnosticImport, $file1Path);
 
                 } catch (\Exception $e) {
@@ -322,7 +337,7 @@ class ReportController extends Controller
 
                 try {
                     // Import Global Till diagnostic report and check for errors
-                    $diagnosticImport = new GlobalTillDiagnosticReportImport($request->location, $report->id);
+                    $diagnosticImport = new GlobalTillDiagnosticReportImport($request->location, $report->id ,$report->retailer_id, $report->lp_id);
                     Excel::import($diagnosticImport, $file1Path);
 
                     // Get the ID of the imported diagnostic report
@@ -353,7 +368,7 @@ class ReportController extends Controller
                 $file2Path = $request->file('sales_summary_report')->storeAs('uploads', $request->file('sales_summary_report')->getClientOriginalName());
 
                 // Import Ideal diagnostic report and check for errors
-                $diagnosticImport = new IdealDiagnosticReportImport($request->location, $report->id);
+                $diagnosticImport = new IdealDiagnosticReportImport($request->location, $report->id, $report->retailer_id, $report->lp_id);
                 Excel::import($diagnosticImport, $file1Path);
                 $diagnosticImportErrors = $diagnosticImport->getErrors();
 
@@ -384,7 +399,7 @@ class ReportController extends Controller
                 $file1Path = $request->file('inventory_log_summary')->storeAs('uploads', $request->file('inventory_log_summary')->getClientOriginalName());
 
                 try {
-                    $import = new ProfitTechInventoryLogImport($request->location, $report->id);
+                    $import = new ProfitTechInventoryLogImport($request->location, $report->id, $report->retailer_id, $report->lp_id);
                     Excel::import($import, $file1Path);
                 } catch (\Exception $e) {
                     // Catch the exception and display the error message
@@ -409,7 +424,7 @@ class ReportController extends Controller
             $file1Path = $request->file('inventory_log_summary')->storeAs('uploads', $request->file('inventory_log_summary')->getClientOriginalName());
             if ($request->pos === 'greenline') {
                 // Import GreenLine report and check for errors
-                $import = new GreenLineReportImport($request->location, $report->id);
+                $import = new GreenLineReportImport($request->location, $report->id, $report->retailer_id, $report->lp_id);
 
                 try {
                     Excel::import($import, $file1Path);
@@ -433,7 +448,7 @@ class ReportController extends Controller
                     $file1Path = $request->file('inventory_log_summary')->storeAs('uploads', $request->file('inventory_log_summary')->getClientOriginalName());
 
                     // Import TechPOS report and check for errors
-                    $import = new TechPOSReportImport($request->location, $report->id);
+                    $import = new TechPOSReportImport($request->location, $report->id, $report->retailer_id, $report->lp_id);
 
                     try {
                         Excel::import($import, $file1Path);
@@ -458,7 +473,7 @@ class ReportController extends Controller
                     $file1Path = $request->file('inventory_log_summary')->storeAs('uploads', $request->file('inventory_log_summary')->getClientOriginalName());
 
                     // Import Barnet POS report and check for errors
-                    $import = new BarnetPosReportImport($request->location, $report->id);
+                    $import = new BarnetPosReportImport($request->location, $report->id, $report->retailer_id, $report->lp_id);
 
                     try {
                         Excel::import($import, $file1Path);
@@ -484,7 +499,7 @@ class ReportController extends Controller
                     $file1Path = $request->file('inventory_log_summary')->storeAs('uploads', $request->file('inventory_log_summary')->getClientOriginalName());
             
                     // Import OtherPOS report and check for errors
-                    $import = new OtherPOSReportImport($request->location, $report->id);
+                    $import = new OtherPOSReportImport($request->location, $report->id, $report->retailer_id, $report->lp_id);
             
                     try {
                         Excel::import($import, $file1Path);

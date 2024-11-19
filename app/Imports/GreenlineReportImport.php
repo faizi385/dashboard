@@ -2,23 +2,29 @@
 namespace App\Imports;
 
 use App\Models\GreenLineReport;
-use App\Models\Report;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Illuminate\Support\Facades\Log;
 
 class GreenLineReportImport implements ToModel, WithHeadingRow
 {
     protected $location;
     protected $reportId;
+    protected $retailerId; // New property for retailer ID
+    protected $lpId;      // New property for LP ID (optional)
     protected $errors = []; 
     protected $hasCheckedHeaders = false; 
-    protected $requiredHeaders = ['sku', 'name', 'barcode', 'brand', 'compliance_category', 'opening', 'sold', 'purchased', 'closing', 'average_price', 'average_cost'];
+    protected $requiredHeaders = [
+        'sku', 'name', 'barcode', 'brand', 'compliance_category',
+        'opening', 'sold', 'purchased', 'closing', 'average_price', 'average_cost'
+    ];
 
-    public function __construct($location,$reportId)
+    public function __construct($location, $reportId, $retailerId, $lpId = null)
     {
         $this->location = $location;
         $this->reportId = $reportId;
+        $this->retailerId = $retailerId; // Assign retailer ID
+        $this->lpId = $lpId;             // Assign LP ID if provided
     }
 
     public function model(array $row)
@@ -27,22 +33,21 @@ class GreenLineReportImport implements ToModel, WithHeadingRow
         if (!$this->hasCheckedHeaders) {
             $missingHeaders = array_diff($this->requiredHeaders, array_keys($row));
             if (!empty($missingHeaders)) {
-                // Remove underscores from missing headers
+                // Format and log missing headers
                 $formattedHeaders = array_map(function ($header) {
                     return str_replace('_', ' ', $header); // Replace underscores with spaces
                 }, $missingHeaders);
 
-                // Log an error and store the message
                 Log::error('Missing headers: ' . implode(', ', $formattedHeaders));
                 $this->errors[] = 'Missing headers: ' . implode(', ', $formattedHeaders);
-                $this->hasCheckedHeaders = true; // Set the flag to prevent further checks
+                $this->hasCheckedHeaders = true; // Prevent further checks
 
-                // Throw an exception to stop the import process
+                // Stop import with an exception
                 throw new \Exception('Import failed. ' . implode(', ', $this->errors));
             }
         }
 
-        // Proceed with creating the model if headers are valid
+        // Proceed with creating the model
         return new GreenLineReport([
             'sku' => $row['sku'] ?? null,
             'name' => $row['name'] ?? null,
@@ -56,6 +61,8 @@ class GreenLineReportImport implements ToModel, WithHeadingRow
             'average_price' => $this->convertToDecimal($row['average_price'] ?? null),
             'average_cost' => $this->convertToDecimal($row['average_cost'] ?? null),
             'report_id' => $this->reportId,
+            'retailer_id' => $this->retailerId, // Include retailer ID
+            'lp_id' => $this->lpId,             // Include LP ID if provided
         ]);
     }
 
@@ -66,7 +73,6 @@ class GreenLineReportImport implements ToModel, WithHeadingRow
 
     private function convertToDecimal($value)
     {
-        
         return floatval(str_replace('$', '', $value));
     }
 }

@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container p-2">
-    <h1 class="text-white text-center mb-4">LP Dashboard</h1>
+    <h1 class="text-white text-center mb-4">Supplier Dashboard</h1>
     
     <div class="row gy-4 gx-5"> <!-- gy-4 adds vertical spacing, gx-5 adds horizontal spacing -->
         <!-- First Chart Container -->

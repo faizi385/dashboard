@@ -40,7 +40,7 @@ trait ProfitTechIntegration
         $provinceName = $report->province;
         $provinceSlug = $report->province_slug;
         $product = null;
-
+        $lpId = $report->lp_id;
         $retailer = Retailer::find($retailer_id);
         if ($retailer) {
             $retailerName = trim("{$retailer->first_name} {$retailer->last_name}");
@@ -50,7 +50,7 @@ trait ProfitTechIntegration
 
        
         if (!empty($sku)) {
-            $product = $this->matchICSku($profitTechReport->product_sku, $provinceName, $provinceSlug, $provinceId);
+            $product = $this->matchICSku($profitTechReport->product_sku, $provinceName, $provinceSlug, $provinceId,        $lpId);
         } 
         if ($product) {
             $lp = Lp::where('id', $product->lp_id)->first();
@@ -100,7 +100,7 @@ trait ProfitTechIntegration
             $cleanSheetData['dqi_per'] = 0.00;
             $cleanSheetData['dqi_fee'] = 0.00;
 
-            $offer = $this->DQISummaryFlag($report, $profitTechReport->sku, $profitTechReport->barcode, $profitTechReport->name, $provinceName, $provinceSlug, $provinceId);
+            $offer = $this->DQISummaryFlag($report, $profitTechReport->sku, $profitTechReport->barcode, $profitTechReport->name, $provinceName, $provinceSlug, $provinceId,$lpId );
 
             if (!empty($offer)) {
                 $cleanSheetData['offer_id'] = $offer->id;
@@ -135,7 +135,7 @@ trait ProfitTechIntegration
             Log::warning('Product not found for SKU and GTIN:', ['sku' => $sku, 'gtin' => $gtin, 'report_data' => $report]);
             $offer = null;
             if (!empty($sku)) {
-                $offer = $this->matchOfferSku($report->date,$sku,$provinceName,$provinceSlug,$provinceId,$report->retailer_id);
+                $offer = $this->matchOfferSku($report->date,$sku,$provinceName,$provinceSlug,$provinceId,$report->retailer_id,        $lpId);
             }
             if ($offer) {
                 $cleanSheetData['retailer_id'] = $retailer_id;

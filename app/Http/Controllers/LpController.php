@@ -160,10 +160,11 @@ $formattedDate = Carbon::parse($date)->format('M-Y') ?? 'Date';
     {
         $lp = Lp::with('address')->findOrFail($id);
     
+        $lps = Lp::all();
         // Set a session variable to indicate that the user is viewing offers from LP show
         session(['viewing_offers_from_lp_show' => true]);
     
-        return view('super_admin.lp.show', compact('lp'));
+        return view('super_admin.lp.show', compact('lps','lp'));
     }
     
     public function create()

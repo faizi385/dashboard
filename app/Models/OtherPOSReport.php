@@ -26,6 +26,8 @@ class OtherPOSReport extends Model
         'average_price',      // Average selling price
         'average_cost',       // Average cost of the product
         'status',             // Status field to track report status
+        'retailer_id',
+        'lp_id'
     ];
 
     // If you do not want the created_at and updated_at columns to be managed automatically

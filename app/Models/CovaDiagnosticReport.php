@@ -37,6 +37,8 @@ class CovaDiagnosticReport extends Model
         'other_reductions_units',
         'closing_inventory_units',
         'status',
+        'retailer_id',
+        'lp_id',
     ];
 
     public function CovaSalesSummaryReport()

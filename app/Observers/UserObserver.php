@@ -49,18 +49,19 @@ class UserObserver
     public function updated(User $user)
     {
         $actionUser = auth()->user(); // Get the currently authenticated user
-    
+        
         $original = $user->getOriginal();
         $changes = $user->getChanges();
     
         // Prepare a new changes array
         $loggedChanges = [];
     
+        // Loop through the changes and exclude email field
         foreach ($changes as $key => $value) {
             if ($key === 'password') {
                 $loggedChanges[$key] = '**********'; // Mask password changes
-            } else {
-                $loggedChanges[$key] = $value; // Log other changes as is
+            } elseif ($key !== 'email') {
+                $loggedChanges[$key] = $value; // Log other changes as is, excluding email
             }
         }
     
@@ -70,7 +71,7 @@ class UserObserver
             'action_user_id' => $actionUser ? $actionUser->id : null,
             'ip_address' => request()->ip(),
             'description' => json_encode([
-                'old' => $original,
+                'old' => array_diff_key($original, ['email' => '']), // Exclude old email from log
                 'new' => $loggedChanges,
             ]),
         ]);
@@ -87,7 +88,8 @@ class UserObserver
     public function deleted(User $user)
     {
         $actionUser = auth()->user();
-        
+    
+        // Exclude email from the description when the user is deleted
         Log::create([
             'action' => 'deleted',
             'user_id' => $user->id,
@@ -95,10 +97,11 @@ class UserObserver
             'ip_address' => request()->ip(),
             'description' => json_encode([
                 'name' => $user->first_name . ' ' . $user->last_name,
-                'email' => $user->email,
+                // Do not include email here
             ]),
         ]);
     }
+    
 
     /**
      * Handle the User "restored" event.

@@ -38,6 +38,7 @@ trait GreenlineICIntegration
         $provinceName = $report->province;
         $provinceSlug = $report->province_slug;
         $product = null;
+        $lpId = $report->lp_id;
 
         $retailer = Retailer::find($retailer_id);
         if ($retailer) {
@@ -46,17 +47,19 @@ trait GreenlineICIntegration
             Log::warning('Retailer not found:', ['retailer_id' => $retailer_id]);
         }
 
+    
+
         if (!empty($gtin) && !empty($sku)) {
-            $product = $this->matchICBarcodeSku($greenlineReport->barcode,$greenlineReport->sku,$provinceName,$provinceSlug,$provinceId);
+            $product = $this->matchICBarcodeSku($greenlineReport->barcode,$greenlineReport->sku,$provinceName,$provinceSlug,$provinceId, $lpId);
         }
         if (!empty($sku) && empty($product)) {
-            $product = $this->matchICSku($greenlineReport->sku,$provinceName,$provinceSlug,$provinceId);
+            $product = $this->matchICSku($greenlineReport->sku,$provinceName,$provinceSlug,$provinceId, $lpId);
         }
         if (!empty($gtin) && empty($product)) {
-            $product = $this->matchICBarcode($greenlineReport->barcode,$provinceName,$provinceSlug,$provinceId);
+            $product = $this->matchICBarcode($greenlineReport->barcode,$provinceName,$provinceSlug,$provinceId, $lpId);
         }
         if (!empty($productName) && empty($product)){
-            $product = $this->matchICProductName($greenlineReport->name,$provinceName,$provinceSlug,$provinceId);
+            $product = $this->matchICProductName($greenlineReport->name,$provinceName,$provinceSlug,$provinceId, $lpId);
         }
         if ($product) {
             $lp = Lp::where('id',$product->lp_id)->first();
@@ -123,7 +126,7 @@ trait GreenlineICIntegration
             $cleanSheetData['product_variation_id'] = $product->id;
             $cleanSheetData['dqi_per'] = 0.00;
             $cleanSheetData['dqi_fee'] = 0.00;
-            $offer = $this->DQISummaryFlag($report,$greenlineReport->sku,$greenlineReport->barcode,$greenlineReport->name,$provinceName,$provinceSlug,$provinceId);
+            $offer = $this->DQISummaryFlag($report,$greenlineReport->sku,$greenlineReport->barcode,$greenlineReport->name,$provinceName,$provinceSlug,$provinceId,$lpId );
             if (!empty($offer)) {
                 $cleanSheetData['offer_id'] = $offer->id;
                 $cleanSheetData['lp_id'] = $offer->lp_id;
@@ -162,12 +165,15 @@ trait GreenlineICIntegration
             Log::warning('Product not found for SKU and GTIN:', ['sku' => $sku, 'gtin' => $gtin, 'report_data' => $report]);
             $offer = null;
             if (!empty($sku)) {
-                $offer = $this->matchOfferSku($report->date,$sku,$provinceName,$provinceSlug,$provinceId,$report->retailer_id);
-            } if (!empty($gtin) && empty($offer)) {
-                $offer = $this->matchOfferBarcode($report->date,$gtin,$provinceName,$provinceSlug,$provinceId,$report->retailer_id);
-            } if (!empty($productName) && empty($offer)) {
-                $offer = $this->matchOfferProductName($report->date,$productName,$provinceName,$provinceSlug,$provinceId,$report->retailer_id);
+                $offer = $this->matchOfferSku($report->date, $sku, $provinceName, $provinceSlug, $provinceId, $report->retailer_id, $lpId);
+            } 
+            if (!empty($gtin) && empty($offer)) {
+                $offer = $this->matchOfferBarcode($report->date, $gtin, $provinceName, $provinceSlug, $provinceId, $report->retailer_id, $lpId);
+            } 
+            if (!empty($productName) && empty($offer)) {
+                $offer = $this->matchOfferProductName($report->date, $productName, $provinceName, $provinceSlug, $provinceId, $report->retailer_id,$lpId);
             }
+            
             if ($offer) {
                 $cleanSheetData['retailer_id'] = $retailer_id;
                 $cleanSheetData['offer_id'] = $offer->id;

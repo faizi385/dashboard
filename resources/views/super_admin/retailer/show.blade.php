@@ -3,7 +3,7 @@
 @section('content')
 <div class="container">
     <div class="d-flex justify-content-between mb-4">
-        <h3 class="text-white">Retailer Details</h3>
+        <h3 class="text-white">Distributor  Details</h3>
         <div>
             <a href="{{ route('retailer.index') }}" class="btn btn-primary">  <i class="fas fa-arrow-left"></i> Back </a>
             <a href="{{ route('retailer.address.create', $retailer->id) }}" class="btn btn-primary">Add Location</a>
@@ -17,11 +17,11 @@
 
     <div class="card">
         <div class="card-header">
-            <h5 class="card-title">Retailer Information</h5>
+            <h5 class="card-title">Distributor  Information</h5>
         </div>
         <div class="card-body">
             <h6 class="card-subtitle mb-2 text-muted">General Information</h6>
-            <p><strong>Retailer Name:</strong> {{ $retailer->first_name }} {{ $retailer->last_name }}</p>
+            <p><strong>Distributor  Name:</strong> {{ $retailer->first_name }} {{ $retailer->last_name }}</p>
             <p><strong>Corporate Name:</strong> {{ $retailer->corporate_name ?? '-' }}</p>
             <p><strong>DBA:</strong> {{ $retailer->dba ?? '-' }}</p>
             <p><strong>Phone:</strong> {{ $retailer->phone }}</p>

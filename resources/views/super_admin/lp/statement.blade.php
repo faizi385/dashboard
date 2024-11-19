@@ -2,14 +2,14 @@
 
 @section('content')
 <div class="container p-3">
-    <h1 class="text-white" id="text">LP Statement</h1>
+    <h1 class="text-white" id="text">Supplier Statement</h1>
 
     <div class="row">
         <div class="col">
             <table id="lpStatementsTable" class="table table-hover table-bordered text-center align-middle">
                 <thead>
                     <tr>
-                        <th>LP DBA</th>
+                        <th>Supplier DBA</th>
                         <th>Name</th>
                         <th>Payout Without Tax</th>
                         <th>Payout With Tax</th>
@@ -25,7 +25,7 @@
                         <td>{{ number_format($totalFeeWithTaxSum?? 0, 2) }}</td>
                         <td>{{ \Carbon\Carbon::parse($lp->report_date)->format('Y-m-d') ?? 'N/A' }}</td>
                         <td class="text-center">
-                            <a href="{{ route('lp.statement.export', ['lp_id' => $lp->id,'date'=>$lp->report_date ?? now()->format('Y-m-d')]) }}" class="icon-action" data-bs-toggle="tooltip" data-bs-placement="top" title="Export LP Statement">
+                            <a href="{{ route('lp.statement.export', ['lp_id' => $lp->id,'date'=>$lp->report_date ?? now()->format('Y-m-d')]) }}" class="icon-action" data-bs-toggle="tooltip" data-bs-placement="top" title="Export Distributor  Statement">
                                 <i style="color: black" class="fas fa-file-download"></i>
                             </a>
                         </td>

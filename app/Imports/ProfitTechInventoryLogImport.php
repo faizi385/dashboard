@@ -11,6 +11,8 @@ class ProfitTechInventoryLogImport implements ToModel, WithHeadingRow
 {
     protected $location;
     protected $reportId;
+    protected $retailerId; // New property for retailer ID
+    protected $lpId;
     protected $errors = []; // Array to store error messages
     protected $hasCheckedHeaders = false; // Flag to ensure headers are only checked once
     protected $requiredHeaders = [
@@ -25,10 +27,12 @@ class ProfitTechInventoryLogImport implements ToModel, WithHeadingRow
         'closing_inventory_units', 'closing_inventory_value'
     ];
 
-    public function __construct($location, $reportId)
+    public function __construct($location, $reportId, $retailerId, $lpId = null)
     {
         $this->location = $location;
         $this->reportId = $reportId;
+        $this->retailerId = $retailerId; // Assign retailer ID
+        $this->lpId = $lpId;  
     }
 
     public function model(array $row)
@@ -89,6 +93,8 @@ class ProfitTechInventoryLogImport implements ToModel, WithHeadingRow
             'other_reductions_value' => $row['other_reductions_value'] ?? null,
             'closing_inventory_units' => $row['closing_inventory_units'] ?? null,
             'closing_inventory_value' => $row['closing_inventory_value'] ?? null,
+            'retailer_id' => $this->retailerId, // Include retailer ID
+            'lp_id' => $this->lpId,
         ]);
     }
 

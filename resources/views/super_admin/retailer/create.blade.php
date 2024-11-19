@@ -5,7 +5,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="text-white">
             <i class="fas fa-user-plus"></i> 
-            {{ isset($retailer) ? 'Edit Retailer' : 'Create Retailer' }}
+            {{ isset($retailer) ? 'Edit Distributor ' : 'Create Distributor ' }}
         </h1>
         <a href="{{ route('retailer.index') }}" class="btn btn-primary">
             <i class="fas fa-arrow-left"></i> Back
@@ -21,9 +21,9 @@
 
             @if(auth()->user()->hasRole('Super Admin'))
             <div class="mb-3 col-lg-6">
-                <label for="lp_id" class="form-label">Select LP <span class="text-danger">*</span></label>
+                <label for="lp_id" class="form-label">Select Supplier <span class="text-danger">*</span></label>
                 <select name="lp_id" id="lp_id" class="form-select @error('lp_id') is-invalid @enderror">
-                    <option value="">-- Select LP --</option>
+                    <option value="">-- Select Supplier --</option>
                     @foreach($lps as $lp)
                         <option value="{{ $lp->id }}" {{ old('lp_id', $retailer->lp_id ?? '') == $lp->id ? 'selected' : '' }}>
                             {{ $lp->name }}

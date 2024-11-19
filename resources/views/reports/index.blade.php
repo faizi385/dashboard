@@ -25,7 +25,7 @@
             <table id="reportsTable" class="table table-hover table-bordered text-center align-middle">
                 <thead>
                     <tr>
-                        <th>Retailer DBA</th>
+                        <th>Distributor DBA</th>
                         <th>Location</th>
                         <th>POS</th>
                         <th>File 1</th>
@@ -72,7 +72,7 @@
                             </a>
 
                             <!-- Export Retailer Statement Icon -->
-                            <a href="{{ route('reports.exportStatement', $report->id) }}" class="icon-action" data-bs-toggle="tooltip" data-bs-placement="top" title="Export Retailer Statement">
+                            <a href="{{ route('reports.exportStatement', $report->id) }}" class="icon-action" data-bs-toggle="tooltip" data-bs-placement="top" title="Export Distributor  Statement">
                                 <i style="color: black" class="fas fa-file-download"></i>
                             </a>
                         </td>

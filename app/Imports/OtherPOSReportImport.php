@@ -12,13 +12,17 @@ class OtherPOSReportImport implements ToModel, WithHeadingRow
 {   
     protected $location;
     protected $reportId;
+    protected $retailerId; // New property for retailer ID
+    protected $lpId;
     protected $errors = []; // Array to store error messages
     protected $hasCheckedHeaders = false; // Flag to check if headers have been validated
 
-    public function __construct($location, $reportId)
+    public function __construct($location, $reportId, $retailerId, $lpId = null)
     {
         $this->location = $location;
         $this->reportId = $reportId;
+        $this->retailerId = $retailerId; // Assign retailer ID
+        $this->lpId = $lpId; 
     }
 
     public function model(array $row)
@@ -69,6 +73,8 @@ class OtherPOSReportImport implements ToModel, WithHeadingRow
             'average_price' => $this->convertToDecimal($row['average_price'] ?? null),
             'average_cost' => $this->convertToDecimal($row['average_cost'] ?? null),
             'report_id' => $report ? $report->id : null,
+            'retailer_id' => $this->retailerId, // Include retailer ID
+            'lp_id' => $this->lpId,
         ]);
     }
 

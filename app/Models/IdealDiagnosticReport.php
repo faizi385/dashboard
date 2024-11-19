@@ -23,6 +23,8 @@ class IdealDiagnosticReport extends Model
         'closing',
         'net_sales_ex',
         'status',  
+        'retailer_id',
+        'lp_id'
     ];
 
     public function report()
