@@ -1,35 +1,34 @@
 <?php
 
-use App\Models\TendyDiagnosticReport;
 use App\Traits\ICIntegrationTrait;
 use Illuminate\Support\Facades\DB;
-use App\Models\TendyReport;
+use App\Models\IdealDiagnosticReport;
 use Illuminate\Support\Facades\Log;
 
-$report = DB::table('reports')->where('pos', 'tendy')->where('status', 'pending')->first();
-
-if ($report) {
+$report = DB::table('reports')->where('pos', 'ideal')->where('status', 'pending')->first();
+if($report) {
     dump($report->id . '  -- ' . date('Y-m-d H:i:s'));
 
     try {
         DB::beginTransaction();
         DB::table('reports')->where('id', $report->id)->update(['status' => 'reconciliation_start']);
-        
-        $tendyDaignosticReport = TendyDiagnosticReport::where('report_id', $report->id)->where('status', 'pending')->get();
-        dump('Tendy reports fetched -- ' . date('Y-m-d H:i:s'));
+
+        // Fetch Ideal reports where status is pending
+        $idealDaignosticReport = IdealDiagnosticReport::where('report_id', $report->id)->where('status', 'pending')->get();
+        dump('idealReports fetched -- ' . date('Y-m-d H:i:s'));
 
         $cleanSheet = [];
         $insertionCount = 1;
         $insertionLimit = 500;
-        $totalReportCount = count($tendyDaignosticReport);
+        $totalReportCount = count($idealDaignosticReport);
 
-        foreach ($tendyDaignosticReport as $key => $tendyDaignosticReport) {
+        foreach ($idealDaignosticReport as $key => $idealDaignosticReport) {
             $cleanSheet[] = (new class {
                 use ICIntegrationTrait;
-            })->tendyMasterCatalog($tendyDaignosticReport,$report); // Ensure tendyMasterCatalog exists in the trait
+            })->idealMasterCatalogue($idealDaignosticReport, $report); // Replace greenlineMasterCatalouge with idealMasterCatalogue
 
             $insertionCount++;
-            
+
             if ($insertionCount == $insertionLimit || $key === $totalReportCount - 1) {
                 DB::table('clean_sheets')->insert($cleanSheet);
                 $insertionCount = 1;
@@ -37,19 +36,18 @@ if ($report) {
             }
 
             if ($key === $totalReportCount - 1) {
-                DB::table('tendy_diagnostic_reports')->where('report_id', $report->id)->update(['status' => 'done']);
+                DB::table('ideal_diagnostic_reports')->where('report_id', $report->id)->update(['status' => 'done']);
             }
         }
 
         DB::table('reports')->where('id', $report->id)->update(['status' => 'retailer_statement_process']);
         DB::commit();
+
     } catch (\Exception $e) {
-        Log::error('Error in Tendy reconciliation: ' . $e->getMessage());
+        Log::error('Error in Ideal reconciliation: ' . $e->getMessage());
         DB::rollBack();
         DB::table('reports')->where('id', $report->id)->update(['status' => 'failed']);
     }
 
-    print_r('Reconciliation process completed successfully.');
-} else {
-    print_r('No pending Tendy reports found.');
+    print_r('ReconciliationPos process completed successfully.');
 }

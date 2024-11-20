@@ -42,7 +42,6 @@ trait GlobalTillIntegration
         $provinceName = $report->province;
         $provinceSlug = $report->province_slug;
         $product = null;
-        $lpId = $report->lp_id;
         $retailer = Retailer::find($retailer_id);
         if ($retailer) {
             $retailerName = trim("{$retailer->first_name} {$retailer->last_name}");
@@ -50,23 +49,23 @@ trait GlobalTillIntegration
             Log::warning('Retailer not found:', ['retailer_id' => $retailer_id]);
         }
 
+        $lp = Lp::where('id',$retailer->lp_id)->first();
+        $cleanSheetData['lp_id'] = $lpId = $retailer->lp_id;
+        $cleanSheetData['lp_name'] = $lpName = $lp->name;
+
         if (!empty($gtin) && !empty($sku)) {
-            $product = $this->matchICBarcodeSku($gobatellDiagnosticReport->compliance_code, $gobatellDiagnosticReport->supplier_sku,$provinceName,$provinceSlug,$provinceId,     $lpId);
+            $product = $this->matchICBarcodeSku($gobatellDiagnosticReport->compliance_code, $gobatellDiagnosticReport->supplier_sku,$provinceName,$provinceSlug,$provinceId,$lpId);
         }
         if (!empty($sku) && empty($product)) {
-            $product = $this->matchICSku($gobatellDiagnosticReport->supplier_sku,$provinceName,$provinceSlug,$provinceId,     $lpId);
+            $product = $this->matchICSku($gobatellDiagnosticReport->supplier_sku,$provinceName,$provinceSlug,$provinceId,$lpId);
         }
         if (!empty($gtin) && empty($product)) {
-            $product = $this->matchICBarcode($gobatellDiagnosticReport->compliance_code,$provinceName,$provinceSlug,$provinceId,     $lpId);
+            $product = $this->matchICBarcode($gobatellDiagnosticReport->compliance_code,$provinceName,$provinceSlug,$provinceId,$lpId);
         }
         if (!empty($productName) && empty($product)){
-            $product = $this->matchICProductName($gobatellDiagnosticReport->product,$provinceName,$provinceSlug,$provinceId,     $lpId);
+            $product = $this->matchICProductName($gobatellDiagnosticReport->product,$provinceName,$provinceSlug,$provinceId,$lpId);
         }
         if ($product) {
-            $lp = Lp::where('id',$product->lp_id)->first();
-            $lpName = $lp->name ?? null;
-            $lpId = $lp->id ?? null;
-
             $cleanSheetData['retailer_id'] = $retailer_id;
             $cleanSheetData['pos_report_id'] = $gobatellDiagnosticReport->id;
             $cleanSheetData['retailer_name'] = $retailerName ?? null;
@@ -114,10 +113,8 @@ trait GlobalTillIntegration
             $offer = $this->DQISummaryFlag($report,$gobatellDiagnosticReport->supplier_sku,'',$gobatellDiagnosticReport->productname,$provinceName,$provinceSlug,$provinceId,$lpId );
             if (!empty($offer)) {
                 $cleanSheetData['offer_id'] = $offer->id;
-                $cleanSheetData['lp_id'] = $offer->lp_id;
-                $cleanSheetData['lp_name'] = $offer->lp_name;
                 if((int) $cleanSheetData['purchase'] > 0){
-                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku);
+                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$lpId,$lpName,$offer->provincial_sku);
                     $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
                 }
                 else{
@@ -139,8 +136,6 @@ trait GlobalTillIntegration
             }
             else{
                 $cleanSheetData['offer_id'] = null;
-                $cleanSheetData['lp_id'] = $lpId;
-                $cleanSheetData['lp_name'] = $lpName;
                 $cleanSheetData['c_flag'] = '';
                 $cleanSheetData['dqi_flag'] = 0;
                 $cleanSheetData['flag'] = '1';
@@ -160,9 +155,7 @@ trait GlobalTillIntegration
                 $cleanSheetData['retailer_id'] = $retailer_id;
                 $cleanSheetData['offer_id'] = $offer->id;
                 $cleanSheetData['pos_report_id'] = $gobatellDiagnosticReport->id;
-                $cleanSheetData['lp_id'] = $offer->lp_id;
                 $cleanSheetData['retailer_name'] = $retailerName;
-                $cleanSheetData['lp_name'] = $offer->lp_name;
                 $cleanSheetData['thc_range'] = $offer->thc_range;
                 $cleanSheetData['cbd_range'] = $offer->cbd_range;
                 $cleanSheetData['size_in_gram'] = $offer->product_size;
@@ -180,7 +173,7 @@ trait GlobalTillIntegration
                 $cleanSheetData['average_cost'] = $this->avgCostForGlobaltill($GobatellSalesSummaryReport);
                 $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
                 if((int) $cleanSheetData['purchase'] > 0){
-                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku);
+                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$lpId,$lpName,$offer->provincial_sku);
                     $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
                 }
                 else{
@@ -224,9 +217,7 @@ trait GlobalTillIntegration
                 $cleanSheetData['retailer_id'] = $retailer_id;
                 $cleanSheetData['offer_id'] = null;
                 $cleanSheetData['pos_report_id'] = $gobatellDiagnosticReport->id;
-                $cleanSheetData['lp_id'] = null;
                 $cleanSheetData['retailer_name'] = $retailerName;
-                $cleanSheetData['lp_name'] = null;
                 $cleanSheetData['thc_range'] = null;
                 $cleanSheetData['cbd_range'] = null;
                 $cleanSheetData['size_in_gram'] = null;
@@ -239,7 +230,7 @@ trait GlobalTillIntegration
                 $cleanSheetData['category'] = null;
                 $cleanSheetData['brand'] = null;
                 $cleanSheetData['sold'] = $gobatellDiagnosticReport->sales_reductions ?? "0";
-            $cleanSheetData['purchase'] = $gobatellDiagnosticReport->purchases_from_suppliers_additions ?? "0";
+                $cleanSheetData['purchase'] = $gobatellDiagnosticReport->purchases_from_suppliers_additions ?? "0";
                 $cleanSheetData['average_price'] = $this->avgPriceForGlobaltill($GobatellSalesSummaryReport);
                 $cleanSheetData['average_cost'] = $this->avgCostForGlobaltill($GobatellSalesSummaryReport);
                 $cleanSheetData['report_price_og'] = $gobatellDiagnosticReport->average_cost;
