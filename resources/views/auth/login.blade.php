@@ -95,7 +95,7 @@
                 @if (Route::has('password.request'))
                     <a style="text-decoration: none" href="{{ route('password.request') }}" class="text-link ">Forgot your password?</a>
                 @endif
-                <button type="submit" class="btn btn-primary">Log in</button>
+                <button type="submit" class="btn btn-primary">Login</button>
             </div>
         </form>
     </div>

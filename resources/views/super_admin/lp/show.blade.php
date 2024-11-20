@@ -166,6 +166,13 @@
             }
         });
     });
+    @if(session('toast_success'))
+        toastr.success("{{ session('toast_success') }}");
+    @endif
+
+    @if(session('error'))
+        toastr.error("{{ session('error') }}");
+    @endif
 </script>
 
 

@@ -9,39 +9,40 @@
     <!-- FontAwesome Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
     <style>
-
-body {
+        body {
             background: linear-gradient(135deg, #667eea, #764ba2);
             height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
         }
+    
         .form-container {
             max-width: 850px;
             margin: 0 auto;
             padding: 20px;
         }
+    
         .form-wrapper {
             background-color: #f9f9f9;
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
+    
         .form-group {
             margin-bottom: 16px;
         }
+    
         .form-label {
-            font-weight: normal; /* Removed bold text */
+            font-weight: normal;
+        /* Removed bold text */
         }
-            .form-error {
-                color: red;
-                font-size: 12px;
-                margin-top: 4px;
-            }
-        /* .submit-btn {
-            text-align: center;
-        } */
+    
+ 
+
+
+
         .primary-btn {
             background-color: #171718;
             color: white;
@@ -50,10 +51,12 @@ body {
             border-radius: 4px;
             cursor: pointer;
         }
+    
         .primary-btn:hover {
             background-color: #0056b3;
         }
     </style>
+    
 </head>
 <body>
 
@@ -66,14 +69,28 @@ body {
                 <div class="row">
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label for="name" class="form-label"><i class="fas fa-user"></i> {{ __('Full Name') }} <span class="text-danger">*</span></label>
-                            <input id="name" class="form-control" type="text" name="name" value="{{ old('name') }}" required autofocus autocomplete="name" placeholder="Enter your full name" />
+                            <label for="name" class="form-label">
+                                <i class="fas fa-user"></i> {{ __('Full Name') }} <span class="text-danger">*</span>
+                            </label>
+                            <input 
+                                id="name" 
+                                class="form-control" 
+                                type="text" 
+                                name="name" 
+                                value="{{ old('name') }}" 
+                                required 
+                                autofocus 
+                                autocomplete="name" 
+                                placeholder="Enter your full name"
+                                pattern="[A-Za-z\s]+" 
+                                title="Full name must contain only alphabets and spaces."
+                            />
                             <div class="invalid-feedback">
-                                Full Name is required.
+                                Full Name is required .
                             </div>
-                       
                         </div>
                     </div>
+                    
                     <div class="col-md-4">
                         <div class="form-group">
                             <label for="dba" class="form-label"><i class="fas fa-building"></i> {{ __('DBA') }} <span class="text-danger">*</span></label>
@@ -123,14 +140,32 @@ body {
                 <div class="row">
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label for="primary_contact_phone" class="form-label"><i class="fas fa-phone-alt"></i> {{ __('Primary Contact Phone') }} <span class="text-danger">*</span></label>
-                            <input id="primary_contact_phone" class="form-control" type="text" name="primary_contact_phone" value="{{ old('primary_contact_phone') }}" required placeholder="Enter contact phone number" />
-                            <div class="invalid-feedback">
-                                Phone is required.
-                            </div>
-                         
+                            <label for="primary_contact_phone" class="form-label">
+                                <i class="fas fa-phone-alt"></i> {{ __('Primary Contact Phone') }} <span class="text-danger">*</span>
+                            </label>
+                            <input 
+                                id="primary_contact_phone" 
+                                class="form-control @error('primary_contact_phone') is-invalid @enderror" 
+                                type="text" 
+                                name="primary_contact_phone" 
+                                value="{{ old('primary_contact_phone') }}" 
+                                required 
+                                placeholder="Enter contact phone number"
+                                pattern="\+1 \(\d{3}\) \d{3}-\d{4}" 
+                                title="Please enter a valid phone number in the format +1 (542) 168-5279"
+                            />
+                     
+                             
+                           
+                                <div class="invalid-feedback">
+                                    Phone is required.
+                                </div>
+                      
                         </div>
                     </div>
+                    
+                
+                
 
                     <div class="col-md-4">
                         <div class="form-group">
@@ -142,35 +177,6 @@ body {
                            
                         </div>
                     </div>
-                </div>
-
-                <!-- Password and Confirm Password -->
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="password" class="form-label"><i class="fas fa-lock"></i> {{ __('Password') }} <span class="text-danger">*</span></label>
-                            <input id="password" class="form-control" type="password" name="password" required autocomplete="new-password" placeholder="Enter your password" />
-                            <div class="invalid-feedback">
-                               Password is required.
-                           </div>
-                      
-                       </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="password_confirmation" class="form-label"><i class="fas fa-lock"></i> {{ __('Confirm Password') }} <span class="text-danger">*</span></label>
-                            <input id="password_confirmation" class="form-control" type="password" name="password_confirmation" required autocomplete="new-password" placeholder="Confirm your password" />
-                            <div class="invalid-feedback">
-                                Confirm Password is required.
-                           </div>
-                       
-                       </div>
-                    </div>
-                </div>
-    
-                <!-- Address (Street Number, Street Name, Postal Code) -->
-                <div class="row">
                     <div class="col-md-4">
                         <div class="form-group">
                             <label for="address.street_number" class="form-label"><i class="fas fa-home"></i> {{ __('Street Number') }} <span class="text-danger">*</span></label>
@@ -181,6 +187,14 @@ body {
                      
                        </div>
                     </div>
+                </div>
+
+                <!-- Password and Confirm Password -->
+                
+    
+                <!-- Address (Street Number, Street Name, Postal Code) -->
+                <div class="row">
+                    
 
                     <div class="col-md-4">
                         <div class="form-group">
@@ -203,11 +217,7 @@ body {
                        
                          </div>
                     </div>
-                </div>
-    
-                <!-- City and Province -->
-                <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="form-group">
                             <label for="address.city" class="form-label"><i class="fas fa-city"></i> {{ __('City') }} <span class="text-danger">*</span></label>
                             <input id="address.city" class="form-control" type="text" name="address[city]" value="{{ old('address.city') }}" required placeholder="City name" />
@@ -217,8 +227,11 @@ body {
                        
                          </div>
                     </div>
-
-                    <div class="col-md-6">
+                </div>
+    
+                <!-- City and Province -->
+                <div class="row">
+                    <div class="col-md-4">
                         <div class="form-group">
                             <label for="address.province" class="form-label"><i class="fas fa-map"></i> {{ __('Province') }} <span class="text-danger">*</span></label>
                             <select id="address.province" class="form-control" name="address[province]" required> 
@@ -233,8 +246,31 @@ body {
                        
                          </div>
                     </div>
-                </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="password" class="form-label"><i class="fas fa-lock"></i> {{ __('Password') }} <span class="text-danger">*</span></label>
+                            <input id="password" class="form-control" type="password" name="password" required autocomplete="new-password" placeholder="Enter your password" />
+                            <div class="invalid-feedback">
+                               Password is required.
+                           </div>
+                      
+                       </div>
+                    </div>
 
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="password_confirmation" class="form-label"><i class="fas fa-lock"></i> {{ __('Confirm Password') }} <span class="text-danger">*</span></label>
+                            <input id="password_confirmation" class="form-control" type="password" name="password_confirmation" required autocomplete="new-password" placeholder="Confirm your password" />
+                            <div class="invalid-feedback">
+                                Confirm Password is required.
+                           </div>
+                       
+                       </div>
+                    </div>
+
+                  
+                </div>
+          
                 <div class="submit-btn">
                     <button type="submit" class="primary-btn">{{ __('Submit') }}</button>
                 </div>
@@ -264,7 +300,7 @@ body {
                         var emailValue = emailInput.value;
                         if (!emailValue.endsWith('.com')) {
                             emailInput.setCustomValidity('Email must end with .com');
-                            emailError.textContent = 'Please enter a valid email address ending with ".com".';
+                            emailError.textContent = 'Please enter a valid email ';
                         } else {
                             emailInput.setCustomValidity(''); // Clear custom error
                         }

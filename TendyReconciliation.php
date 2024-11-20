@@ -41,7 +41,7 @@ if ($report) {
             }
         }
 
-        DB::table('reports')->where('id', $report->id)->update(['status' => 'retailer_statement_process']);
+        DB::table('reports')->where('id', $report->id)->update(['status' => 'retailer statement process']);
         DB::commit();
     } catch (\Exception $e) {
         Log::error('Error in Tendy reconciliation: ' . $e->getMessage());
