@@ -98,7 +98,7 @@ class CarveoutController extends Controller
             'retailer_id' => $request->retailer,
             'location' => $request->location,
             'sku' => $request->sku,
-            'date' => $request->carveout_date,
+            'date' => Carbon::parse($request->carveout_date)->startOfMonth(),
             'lp_id' => $lpId, // Automatically assign the LP ID if the user is an LP
         ]);
 

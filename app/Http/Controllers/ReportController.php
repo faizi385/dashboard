@@ -36,11 +36,11 @@ class ReportController extends Controller
     {
         // Get the currently authenticated user
         $user = auth()->user();
-    
+
         if ($user->hasRole('Retailer')) {
             // Attempt to find the retailer associated with the user
             $retailers = Retailer::where('user_id', $user->id)->first();
-    
+
             if ($retailers) {
                 // Fetch reports and statements for the retailer
                 $reports = Report::with('retailer')->where('retailer_id', $retailers->id)->get();
@@ -53,7 +53,7 @@ class ReportController extends Controller
         } elseif ($user->hasRole('LP')) {
             // Get LP details based on the user ID
             $lp = LP::where('user_id', $user->id)->first();
-    
+
             if ($lp) {
                 // Fetch reports uploaded by the LP
                 $reports = Report::with('retailer')->where('lp_id', $lp->id)->get();
@@ -70,28 +70,28 @@ class ReportController extends Controller
             $reports = Report::with('retailer')->get();
             $statements = RetailerStatement::all();
         }
-    
+
         // Initialize arrays for sums
         $retailerSumsByLocation = [];
         $totalPayoutWithoutTax = 0;
         $totalPayoutWithTax = 0;
-    
+
         // Loop through each statement to calculate total fees and taxes by location
         foreach ($statements as $statement) {
             // Get the location of the statement (from the Report model)
             $location = $statement->report->location ?? null;
-    
+
             // Calculate the tax rate for the location (based on province)
             $province = $statement->report->province ?? null;
             $taxRate = $this->getProvinceTaxRate($province);
-    
+
             // Calculate the payout with tax
             $payoutWithTax = $statement->total_fee * (1 + $taxRate);
-    
+
             // Add to total payout without tax and with tax
             $totalPayoutWithoutTax += $statement->total_fee;
             $totalPayoutWithTax += $payoutWithTax;
-    
+
             // Sum total fees and payout with tax by location
             if (!isset($retailerSumsByLocation[$location])) {
                 $retailerSumsByLocation[$location] = [
@@ -99,17 +99,17 @@ class ReportController extends Controller
                     'total_payout_with_tax' => 0,
                 ];
             }
-    
+
             // Update sums for the specific location
             $retailerSumsByLocation[$location]['total_fee_sum'] += $statement->total_fee;
             $retailerSumsByLocation[$location]['total_payout_with_tax'] += $payoutWithTax;
         }
-    
+
         // Pass data to the view
         return view('reports.index', compact('reports', 'retailers', 'retailerSumsByLocation', 'totalPayoutWithoutTax', 'totalPayoutWithTax'));
     }
-    
-    
+
+
 
 
     // Helper function to get the tax rate based on the province
@@ -122,10 +122,10 @@ class ReportController extends Controller
             'British Columbia' => 0.05,
             'Saskatchewan' => 0.05,
         ];
-    
+
         return $taxRates[$province] ?? 0;
     }
-    
+
 
 
     public function create($retailerId)
@@ -143,7 +143,7 @@ class ReportController extends Controller
     public function downloadFile($reportId, $fileNumber)
     {
         $report = Report::findOrFail($reportId);
-        
+
         // Determine the file path based on the requested file number
         if ($fileNumber == 1) {
             $filePath = $report->file_1;
@@ -153,48 +153,41 @@ class ReportController extends Controller
         } else {
             return redirect()->back()->with('error', 'Invalid file selection.');
         }
-    
+
         // Check if the file path is empty or if the file does not exist in storage
         if (empty($filePath) || !Storage::exists($filePath)) {
             return redirect()->back()->with('error', 'File not found.');
         }
-    
+
         // Proceed to download the file if it exists
         return Storage::download($filePath);
     }
-    
-    
 
-
-  
     public function exportCleanSheets($report_id)
     {
-   
+
         return Excel::download(new CleanSheetsExport($report_id), 'clean_sheets_report.xlsx');
     }
-    
+
 
     public function exportStatement($report_id)
     {
-        
+
         return Excel::download(new RetailerStatementExport($report_id), 'retailer_statement.xlsx');
     }
 
     public function destroy($id)
     {
         $report = Report::findOrFail($id);
-    
-       
-    
+
+
+
         // Proceed with deletion
         $report->delete();
-    
+
         return redirect()->back()->with('success', 'Report deleted successfully');
     }
-    
-    
 
-  
     public function store(Request $request, $retailerId)
     {
         DB::beginTransaction();
@@ -203,34 +196,34 @@ class ReportController extends Controller
             'location' => 'required|string|max:255',
             'pos' => 'required|string',
         ]);
-        
+
         $retailer = Retailer::find($retailerId);
         $address = RetailerAddress::find($request->location); // Assumes location is an address ID
-        
+
         if (!$retailer || !$address) {
             return redirect()->back()->withErrors('Retailer or Retailer Address not found.');
         }
-        
+
         // Concatenate address fields to create the location string
-        $locationString = $address->street_no . ', ' . 
-                          $address->street_name . ', ' . 
-                          $address->city . ', ' . 
+        $locationString = $address->street_no . ', ' .
+                          $address->street_name . ', ' .
+                          $address->city . ', ' .
                           $address->province;
-      
+
         $existingLocation = Report::where('retailer_id', $retailerId)
             ->where('location', $locationString)
             ->first();
-        
+
         if ($existingLocation) {
             return redirect()->back()->with('error', 'This location has already been used for a report.');
         }
-        
+
         $province = Province::where('id', $address->province)->first();
-        
+
         if (!$province) {
             return redirect()->back()->with('error', 'Province not found.');
         }
-        
+
         // Check if a report for this POS, province, and month already exists
         $existingReport = Report::where('retailer_id', $retailerId)
             ->where('pos', $request->pos)
@@ -238,18 +231,19 @@ class ReportController extends Controller
             ->whereYear('date', now()->year)
             ->whereMonth('date', now()->month)
             ->first();
-        
+
         if ($existingReport) {
             return redirect()->back()->with('error', 'A report has already been uploaded for this POS and province this month.');
         }
-        
+
         // Retrieve the lp_id associated with the retailer
         $lpId = $retailer->lp_id ?? null; // Assuming `lp_id` is a field in the `retailers` table
-        
-        
+
+
         $report = Report::create([
             'retailer_id' => $retailerId,
             'location' => $locationString,
+            'address_id' => $request->location,
             'pos' => $request->pos,
             'province' => $province->name,
             'province_id' => $province->id,
@@ -259,10 +253,10 @@ class ReportController extends Controller
             'date' => now()->startOfMonth(),
             'lp_id' => $lpId, // Store the lp_id in the report
         ]);
-        
+
         $file1Path = null;
         $file2Path = null;
-        
+
         if ($request->pos === 'cova') {
             if ($request->hasFile('diagnostic_report') && $request->hasFile('sales_summary_report')) {
                 $file1Path = $request->file('diagnostic_report')->storeAs('uploads', $request->file('diagnostic_report')->getClientOriginalName());
@@ -498,14 +492,14 @@ class ReportController extends Controller
                 // Handle OtherPOS Report
                 if ($request->hasFile('inventory_log_summary')) {
                     $file1Path = $request->file('inventory_log_summary')->storeAs('uploads', $request->file('inventory_log_summary')->getClientOriginalName());
-            
+
                     // Import OtherPOS report and check for errors
                     $import = new OtherPOSReportImport($request->location, $report->id, $report->retailer_id, $report->lp_id);
-            
+
                     try {
                         Excel::import($import, $file1Path);
                         $importErrors = $import->getErrors();
-            
+
                         if (!empty($importErrors)) {
                             // Show the missing headers in a single message
                             $errorMessage = implode(', ', $importErrors);
@@ -519,7 +513,7 @@ class ReportController extends Controller
                     return redirect()->back()->withErrors('The inventory log summary file is required for Other POS.');
                 }
             }
-            
+
 
             }
 
@@ -527,13 +521,13 @@ class ReportController extends Controller
                 'file_1' => $file1Path,
                 'file_2' => $file2Path,
             ]);
-    
+
             DB::commit(); // Commit the transaction
-    
+
             return redirect()->route('retailers.show', $retailerId)->with('success', 'Report added successfully.');
         } catch (\Exception $e) {
             DB::rollBack(); // Rollback the transaction in case of an error
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
-}    
+}

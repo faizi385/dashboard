@@ -18,11 +18,12 @@ class Report extends Model
         'status',         // Newly added
         'submitted_by',   // Newly added
         'file_1',         // Newly added
-        'file_2',    
+        'file_2',
         'province_id',
-        'province', 
+        'province',
         'province_slug',
-        'lp_id'
+        'lp_id',
+        'address_id'
     ];
     public function retailer()
     {

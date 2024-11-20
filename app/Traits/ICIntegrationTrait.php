@@ -298,16 +298,15 @@ trait ICIntegrationTrait
         return 0;
     }
 
-    public function checkCarveOuts($report, $province_id, $province_name,  $lpID ,$lpName, $sku)
+    public function checkCarveOuts($report, $province_id, $province_slug, $province_name,  $lpID ,$lpName, $sku)
     {
         $date = $report->date;
-
         $checkCarveout = Carveout::where('retailer_id', $report->retailer_id)
             ->where(function ($query) use ($lpID) {
                 $query->where('lp_id', $lpID);
             })
-            ->where(function ($query) use ($province_id, $province_name) {
-                $query->where('location', $province_id);
+            ->where(function ($query) use ($province_id) {
+                $query->where('province_id', $province_id);
             })
             ->where(function ($query) use ($date) {
                 $query->where('date', $date);
@@ -315,20 +314,20 @@ trait ICIntegrationTrait
             })
             ->first();
             if ($checkCarveout) {
-                if((!empty($checkCarveout->sku) || $checkCarveout->sku != null) && (!empty($checkCarveout->address_id) || $checkCarveout->address_id != null)){
+                if((!empty($checkCarveout->sku) || $checkCarveout->sku != null) && (!empty($checkCarveout->location) || $checkCarveout->location != null)){
                     $checkCarveout = Carveout::where('retailer_id', $report->retailer_id)
                         ->where(function ($query) use ($lpID) {
                             $query->where('lp_id', $lpID);
                         })
-                        ->where(function ($query) use ($province_id, $province_name) {
-                            $query->where('location', $province_id);
+                        ->where(function ($query) use ($province_id) {
+                            $query->where('province_id', $province_id);
                         })
                         ->where(function ($query) use ($date) {
                             $query->where('date', $date);
 
                         })
                         ->where('sku',$sku)
-                        ->where('address',$report->address_id)
+                        ->where('location',$report->address_id)
                         ->first();
                 }
                 else if($checkCarveout->sku != null || !empty($checkCarveout->sku)){
@@ -336,8 +335,8 @@ trait ICIntegrationTrait
                         ->where(function ($query) use ($lpID) {
                             $query->where('lp_id', $lpID);
                         })
-                        ->where(function ($query) use ($province_id, $province_name) {
-                            $query->where('location', $province_id);
+                        ->where(function ($query) use ($province_id) {
+                            $query->where('province_id', $province_id);
                         })
                         ->where(function ($query) use ($date) {
                             $query->where('date', $date);
@@ -347,19 +346,19 @@ trait ICIntegrationTrait
                         ->first();
                 }
 
-                else if($checkCarveout->address != null || !empty($checkCarveout->address)){
+                else if($checkCarveout->location != null || !empty($checkCarveout->location)){
                     $checkCarveout = Carveout::where('retailer_id', $report->retailer_id)
                         ->where(function ($query) use ($lpID) {
                             $query->where('lp_id', $lpID);
                         })
-                        ->where(function ($query) use ($province_id, $province_name) {
-                            $query->where('location', $province_id);
+                        ->where(function ($query) use ($province_id) {
+                            $query->where('province_id', $province_id);
                         })
                         ->where(function ($query) use ($date) {
                             $query->where('date', $date);
 
                         })
-                        ->where('address',$report->address_id)
+                        ->where('location',$report->address_id)
                         ->first();
                 }
             }
@@ -369,8 +368,8 @@ trait ICIntegrationTrait
                     ->where(function ($query) use ($lpID) {
                         $query->where('lp_id', $lpID);
                     })
-                    ->where(function ($query) use ($province_id, $province_name) {
-                        $query->where('location', $province_name);
+                    ->where(function ($query) use ($province_id) {
+                        $query->where('province_id', $province_id);
                     })
                     ->where(function ($query) use ($date) {
                         $query->where('date', $date);
@@ -378,20 +377,20 @@ trait ICIntegrationTrait
                     })
                     ->first();
                 if ($checkCarveout) {
-                    if((!empty($checkCarveout->sku) || $checkCarveout->sku != null) && (!empty($checkCarveout->address_id) || $checkCarveout->address_id != null)){
+                    if((!empty($checkCarveout->sku) || $checkCarveout->sku != null) && (!empty($checkCarveout->loction) || $checkCarveout->location != null)){
                         $checkCarveout = Carveout::where('retailer_id', $report->retailer_id)
                             ->where(function ($query) use ($lpID) {
                                 $query->where('lp_id', $lpID);
                             })
-                            ->where(function ($query) use ($province_id, $province_name) {
-                                $query->where('location', $province_name);
+                            ->where(function ($query) use ($province_id) {
+                                $query->where('province_id', $province_id);
                             })
                             ->where(function ($query) use ($date) {
                                 $query->where('date', $date);
 
                             })
                             ->where('sku',$sku)
-                            ->where('address',$report->address_id)
+                            ->where('location',$report->address_id)
                             ->first();
                     }
                     else if($checkCarveout->sku != null || !empty($checkCarveout->sku)){
@@ -399,8 +398,8 @@ trait ICIntegrationTrait
                             ->where(function ($query) use ($lpID) {
                                 $query->where('lp_id', $lpID);
                             })
-                            ->where(function ($query) use ($province_id, $province_name) {
-                                $query->where('location', $province_name);
+                            ->where(function ($query) use ($province_id) {
+                                $query->where('province_id', $province_id);
                             })
                             ->where(function ($query) use ($date) {
                                 $query->where('date', $date);
@@ -410,19 +409,19 @@ trait ICIntegrationTrait
                             ->first();
                     }
 
-                    else if($checkCarveout->address != null || !empty($checkCarveout->address)){
+                    else if($checkCarveout->location != null || !empty($checkCarveout->location)){
                         $checkCarveout = Carveout::where('retailer_id', $report->retailer_id)
                             ->where(function ($query) use ($lpID) {
                                 $query->where('lp_id', $lpID);
                             })
-                            ->where(function ($query) use ($province_id, $province_name) {
-                                $query->where('location', $province_name);
+                            ->where(function ($query) use ($province_id) {
+                                $query->where('province_id', $province_id);
                             })
                             ->where(function ($query) use ($date) {
                                 $query->where('date', $date);
 
                             })
-                            ->where('address',$report->address_id)
+                            ->where('location',$report->address_id)
                             ->first();
                     }
                 }
