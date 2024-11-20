@@ -28,7 +28,7 @@ try {
             DB::table('greenline_reports')->where('report_id',$report->id)->update(['status'=>'done']);
         }
     }
-    DB::table('reports')->where('id', $report->id)->update(['status' => 'retailer statement process']);
+    DB::table('reports')->where('id', $report->id)->update(['status' => 'retailer_statement_process']);
     DB::commit();
 } catch (\Exception $e) {
     Log::error('Error in Greenline reconciliation: ' . $e->getMessage());

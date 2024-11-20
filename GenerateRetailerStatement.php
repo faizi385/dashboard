@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 // Fetch the report with status 'retailer_statement_process'
-$report = DB::table('reports')->where('status', 'retailer statement process')->first();
+$report = DB::table('reports')->where('status', 'retailer_statement_process')->first();
 
 if (!$report) {
     Log::info('No pending retailer statement found.');

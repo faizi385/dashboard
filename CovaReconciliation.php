@@ -31,7 +31,7 @@ try {
             DB::table('cova_diagnostic_reports')->where('report_id',$report->id)->update(['status'=>'done']);
         }
     }
-    DB::table('reports')->where('id', $report->id)->update(['status' => 'retailer statement process']);
+    DB::table('reports')->where('id', $report->id)->update(['status' => 'retailer_statement_process']);
     // $insertIntoLogs = DB::table('cron_logs')->where('report_id', $report->id)->update([
     //     'end_time' => now()
     // ]);
