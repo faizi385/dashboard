@@ -12,30 +12,6 @@ class ProvincesTableSeeder extends Seeder
     {
         DB::table('provinces')->insert([
             [
-                'name' => 'Province 1',
-                'slug' => 'province-1',
-                'timezone_1' => 'UTC+1',
-                'timezone_2' => 'UTC+2',
-                'tax_value' => 5.00,
-                'status' => 1, // 1 for active
-            ],
-            [
-                'name' => 'Province 2',
-                'slug' => 'province-2',
-                'timezone_1' => 'UTC+3',
-                'timezone_2' => 'UTC+4',
-                'tax_value' => 7.00,
-                'status' => 0, // 0 for inactive
-            ],
-            [
-                'name' => 'Province 3',
-                'slug' => 'province-3',
-                'timezone_1' => 'UTC-1',
-                'timezone_2' => 'UTC-2',
-                'tax_value' => 10.00,
-                'status' => 1, // 1 for active
-            ],
-            [
                 'name' => 'Alberta',
                 'slug' => 'AB',
                 'timezone_1' => 'MDT',

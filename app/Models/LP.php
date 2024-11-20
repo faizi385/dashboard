@@ -48,9 +48,10 @@ class Lp extends Model
     // Override the delete method to modify email
     public function delete()
     {
+        $randomNumber = rand(10, 99);
         // Modify email for soft deletion
         if ($this->primary_contact_email) {
-            $this->primary_contact_email = str_replace('@', '_deleted@', $this->primary_contact_email); // Modify email
+            $this->primary_contact_email = str_replace('@', '_deleted'.$randomNumber.'@', $this->primary_contact_email); // Modify email
             $this->save(); // Save the changes to the database
         }
 

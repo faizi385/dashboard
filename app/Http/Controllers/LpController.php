@@ -26,56 +26,54 @@ class LpController extends Controller
 {
     use LPStatementTrait;
 
-    public function dashboard() 
+    public function dashboard()
     {
         // Fetch all purchase data
         $purchases = CleanSheet::all();
-    
+
         // Get total purchases
         $totalPurchases = $purchases->sum('purchase'); // Assuming 'purchase' is the column name
-    
+
         // Group by province and sum the purchases for each province
         $provincePurchases = $purchases->groupBy('province')->map(function ($items) {
             return $items->sum('purchase');
         });
-    
+
         // Get the province names and corresponding purchase totals
         $provinces = $provincePurchases->keys()->toArray(); // Province names
         $purchaseData = $provincePurchases->values()->toArray(); // Total purchases for each province
-    
+
         // Fetch total offers by province
         $provinceOffers = DB::table('offers')
             ->select('province_id', DB::raw('count(*) as total_offers'))
             ->groupBy('province_id')
             ->pluck('total_offers', 'province_id');
-    
+
         // Get province names for offers chart
         $offerProvinces = DB::table('provinces')
             ->whereIn('id', array_keys($provinceOffers->toArray()))
             ->pluck('name', 'id')
             ->toArray();
-    
+
         // Convert province IDs to names and total offers for use in chart
         $offerProvinceLabels = array_values($offerProvinces); // Province names for offers
         $offerData = array_values($provinceOffers->toArray()); // Total offers for each province
-    
-       
-$topRetailers = CleanSheet::select('retailer_id', DB::raw('COUNT(DISTINCT offer_id) as offer_count'))
-->groupBy('retailer_id')
-->orderByDesc('offer_count')
-->take(5)
-->get();
 
-// Fetch retailer names by retrieving each retailer's first and last name based on the `retailer_id`
-$retailerNames = $topRetailers->map(function ($item) {
-$retailer = Retailer::select('first_name', 'last_name')->find($item->retailer_id);
-return $retailer ? $retailer->first_name . ' ' . $retailer->last_name : 'Unknown';
-})->toArray();
 
-$retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
-    
-    
-    
+        $topRetailers = CleanSheet::select('retailer_id', DB::raw('COUNT(DISTINCT offer_id) as offer_count'))
+        ->groupBy('retailer_id')
+        ->orderByDesc('offer_count')
+        ->take(5)
+        ->get();
+
+        // Fetch retailer names by retrieving each retailer's first and last name based on the `retailer_id`
+        $retailerNames = $topRetailers->map(function ($item) {
+        $retailer = Retailer::select('first_name', 'last_name')->find($item->retailer_id);
+        return $retailer ? $retailer->first_name . ' ' . $retailer->last_name : 'Unknown';
+        })->toArray();
+
+        $retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
+
         // Return the data to the view
         return view('super_admin.lp.dashboard', compact(
             'purchases',
@@ -88,37 +86,37 @@ $retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
             'retailerOfferCounts'
         ));
     }
-    
+
 
     public function exportLpStatement($lp_id,$date)
     {
-        set_time_limit(900); 
+        set_time_limit(900);
         $date = '2024-10-01';
 
         $lp = Lp::where('id', $lp_id)->with('user')->first();
-   
+
         $sortedCollection = $this->generateLpStatement($lp_id, $date);
         $lpName = $lp->name ?? 'LP_Name';
-$formattedDate = Carbon::parse($date)->format('M-Y') ?? 'Date';
+        $formattedDate = Carbon::parse($date)->format('M-Y') ?? 'Date';
 
-    return Excel::download(
-        new LpStatementExport(true, $sortedCollection),
-        str_replace(' ', '_', trim($lpName)) . '-' . $formattedDate . '-Statement.xlsx'
-    );
-  
+        return Excel::download(
+            new LpStatementExport(true, $sortedCollection),
+            str_replace(' ', '_', trim($lpName)) . '-' . $formattedDate . '-Statement.xlsx'
+        );
+
     }
-    
+
     public function viewStatement($lp_id)
     {
         // Retrieve the LP by its ID
         $lp = Lp::findOrFail($lp_id);
-    
+
         // Retrieve the related retailer statements based on lp_id
         $statements = RetailerStatement::where('lp_id', $lp_id)->get();
-    
+
         // Calculate the total fee sum
         $totalFeeSum = $statements->sum('total_fee');
-        
+
         // Define province tax rates
         $taxRates = [
             'Alberta' => 0.05,
@@ -127,49 +125,44 @@ $formattedDate = Carbon::parse($date)->format('M-Y') ?? 'Date';
             'British Columbia' => 0.05,
             'Saskatchewan' => 0.05
         ];
-    
+
         // Calculate total fee with tax for each statement based on province
         $totalFeeWithTaxSum = 0;
         foreach ($statements as $statement) {
             $province = $statement->province;
             $taxRate = $taxRates[$province] ?? 0; // Default to 0% if no tax rate found for province
-            
+
             // Calculate total fee with tax
             $totalFeeWithTaxSum += $statement->total_fee * (1 + $taxRate);
         }
-    
+
         // Return the view with the necessary data
         return view('super_admin.lp.statement', compact('lp', 'totalFeeSum', 'totalFeeWithTaxSum', 'statements'));
     }
-    
 
-    
-    
-
-    
     public function index()
     {
         // Clear the session variable when loading the offers index
         session()->forget('viewing_offers_from_lp_show');
-    
+
         // Fetch LPs ordered by creation date, most recent first
         $lps = Lp::orderBy('created_at', 'desc')->get();
-    
+
         return view('super_admin.lp.index', compact('lps'));
     }
-    
-    
+
+
     public function show($id)
     {
         $lp = Lp::with('address')->findOrFail($id);
-    
+
         $lps = Lp::all();
         // Set a session variable to indicate that the user is viewing offers from LP show
         session(['viewing_offers_from_lp_show' => true]);
-    
+
         return view('super_admin.lp.show', compact('lps','lp'));
     }
-    
+
     public function create()
     {
         return view('super_admin.lp.create');
@@ -219,7 +212,7 @@ $formattedDate = Carbon::parse($date)->format('M-Y') ?? 'Date';
 
 
 
-    public function store(Request $request) 
+    public function store(Request $request)
     {
         $validatedData = $request->validate([
             'name' => ['required', 'string', 'max:255', 'regex:/^[^\d]+$/'], // Disallow numeric characters
@@ -234,12 +227,12 @@ $formattedDate = Carbon::parse($date)->format('M-Y') ?? 'Date';
             'primary_contact_position' => ['required', 'string', 'max:255', 'regex:/^[^\d]+$/'], // Disallow numeric characters
             'password' => 'nullable|string|min:8',
         ]);
-    
+
         // Split the name into first and last name
         $nameParts = explode(' ', $validatedData['name'], 2);
         $firstName = $nameParts[0]; // First part
         $lastName = isset($nameParts[1]) ? $nameParts[1] : ''; // Second part (if exists)
-    
+
         // Create User for the LP
         $user = User::create([
             'first_name' => $firstName,
@@ -248,8 +241,8 @@ $formattedDate = Carbon::parse($date)->format('M-Y') ?? 'Date';
             'phone' => $validatedData['primary_contact_phone'],
             'password' => Hash::make($validatedData['password'] ?? 'defaultPassword'),
         ]);
-    
-        
+
+
         $lp = Lp::create(array_merge(
             $validatedData,
             [
@@ -257,22 +250,22 @@ $formattedDate = Carbon::parse($date)->format('M-Y') ?? 'Date';
                 'status' => 'requested' // Set the status to 'requested'
             ]
         ));
-    
+
         // Send email notification
         Mail::to($validatedData['primary_contact_email'])->send(new LpFormMail($lp));
-    
+
         return redirect()->route('lp.create')->with('success', 'LP created and email sent!');
     }
-    
-    
-    
+
+
+
     public function completeForm($id)
     {
         $lp = Lp::findOrFail($id);
         $provinces = Province::all();  // Fetch all provinces
         return view('super_admin.lp.complete_form', compact('lp', 'provinces'));
     }
-    
+
     public function submitCompleteForm(Request $request)
     {
         // Validate the request data
@@ -290,11 +283,11 @@ $formattedDate = Carbon::parse($date)->format('M-Y') ?? 'Date';
             'address.city' => 'required|string|max:255',
             'address.province' => 'nullable|exists:provinces,id',  // Validate that the province exists in the provinces table by its ID
         ]);
-        
+
         // Find the LP based on the provided ID
         $lp = Lp::findOrFail($request->lp_id);
-        
-   
+
+
         $user = User::updateOrCreate(
             ['email' => $validatedData['primary_contact_email']], // Unique identifier
             [
@@ -303,7 +296,7 @@ $formattedDate = Carbon::parse($date)->format('M-Y') ?? 'Date';
                 'password' => Hash::make($validatedData['password']),
             ]
         );
-        
+
         // Fetch the role by original name (Ensure the role exists)
         $role = Role::where('original_name', 'LP')->first(); // Adjust 'LP' if necessary
         if ($role) {
@@ -312,18 +305,18 @@ $formattedDate = Carbon::parse($date)->format('M-Y') ?? 'Date';
         } else {
             return redirect()->back()->with('error', 'Role not found.');
         }
-        
-        
+
+
         $lp->update([
             'name' => $validatedData['name'],
             'dba' => $validatedData['dba'],
             'primary_contact_email' => $validatedData['primary_contact_email'],
             'primary_contact_phone' => $validatedData['primary_contact_phone'],
             'primary_contact_position' => $validatedData['primary_contact_position'],
-            'user_id' => $user->id,  
-            'status' => 'pending' 
+            'user_id' => $user->id,
+            'status' => 'pending'
         ]);
-        
+
         // Create or update the address with province
         $lp->address()->updateOrCreate(
             ['lp_id' => $lp->id],
@@ -335,13 +328,13 @@ $formattedDate = Carbon::parse($date)->format('M-Y') ?? 'Date';
                 'province_id' => $validatedData['address']['province'], // Store the province ID
             ]
         );
-        
+
         // Redirect to the login page with a success message
         return redirect()->route('login')->with('success', 'LP information completed successfully. Please log in.');
     }
-    
-    
- 
+
+
+
 
     public function edit(Lp $lp)
     {
@@ -382,7 +375,22 @@ $formattedDate = Carbon::parse($date)->format('M-Y') ?? 'Date';
 
     public function destroy(Lp $lp)
     {
-        $lp->delete();
-        return redirect()->route('lp.index')->with('toast_success', 'LP deleted successfully.');
+        DB::beginTransaction();
+        try {
+            $deletedLp = LP::where('id', $lp->id)->first();
+            $lp->delete();
+            $afterDelete = LP::withTrashed()->where('id', $deletedLp->id)->first();
+            User::where('id', $afterDelete->user_id)->update([
+                'email' => $afterDelete->primary_contact_email
+            ]);
+            User::where('id', $afterDelete->user_id)->delete();
+
+            DB::commit();
+            return redirect()->route('lp.index')->with('toast_success', 'LP deleted successfully.');
+        }
+        catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->route('lp.index')->with('error', 'Something went wrong.');
+        }
     }
 }
