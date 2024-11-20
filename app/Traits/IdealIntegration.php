@@ -25,7 +25,6 @@ trait IdealIntegration
     public function mapIdealCatalouge($idealDaignosticReport,$report)
     {
         $IdealSalesSummaryReport =  IdealSalesSummaryReport::where('ideal_diagnostic_report_id', $idealDaignosticReport->id)->first();
-        // $IdealSalesSummaryReport =  IdealSalesSummaryReport::where('ideal_diagnostic_report_id', $idealDaignosticReport->id)->first();
         Log::info('Processing Ideal reports:', ['report' => $report]);
         $cleanSheetData = []; $cleanSheetData['report_price_og'] = '0.00';
         $retailer_id = $idealDaignosticReport->report->retailer_id ?? null;
@@ -41,7 +40,6 @@ trait IdealIntegration
         $provinceName = $report->province;
         $provinceSlug = $report->province_slug;
         $product = null;
-        $lpId = $report->lp_id;
 
         $retailer = Retailer::find($retailer_id);
         if ($retailer) {
@@ -50,17 +48,17 @@ trait IdealIntegration
             Log::warning('Retailer not found:', ['retailer_id' => $retailer_id]);
         }
 
+        $lp = Lp::where('id',$retailer->lp_id)->first();
+        $cleanSheetData['lp_id'] = $lpId = $retailer->lp_id;
+        $cleanSheetData['lp_name'] = $lpName = $lp->name;
+
         if (!empty($sku)) {
-        $product = $this->matchICSku($idealDaignosticReport->sku,$provinceName,$provinceSlug,$provinceId,   $lpId );
+        $product = $this->matchICSku($idealDaignosticReport->sku,$provinceName,$provinceSlug,$provinceId,$lpId );
         }
         if (!empty($productName) && empty($product)){
-            $product = $this->matchICProductName($idealDaignosticReport->description,$provinceName,$provinceSlug,$provinceId,   $lpId );
+            $product = $this->matchICProductName($idealDaignosticReport->description,$provinceName,$provinceSlug,$provinceId,$lpId );
         }
         if ($product) {
-            $lp = Lp::where('id',$product->lp_id)->first();
-            $lpName = $lp->name ?? null;
-            $lpId = $lp->id ?? null;
-
             $cleanSheetData['retailer_id'] = $retailer_id;
             $cleanSheetData['pos_report_id'] = $idealDaignosticReport->id;
             $cleanSheetData['retailer_name'] = $retailerName ?? null;
@@ -118,10 +116,8 @@ trait IdealIntegration
             $offer = $this->DQISummaryFlag($report,$idealDaignosticReport->sku,'',$idealDaignosticReport->productname,$provinceName,$provinceSlug,$provinceId,$lpId );
             if (!empty($offer)) {
                 $cleanSheetData['offer_id'] = $offer->id;
-                $cleanSheetData['lp_id'] = $offer->lp_id;
-                $cleanSheetData['lp_name'] = $offer->lp_name;
                 if((int) $cleanSheetData['purchase'] > 0){
-                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku);
+                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$lpId,$lpName,$offer->provincial_sku);
                     $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
                 }
                 else{
@@ -143,8 +139,6 @@ trait IdealIntegration
             }
             else{
                 $cleanSheetData['offer_id'] = null;
-                $cleanSheetData['lp_id'] = $lpId;
-                $cleanSheetData['lp_name'] = $lpName;
                 $cleanSheetData['c_flag'] = '';
                 $cleanSheetData['dqi_flag'] = 0;
                 $cleanSheetData['flag'] = '1';
@@ -153,18 +147,16 @@ trait IdealIntegration
         } else {
             $offer = null;
             if (!empty($sku)) {
-                $offer = $this->matchOfferSku($report->date,$sku,$provinceName,$provinceSlug,$provinceId,$report->retailer_id,   $lpId );
+                $offer = $this->matchOfferSku($report->date,$sku,$provinceName,$provinceSlug,$provinceId,$report->retailer_id,$lpId );
             }
             if (!empty($productName) && empty($offer)) {
-                $offer = $this->matchOfferProductName($report->date,$idealDaignosticReport->description,$provinceName,$provinceSlug,$provinceId,$report->retailer_id,   $lpId );
+                $offer = $this->matchOfferProductName($report->date,$idealDaignosticReport->description,$provinceName,$provinceSlug,$provinceId,$report->retailer_id,$lpId);
             }
             if ($offer) {
                 $cleanSheetData['retailer_id'] = $retailer_id;
                 $cleanSheetData['offer_id'] = $offer->id;
                 $cleanSheetData['pos_report_id'] = $idealDaignosticReport->id;
-                $cleanSheetData['lp_id'] = $offer->lp_id;
                 $cleanSheetData['retailer_name'] = $retailerName;
-                $cleanSheetData['lp_name'] = $offer->lp_name;
                 $cleanSheetData['thc_range'] = $offer->thc_range;
                 $cleanSheetData['cbd_range'] = $offer->cbd_range;
                 $cleanSheetData['size_in_gram'] = $offer->product_size;
@@ -183,7 +175,7 @@ trait IdealIntegration
                 $cleanSheetData['report_price_og'] = $this->avgCostForIdeal($IdealSalesSummaryReport);
                 $cleanSheetData['barcode'] = $gtin;
                 if((int) $cleanSheetData['purchase'] > 0){
-                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku);
+                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$lpId,$lpName,$offer->provincial_sku);
                     $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
                 }
                 else{
@@ -220,9 +212,7 @@ trait IdealIntegration
                 $cleanSheetData['retailer_id'] = $retailer_id;
                 $cleanSheetData['offer_id'] = null;
                 $cleanSheetData['pos_report_id'] = $idealDaignosticReport->id;
-                $cleanSheetData['lp_id'] = null;
                 $cleanSheetData['retailer_name'] = $retailerName;
-                $cleanSheetData['lp_name'] = null;
                 $cleanSheetData['thc_range'] = null;
                 $cleanSheetData['cbd_range'] = null;
                 $cleanSheetData['size_in_gram'] = null;
@@ -235,7 +225,7 @@ trait IdealIntegration
                 $cleanSheetData['category'] = null;
                 $cleanSheetData['brand'] = null;
                 $cleanSheetData['sold'] = $idealDaignosticReport->unit_sold ?? "0";
-            $cleanSheetData['purchase'] = $idealDaignosticReport->purchases ?? '0';
+                $cleanSheetData['purchase'] = $idealDaignosticReport->purchases ?? '0';
                 $cleanSheetData['average_price'] = $this->avgPriceForIdeal($idealDaignosticReport);
                 $cleanSheetData['average_cost'] = $this->avgCostForIdeal($IdealSalesSummaryReport);
                 $cleanSheetData['report_price_og'] = $idealDaignosticReport->average_cost;

@@ -37,7 +37,7 @@ class CreateRetailerStatementsTable extends Migration
             $table->integer('flag')->nullable(); // Flag
             $table->unsignedBigInteger('product_variation_id')->nullable()->index(); // Product variation ID
             $table->unsignedBigInteger('clean_sheet_id')->nullable()->index(); // Clean sheet ID
-            $table->date('reconciliation_date')->nullable(); // Reconciliation date
+            $table->date('reconciliation_date')->nullable(); // ReconciliationPos date
             $table->timestamps(); // Created at and Updated at timestamps
 
             // Foreign key constraints (if needed)

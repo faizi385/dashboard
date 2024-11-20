@@ -40,7 +40,6 @@ trait ProfitTechIntegration
         $provinceName = $report->province;
         $provinceSlug = $report->province_slug;
         $product = null;
-        $lpId = $report->lp_id;
         $retailer = Retailer::find($retailer_id);
         if ($retailer) {
             $retailerName = trim("{$retailer->first_name} {$retailer->last_name}");
@@ -48,15 +47,14 @@ trait ProfitTechIntegration
             Log::warning('Retailer not found:', ['retailer_id' => $retailer_id]);
         }
 
-       
-        if (!empty($sku)) {
-            $product = $this->matchICSku($profitTechReport->product_sku, $provinceName, $provinceSlug, $provinceId,        $lpId);
-        } 
-        if ($product) {
-            $lp = Lp::where('id', $product->lp_id)->first();
-            $lpName = $lp->name ?? null;
-            $lpId = $lp->id ?? null;
+        $lp = Lp::where('id',$retailer->lp_id)->first();
+        $cleanSheetData['lp_id'] = $lpId = $retailer->lp_id;
+        $cleanSheetData['lp_name'] = $lpName = $lp->name;
 
+        if (!empty($sku)) {
+            $product = $this->matchICSku($profitTechReport->product_sku, $provinceName, $provinceSlug, $provinceId, $lpId);
+        }
+        if ($product) {
             $cleanSheetData['retailer_id'] = $retailer_id;
             $cleanSheetData['pos_report_id'] = $profitTechReport->id;
             $cleanSheetData['retailer_name'] = $retailerName ?? null;
@@ -74,8 +72,8 @@ trait ProfitTechIntegration
             $cleanSheetData['sold'] = $profitTechReport->quantity_sold_instore_units ?? '0';
             $cleanSheetData['purchase'] = $profitTechReport->quantity_purchased_units ?? '0';
             $cleanSheetData['average_price'] = $this->profitech_averge_price($profitTechReport, $provinceName);
-            $cleanSheetData['average_cost'] = $this->profitech_averge_cost($product,$report->date,$provinceName,$provinceSlug);
-   
+            $cleanSheetData['average_cost'] = $this->profitech_averge_cost($product,$report->date,$provinceName,$provinceSlug,$lpId);
+
             $cleanSheetData['barcode'] = $gtin;
             $cleanSheetData['report_id'] = $report->id;
 
@@ -104,10 +102,8 @@ trait ProfitTechIntegration
 
             if (!empty($offer)) {
                 $cleanSheetData['offer_id'] = $offer->id;
-                $cleanSheetData['lp_id'] = $offer->lp_id;
-                $cleanSheetData['lp_name'] = $offer->lp_name;
                 if ((int)$cleanSheetData['purchase'] > 0) {
-                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName, $offer->lp_id, $offer->lp_name, $offer->provincial_sku);
+                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName, $lpId, $lpName, $offer->provincial_sku);
                     $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
                 } else {
                     $cleanSheetData['c_flag'] = '';
@@ -124,8 +120,6 @@ trait ProfitTechIntegration
                 $cleanSheetData['comment'] = 'Record found in the Master Catalog and Offer';
             } else {
                 $cleanSheetData['offer_id'] = null;
-                $cleanSheetData['lp_id'] = $lpId;
-                $cleanSheetData['lp_name'] = $lpName;
                 $cleanSheetData['c_flag'] = '';
                 $cleanSheetData['dqi_flag'] = 0;
                 $cleanSheetData['flag'] = '1';
@@ -135,15 +129,13 @@ trait ProfitTechIntegration
             Log::warning('Product not found for SKU and GTIN:', ['sku' => $sku, 'gtin' => $gtin, 'report_data' => $report]);
             $offer = null;
             if (!empty($sku)) {
-                $offer = $this->matchOfferSku($report->date,$sku,$provinceName,$provinceSlug,$provinceId,$report->retailer_id,        $lpId);
+                $offer = $this->matchOfferSku($report->date,$sku,$provinceName,$provinceSlug,$provinceId,$report->retailer_id,$lpId);
             }
             if ($offer) {
                 $cleanSheetData['retailer_id'] = $retailer_id;
                 $cleanSheetData['offer_id'] = $offer->id;
                 $cleanSheetData['pos_report_id'] = $profitTechReport->id;
-                $cleanSheetData['lp_id'] = $offer->lp_id;
                 $cleanSheetData['retailer_name'] = $retailerName;
-                $cleanSheetData['lp_name'] = $offer->lp_name;
                 $cleanSheetData['thc_range'] = $offer->thc_range;
                 $cleanSheetData['cbd_range'] = $offer->cbd_range;
                 $cleanSheetData['size_in_gram'] = $offer->product_size;
@@ -158,7 +150,7 @@ trait ProfitTechIntegration
                 $cleanSheetData['sold'] = $profitTechReport->quantity_sold_instore_units ?? '0';
                 $cleanSheetData['purchase'] = $profitTechReport->quantity_purchased_units ?? '0';
                 if((int) $cleanSheetData['purchase'] > 0){
-                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku);
+                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$lpId,$lpName,$offer->provincial_sku);
                     $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
                 }
                 else{
@@ -203,9 +195,7 @@ trait ProfitTechIntegration
                 $cleanSheetData['retailer_id'] = $retailer_id;
                 $cleanSheetData['offer_id'] = null;
                 $cleanSheetData['pos_report_id'] = $profitTechReport->id;
-                $cleanSheetData['lp_id'] = null;
                 $cleanSheetData['retailer_name'] = $retailerName;
-                $cleanSheetData['lp_name'] = null;
                 $cleanSheetData['thc_range'] = null;
                 $cleanSheetData['cbd_range'] = null;
                 $cleanSheetData['size_in_gram'] = null;
@@ -298,18 +288,20 @@ trait ProfitTechIntegration
 
         return (double)$average_price;
     }
-    public function profitech_averge_cost($product,$createdAt,$provinceName,$provinceSlug){
+    public function profitech_averge_cost($product,$createdAt,$provinceName,$provinceSlug,$lpId){
         $average_cost = 0.00;
         $createdAtMonth = Carbon::parse($createdAt)->addMonth()->format('m');
         $createdAtYear = Carbon::parse($createdAt)->addMonth()->format('Y');
         $lpOffer = ProductVariation::whereMonth('created_at', $createdAtMonth)->whereYear('created_at', $createdAtYear)
             ->where('provincial_sku', $product->sku)
             ->where('province', $provinceName)
+            ->where('lp_id',$lpId)
             ->first();
         if(empty($lpOffer)){
             $lpOffer = ProductVariation::whereMonth('created_at', $createdAtMonth)->whereYear('created_at', $createdAtYear)
                 ->where('provincial_sku', $product->sku)
                 ->where('province', $provinceSlug)
+                ->where('lp_id',$lpId)
                 ->first();
         }
         if(!empty($lpOffer)){
