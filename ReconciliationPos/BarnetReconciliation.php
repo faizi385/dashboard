@@ -13,7 +13,7 @@ if ($report) {
 
     try {
         DB::beginTransaction();
-        DB::table('reports')->where('id', $report->id)->update(['status' => 'reconciliation_start']);
+        DB::table('reports')->where('id', $report->id)->update(['status' => 'Reconciliation Start']);
 
         $barnetReports = BarnetPosReport::where('report_id', $report->id)->where('status', 'pending')->get();
         dump('BarnetReports fetched -- ' . date('Y-m-d H:i:s'));
@@ -41,7 +41,7 @@ if ($report) {
             }
         }
 
-        DB::table('reports')->where('id', $report->id)->update(['status' => 'retailer_statement_process']);
+        DB::table('reports')->where('id', $report->id)->update(['status' => 'Retailer Statement Process']);
         DB::commit();
     } catch (\Exception $e) {
         Log::error('Error in Barnet reconciliation: ' . $e->getMessage());

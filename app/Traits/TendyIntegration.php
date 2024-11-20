@@ -114,7 +114,7 @@ trait TendyIntegration
                 $TotalQuantityGet = $cleanSheetData['purchase'];
                 $TotalUnitCostGet = $cleanSheetData['average_cost'];
                 $TotalPurchaseCostMake = (float)$TotalQuantityGet * (float)$TotalUnitCostGet;
-                $FinalDQIFEEMake = (float)trim($offer->data, '%') * 100;
+                $FinalDQIFEEMake = (float)trim($offer->data_fee, '%') * 100;
                 $FinalFeeInDollar = (float)$TotalPurchaseCostMake * $FinalDQIFEEMake / 100;
                 $cleanSheetData['dqi_per'] = $FinalDQIFEEMake;
                 $cleanSheetData['dqi_fee'] = number_format($FinalFeeInDollar,2);
@@ -185,7 +185,7 @@ trait TendyIntegration
                 $TotalQuantityGet = $cleanSheetData['purchase'];
                 $TotalUnitCostGet = $cleanSheetData['average_cost'];
                 $TotalPurchaseCostMake = (float)$TotalQuantityGet * (float)$TotalUnitCostGet;
-                $FinalDQIFEEMake = (float)trim($offer->data, '%') * 100;
+                $FinalDQIFEEMake = (float)trim($offer->data_fee, '%') * 100;
                 $FinalFeeInDollar = (float)$TotalPurchaseCostMake * $FinalDQIFEEMake / 100;
                 $cleanSheetData['dqi_per'] = $FinalDQIFEEMake;
                 $cleanSheetData['dqi_fee'] = number_format($FinalFeeInDollar,2);

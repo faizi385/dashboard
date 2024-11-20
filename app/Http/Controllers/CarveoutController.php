@@ -17,7 +17,7 @@ class CarveoutController extends Controller
     $userLp = Lp::where('user_id', auth()->user()->id)->first();
 
     // Initialize carveouts and lp variables
-    $carveouts = collect(); 
+    $carveouts = collect();
     $lp = null;
 
     // Check if the user is a Super Admin or an LP user
@@ -28,7 +28,7 @@ class CarveoutController extends Controller
                 return $query->where('lp_id', $lp_id);
             })
             ->get();
-        
+
         // Fetch the LP details based on lp_id
         $lp = Lp::find($lp_id);
     } elseif ($userLp) {
@@ -36,10 +36,10 @@ class CarveoutController extends Controller
         $carveouts = Carveout::with(['retailer', 'lp'])
             ->where('lp_id', $userLp->id)
             ->get();
-        
+
         // Set the authenticated LP for the LP user
         $lp = $userLp;
-    } 
+    }
 
     // Fetch all retailers (optional based on view requirements)
     $retailers = Retailer::all();
@@ -64,7 +64,7 @@ class CarveoutController extends Controller
     {
         // Get the authenticated user's LP
         $userLp = Lp::where('user_id', auth()->user()->id)->first();
-    
+
         // Validate incoming request
         $request->validate([
             'province' => 'required',
@@ -74,34 +74,38 @@ class CarveoutController extends Controller
             'carveout_date' => 'required|date',
             'lp_id' => auth()->user()->hasRole('Super Admin') ? 'required|exists:lps,id' : '', // Only validate lp_id for Super Admin
         ]);
-    
+
         // For LP users, assign their own LP ID automatically
         $lpId = auth()->user()->hasRole('Super Admin') ? $request->lp_id : $userLp->id;
-    
+
         // Check if a carveout already exists for the retailer in the same month
         $carveoutExists = Carveout::where('retailer_id', $request->retailer)
             ->whereYear('date', Carbon::parse($request->carveout_date)->year)
             ->whereMonth('date', Carbon::parse($request->carveout_date)->month)
             ->exists();
-    
+
         if ($carveoutExists) {
             return redirect()->back()->withErrors(['retailer' => 'This retailer can only have one carveout per month.']);
         }
-    
+
+        $province = Province::where('name',$request->province)->first();
+
         // Create the carveout
         Carveout::create([
+            'province_id' => $province->id,
             'province' => $request->province,
+            'province_slug' => $province->slug,
             'retailer_id' => $request->retailer,
             'location' => $request->location,
             'sku' => $request->sku,
             'date' => $request->carveout_date,
             'lp_id' => $lpId, // Automatically assign the LP ID if the user is an LP
         ]);
-    
+
         // Redirect back to the index with success message
         return redirect()->route('carveouts.index', ['lp_id' => $lpId])->with('success', 'Carveout added successfully.');
     }
-    
+
 
     public function edit($id)
     {

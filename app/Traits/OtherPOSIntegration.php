@@ -71,6 +71,7 @@ trait OtherPOSIntegration
             $cleanSheetData['location'] = $location;
             $cleanSheetData['province'] = $provinceName;
             $cleanSheetData['province_slug'] = $provinceSlug;
+            $cleanSheetData['province_id'] =  $provinceId;
             $cleanSheetData['sku'] = $sku;
             $cleanSheetData['product_name'] = $product->product_name;
             $cleanSheetData['category'] = $product->category;
@@ -78,10 +79,10 @@ trait OtherPOSIntegration
             $cleanSheetData['sold'] = $OtherPOSReport->sold ?? '0';
             $cleanSheetData['purchase'] = $OtherPOSReport->purchased ?? '0';
             if(trim(str_replace('$', '', trim($OtherPOSReport->average_price))) != "0.00" && ((float)trim(str_replace('$', '', trim($OtherPOSReport->average_price))) > 0.00 || (float)trim(str_replace('$', '', trim($OtherPOSReport->average_price))) < 0.00)) {
-                $cleanSheet['average_price'] = trim(str_replace('$', '', trim($OtherPOSReport->average_price)));
+                $cleanSheetData['average_price'] = trim(str_replace('$', '', trim($OtherPOSReport->average_price)));
             }
             else{
-                $cleanSheet['average_price'] = "0.00";
+                $cleanSheetData['average_price'] = "0.00";
             }
             $eposAverageCost = trim(str_replace('$', '', trim($OtherPOSReport->average_cost)));
             if ($eposAverageCost != "0.00" && ((float)$eposAverageCost > 0.00 || (float)$eposAverageCost < 0.00)) {
@@ -132,7 +133,7 @@ trait OtherPOSIntegration
                 $TotalQuantityGet = $cleanSheetData['purchase'];
                 $TotalUnitCostGet = $cleanSheetData['average_cost'];
                 $TotalPurchaseCostMake = (float)$TotalQuantityGet * (float)$TotalUnitCostGet;
-                $FinalDQIFEEMake = (float)trim($offer->data, '%') * 100;
+                $FinalDQIFEEMake = (float)trim($offer->data_fee, '%') * 100;
                 $FinalFeeInDollar = (float)$TotalPurchaseCostMake * $FinalDQIFEEMake / 100;
                 $cleanSheetData['dqi_per'] = $FinalDQIFEEMake;
                 $cleanSheetData['dqi_fee'] = number_format($FinalFeeInDollar,2);
@@ -169,6 +170,7 @@ trait OtherPOSIntegration
                 $cleanSheetData['location'] = $location;
                 $cleanSheetData['province'] = $offer->province;
                 $cleanSheetData['province_slug'] = $offer->province_slug;
+                $cleanSheetData['province_id'] =  $provinceId;
                 $cleanSheetData['sku'] = $sku;
                 $cleanSheetData['product_name'] = $offer->product_name;
                 $cleanSheetData['category'] = $offer->category;
@@ -229,7 +231,7 @@ trait OtherPOSIntegration
                 $TotalQuantityGet = $cleanSheetData['purchase'];
                 $TotalUnitCostGet = $cleanSheetData['average_cost'];
                 $TotalPurchaseCostMake = (float)$TotalQuantityGet * (float)$TotalUnitCostGet;
-                $FinalDQIFEEMake = (float)trim($offer->data, '%') * 100;
+                $FinalDQIFEEMake = (float)trim($offer->data_fee, '%') * 100;
                 $FinalFeeInDollar = (float)$TotalPurchaseCostMake * $FinalDQIFEEMake / 100;
                 $cleanSheetData['dqi_per'] = $FinalDQIFEEMake;
                 $cleanSheetData['dqi_fee'] = number_format($FinalFeeInDollar,2);
@@ -245,18 +247,14 @@ trait OtherPOSIntegration
                 $cleanSheetData['location'] = $location;
                 $cleanSheetData['province'] = $provinceName;
                 $cleanSheetData['province_slug'] = $provinceSlug;
+                $cleanSheetData['province_id'] =  $provinceId;
                 $cleanSheetData['sku'] = $sku;
                 $cleanSheetData['product_name'] = $OtherPOSReport->name;
                 $cleanSheetData['category'] = null;
                 $cleanSheetData['brand'] = null;
                 $cleanSheetData['sold'] = $OtherPOSReport->sold;
                 $cleanSheetData['purchase'] = $OtherPOSReport->purchased ?? '0';
-                if(trim(str_replace('$','',trim($OtherPOSReport->average_price))) != "0.00" && ((float)trim(str_replace('$','',trim($OtherPOSReport->average_price))) > 0.00 || (float)trim(str_replace('$','',trim($OtherPOSReport->average_price))) < 0.00)) {
-                    $cleanSheetData['average_price'] = trim(str_replace('$','',trim($OtherPOSReport->average_price)));
-                }
-                else{
-                    $cleanSheetData['average_price'] = "0.00";
-                }
+                $cleanSheetData['average_price'] = trim(str_replace('$','',trim($OtherPOSReport->average_price)));
                 $cleanSheetData['average_cost'] = trim(str_replace('$','',trim($OtherPOSReport->average_cost)));
                 $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
                 $cleanSheetData['barcode'] = $gtin;

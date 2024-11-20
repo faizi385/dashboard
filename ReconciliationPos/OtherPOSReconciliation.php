@@ -12,7 +12,7 @@ if ($report) {
 
     try {
         DB::beginTransaction();
-        DB::table('reports')->where('id', $report->id)->update(['status' => 'reconciliation_start']);
+        DB::table('reports')->where('id', $report->id)->update(['status' => 'Reconciliation Start']);
 
         $otherPOSReports = OtherPOSReport::where('report_id', $report->id)->where('status', 'pending')->get();
         dump('OtherPOS reports fetched -- ' . date('Y-m-d H:i:s'));
@@ -39,8 +39,8 @@ if ($report) {
                 DB::table('other_pos_reports')->where('report_id', $report->id)->update(['status' => 'done']);
             }
         }
-
-        DB::table('reports')->where('id', $report->id)->update(['status' => 'retailer_statement_process']);
+dd('end');
+        DB::table('reports')->where('id', $report->id)->update(['status' => 'Retailer Statement Process']);
         DB::commit();
     } catch (\Exception $e) {
         Log::error('Error in OtherPOS reconciliation: ' . $e->getMessage());

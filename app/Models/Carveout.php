@@ -15,6 +15,7 @@ class Carveout extends Model
         'lp_id',
         'province_id',       // This will store the ID of the province
         'province_slug',     // This will store the slug of the province
+        'province',
         'dba',
         'address',
         'carveout',
@@ -33,7 +34,7 @@ class Carveout extends Model
     {
         return $this->belongsTo(Lp::class);
     }
-    
+
     public function province()
     {
         return $this->belongsTo(Province::class, 'province_id');

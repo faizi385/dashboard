@@ -34,8 +34,8 @@ trait ProfitTechIntegration
             Log::warning('Retailer ID not found for report:', ['report_id' => $report->id]);
         }
         $sku = $profitTechReport->product_sku;
-        $gtin = $profitTechReport->barcode;
-        $productName = $profitTechReport->product_name;
+        $gtin = null;
+        $productName = null;
         $provinceId = $report->province_id;
         $provinceName = $report->province;
         $provinceSlug = $report->province_slug;
@@ -98,7 +98,7 @@ trait ProfitTechIntegration
             $cleanSheetData['dqi_per'] = 0.00;
             $cleanSheetData['dqi_fee'] = 0.00;
 
-            $offer = $this->DQISummaryFlag($report, $profitTechReport->sku, $profitTechReport->barcode, $profitTechReport->name, $provinceName, $provinceSlug, $provinceId,$lpId );
+            $offer = $this->DQISummaryFlag($report, $profitTechReport->product_sku, '', '', $provinceName, $provinceSlug, $provinceId,$lpId );
 
             if (!empty($offer)) {
                 $cleanSheetData['offer_id'] = $offer->id;
@@ -113,7 +113,7 @@ trait ProfitTechIntegration
                 $TotalQuantityGet = $cleanSheetData['purchase'];
                 $TotalUnitCostGet = $cleanSheetData['average_cost'];
                 $TotalPurchaseCostMake = (float)$TotalQuantityGet * (float)$TotalUnitCostGet;
-                $FinalDQIFEEMake = (float)trim($offer->data, '%') * 100;
+                $FinalDQIFEEMake = (float)trim($offer->data_fee, '%') * 100;
                 $FinalFeeInDollar = (float)$TotalPurchaseCostMake * $FinalDQIFEEMake / 100;
                 $cleanSheetData['dqi_per'] = $FinalDQIFEEMake;
                 $cleanSheetData['dqi_fee'] = number_format($FinalFeeInDollar, 2);
@@ -186,7 +186,7 @@ trait ProfitTechIntegration
                 $TotalQuantityGet = $cleanSheetData['purchase'];
                 $TotalUnitCostGet = $cleanSheetData['average_cost'];
                 $TotalPurchaseCostMake = (float)$TotalQuantityGet * (float)$TotalUnitCostGet;
-                $FinalDQIFEEMake = (float)trim($offer->data, '%') * 100;
+                $FinalDQIFEEMake = (float)trim($offer->data_fee, '%') * 100;
                 $FinalFeeInDollar = (float)$TotalPurchaseCostMake * $FinalDQIFEEMake / 100;
                 $cleanSheetData['dqi_per'] = $FinalDQIFEEMake;
                 $cleanSheetData['dqi_fee'] = number_format($FinalFeeInDollar,2);
