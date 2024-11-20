@@ -23,7 +23,7 @@
                     <p><strong>{{ $lp->name }}</strong></p>
                 @else
                     
-                    <select name="lp_id" id="lp_id" class="form-control @error('lp_id') is-invalid @enderror">
+                    <select name="lp_id" id="lp_id" class="form-control @error('lp_id') is-invalid @enderror" value="{{ old('lp_id') }}">
                         <option value="">Select Supplier</option>
                         @foreach($lps as $lp)
                             <option value="{{ $lp->id }}">{{ $lp->name }}</option>
@@ -40,7 +40,7 @@
                 <!-- Product Name -->
                 <div class="mb-3 col-md-6">
                     <label for="product_name" class="form-label">Product Name <span class="text-danger">*</span></label>
-                    <input type="text" name="product_name" id="product_name" class="form-control @error('product_name') is-invalid @enderror" >
+                    <input type="text" name="product_name" id="product_name" class="form-control @error('product_name') is-invalid @enderror" value="{{ old('product_name') }}" >
                     @error('product_name')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -55,7 +55,7 @@
                 <!-- Provincial SKU -->
                 <div class="mb-3 col-md-6">
                     <label for="provincial_sku" class="form-label">Provincial SKU <span class="text-danger">*</span></label>
-                    <input type="text" name="provincial_sku" id="provincial_sku" class="form-control @error('provincial_sku') is-invalid @enderror" >
+                    <input type="text" name="provincial_sku" id="provincial_sku" class="form-control @error('provincial_sku') is-invalid @enderror" value="{{ old('provincial_sku') }}">
                     @error('provincial_sku')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -66,7 +66,7 @@
                 <!-- GTIN -->
                 <div class="mb-3 col-md-6">
                     <label for="gtin" class="form-label">GTIN <span class="text-danger">*</span></label>
-                    <input type="text" name="gtin" id="gtin" class="form-control @error('gtin') is-invalid @enderror" >
+                    <input type="text" name="gtin" id="gtin" class="form-control @error('gtin') is-invalid @enderror" value="{{ old('gtin') }}" >
                     @error('gtin')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -79,7 +79,7 @@
                 <!-- Province -->
                 <div class="mb-3 col-md-6">
                     <label for="province" class="form-label">Province <span class="text-danger">*</span></label>
-                    <input type="text" name="province" id="province" class="form-control @error('province') is-invalid @enderror" >
+                    <input type="text" name="province" id="province" class="form-control @error('province') is-invalid @enderror" value="{{ old('province') }}">
                     @error('province')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -90,7 +90,7 @@
                 <!-- Data Fee -->
                 <div class="mb-3 col-md-6">
                     <label for="general_data_fee" class="form-label">General Data Fee (%) <span class="text-danger">*</span></label>
-                    <input type="number" name="general_data_fee" id="general_data_fee" class="form-control @error('general_data_fee') is-invalid @enderror" >
+                    <input type="number" name="general_data_fee" id="general_data_fee" class="form-control @error('general_data_fee') is-invalid @enderror" value="{{ old('general_data_fee') }}">
                     @error('general_data_fee')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -103,7 +103,7 @@
                 <!-- Unit Cost -->
                 <div class="mb-3 col-md-6">
                     <label for="unit_cost" class="form-label">Unit Cost (excl. HST) <span class="text-danger">*</span></label>
-                    <input type="number" name="unit_cost" id="unit_cost" class="form-control @error('unit_cost') is-invalid @enderror" >
+                    <input type="number" name="unit_cost" id="unit_cost" class="form-control @error('unit_cost') is-invalid @enderror" value="{{ old('unit_cost') }}" >
                     @error('unit_cost')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -114,7 +114,7 @@
                 <!-- Category -->
                 <div class="mb-3 col-md-6">
                     <label for="category" class="form-label">Category <span class="text-danger">*</span></label>
-                    <input type="text" name="category" id="category" class="form-control @error('category') is-invalid @enderror" >
+                    <input type="text" name="category" id="category" class="form-control @error('category') is-invalid @enderror" value="{{ old('category') }}" >
                     @error('category')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -127,7 +127,7 @@
                 <!-- Brand -->
                 <div class="mb-3 col-md-6">
                     <label for="brand" class="form-label">Brand <span class="text-danger">*</span></label>
-                    <input type="text" name="brand" id="brand" class="form-control @error('brand') is-invalid @enderror" >
+                    <input type="text" name="brand" id="brand" class="form-control @error('brand') is-invalid @enderror" value="{{ old('brand') }}" >
                     @error('brand')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -138,7 +138,7 @@
                 <!-- Case Quantity -->
                 <div class="mb-3 col-md-6">
                     <label for="case_quantity" class="form-label">Case Quantity (Units per case) <span class="text-danger">*</span></label>
-                    <input type="number" name="case_quantity" id="case_quantity" class="form-control @error('case_quantity') is-invalid @enderror" >
+                    <input type="number" name="case_quantity" id="case_quantity" class="form-control @error('case_quantity') is-invalid @enderror" value="{{ old('case_quantity') }}" >
                     @error('case_quantity')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -151,7 +151,7 @@
                 <!-- Offer Start -->
                 <div class="mb-3 col-md-6">
                     <label for="offer_start" class="form-label">Offer Start <span class="text-danger">*</span></label>
-                    <input type="date" name="offer_start" id="offer_start" class="form-control @error('offer_start') is-invalid @enderror" onchange="updateEndDate()">
+                    <input type="date" name="offer_start" id="offer_start" class="form-control @error('offer_start') is-invalid @enderror" onchange="updateEndDate()" value="{{ old('offer_start') }}" >
                     @error('offer_start')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -162,7 +162,7 @@
                 <!-- Offer End -->
                 <div class="mb-3 col-md-6">
                     <label for="offer_end" class="form-label">Offer End <span class="text-danger">*</span></label>
-                    <input type="date" name="offer_end" id="offer_end" class="form-control @error('offer_end') is-invalid @enderror" >
+                    <input type="date" name="offer_end" id="offer_end" class="form-control @error('offer_end') is-invalid @enderror" value="{{ old('offer_end') }}"  >
                     @error('offer_end')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -176,7 +176,7 @@
                 <!-- Product Size -->
                 <div class="mb-3 col-md-6">
                     <label for="product_size" class="form-label">Product Size (g) <span class="text-danger">*</span></label>
-                    <input type="number" name="product_size" id="product_size" class="form-control @error('product_size') is-invalid @enderror" >
+                    <input type="number" name="product_size" id="product_size" class="form-control @error('product_size') is-invalid @enderror" value="{{ old('product_size') }}" >
                     @error('product_size')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -187,7 +187,7 @@
                 <!-- THC Range -->
                 <div class="mb-3 col-md-6">
                     <label for="thc_range" class="form-label">THC % Range <span class="text-danger">*</span></label>
-                    <input type="text" name="thc_range" id="thc_range" class="form-control @error('thc_range') is-invalid @enderror" >
+                    <input type="text" name="thc_range" id="thc_range" class="form-control @error('thc_range') is-invalid @enderror" value="{{ old('thc_range') }}" >
                     @error('thc_range')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -200,7 +200,7 @@
                 <!-- CBD Range -->
                 <div class="mb-3 col-md-6">
                     <label for="cbd_range" class="form-label">CBD % Range <span class="text-danger">*</span></label>
-                    <input type="text" name="cbd_range" id="cbd_range" class="form-control @error('cbd_range') is-invalid @enderror" >
+                    <input type="text" name="cbd_range" id="cbd_range" class="form-control @error('cbd_range') is-invalid @enderror" value="{{ old('cbd_range') }}"  >
                     @error('cbd_range')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -211,7 +211,7 @@
                 <!-- Product Link -->
                 <div class="mb-3 col-md-6">
                     <label for="product_link" class="form-label">Link to Product and Brand Info </label>
-                    <input type="url" name="product_link" id="product_link" class="form-control @error('product_link') is-invalid @enderror" >
+                    <input type="url" name="product_link" id="product_link" class="form-control @error('product_link') is-invalid @enderror" value="{{ old('product_link') }}"  >
                     @error('product_link')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -224,7 +224,7 @@
                 <!-- Comment -->
                 <div class="mb-3 col-md-6">
                     <label for="comment" class="form-label">Comment </label>
-                    <textarea name="comment" id="comment" class="form-control @error('comment') is-invalid @enderror" ></textarea>
+                    <textarea name="comment" id="comment" class="form-control @error('comment') is-invalid @enderror" value="{{ old('comment') }}" ></textarea>
                     @error('comment')
                         <div class="invalid-feedback">
                             {{ $message }}

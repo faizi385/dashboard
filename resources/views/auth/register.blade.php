@@ -9,8 +9,16 @@
     <!-- FontAwesome Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
     <style>
+
+body {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         .form-container {
-            max-width: 800px;
+            max-width: 850px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -26,16 +34,16 @@
         .form-label {
             font-weight: normal; /* Removed bold text */
         }
-        .form-error {
-            color: red;
-            font-size: 12px;
-            margin-top: 4px;
-        }
-        .submit-btn {
+            .form-error {
+                color: red;
+                font-size: 12px;
+                margin-top: 4px;
+            }
+        /* .submit-btn {
             text-align: center;
-        }
+        } */
         .primary-btn {
-            background-color: #007bff;
+            background-color: #171718;
             color: white;
             padding: 12px 24px;
             border: none;
@@ -58,53 +66,80 @@
                 <div class="row">
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label for="name" class="form-label"><i class="fas fa-user"></i> {{ __('Full Name') }}</label>
+                            <label for="name" class="form-label"><i class="fas fa-user"></i> {{ __('Full Name') }} <span class="text-danger">*</span></label>
                             <input id="name" class="form-control" type="text" name="name" value="{{ old('name') }}" required autofocus autocomplete="name" placeholder="Enter your full name" />
-                            @error('name')
-                                <span class="form-error">{{ $message }}</span>
-                            @enderror
+                            <div class="invalid-feedback">
+                                Full Name is required.
+                            </div>
+                       
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label for="dba" class="form-label"><i class="fas fa-building"></i> {{ __('DBA') }}</label>
+                            <label for="dba" class="form-label"><i class="fas fa-building"></i> {{ __('DBA') }} <span class="text-danger">*</span></label>
                             <input id="dba" class="form-control" type="text" name="dba" value="{{ old('dba') }}" required placeholder="Enter DBA name" />
-                            @error('dba')
-                                <span class="form-error">{{ $message }}</span>
-                            @enderror
+                            <div class="invalid-feedback">
+                                DBA is required.
+                            </div>
+                        
                         </div>
                     </div>
 
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label for="email" class="form-label"><i class="fas fa-envelope"></i> {{ __('Email') }}</label>
-                            <input id="email" class="form-control" type="email" name="email" value="{{ old('email') }}" required autocomplete="username" placeholder="Enter your email address" />
-                            @error('email')
-                                <span class="form-error">{{ $message }}</span>
-                            @enderror
+                            <label for="email" class="form-label">
+                                <i class="fas fa-envelope"></i> {{ __('Email') }} <span class="text-danger">*</span>
+                            </label>
+                            <input 
+                                id="email" 
+                                class="form-control" 
+                                type="email" 
+                                name="email" 
+                                value="{{ old('email') }}" 
+                                required 
+                                placeholder="Enter your email address" 
+                                oninput="validateEmail(this)" 
+                            />
+                            <div class="invalid-feedback">
+                                Email must end with ".com".
+                            </div>
                         </div>
                     </div>
+                    
+                    <script>
+                        function validateEmail(input) {
+                            const emailValue = input.value;
+                            if (emailValue && !emailValue.endsWith('.com')) {
+                                input.setCustomValidity('Email must end with ".com".');
+                            } else {
+                                input.setCustomValidity(''); // Clear custom validation message
+                            }
+                        }
+                    </script>
+                    
                 </div>
 
                 <!-- Primary Contact Phone and Position -->
                 <div class="row">
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label for="primary_contact_phone" class="form-label"><i class="fas fa-phone-alt"></i> {{ __('Primary Contact Phone') }}</label>
+                            <label for="primary_contact_phone" class="form-label"><i class="fas fa-phone-alt"></i> {{ __('Primary Contact Phone') }} <span class="text-danger">*</span></label>
                             <input id="primary_contact_phone" class="form-control" type="text" name="primary_contact_phone" value="{{ old('primary_contact_phone') }}" required placeholder="Enter contact phone number" />
-                            @error('primary_contact_phone')
-                                <span class="form-error">{{ $message }}</span>
-                            @enderror
+                            <div class="invalid-feedback">
+                                Phone is required.
+                            </div>
+                         
                         </div>
                     </div>
 
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label for="primary_contact_position" class="form-label"><i class="fas fa-briefcase"></i> {{ __('Primary Contact Position') }}</label>
+                            <label for="primary_contact_position" class="form-label"><i class="fas fa-briefcase"></i> {{ __('Primary Contact Position') }} <span class="text-danger">*</span></label>
                             <input id="primary_contact_position" class="form-control" type="text" name="primary_contact_position" value="{{ old('primary_contact_position') }}" required placeholder="Enter position of contact person" />
-                            @error('primary_contact_position')
-                                <span class="form-error">{{ $message }}</span>
-                            @enderror
+                            <div class="invalid-feedback">
+                                 Contact Position is required.
+                            </div>
+                           
                         </div>
                     </div>
                 </div>
@@ -113,22 +148,24 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="password" class="form-label"><i class="fas fa-lock"></i> {{ __('Password') }}</label>
+                            <label for="password" class="form-label"><i class="fas fa-lock"></i> {{ __('Password') }} <span class="text-danger">*</span></label>
                             <input id="password" class="form-control" type="password" name="password" required autocomplete="new-password" placeholder="Enter your password" />
-                            @error('password')
-                                <span class="form-error">{{ $message }}</span>
-                            @enderror
-                        </div>
+                            <div class="invalid-feedback">
+                               Password is required.
+                           </div>
+                      
+                       </div>
                     </div>
 
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="password_confirmation" class="form-label"><i class="fas fa-lock"></i> {{ __('Confirm Password') }}</label>
+                            <label for="password_confirmation" class="form-label"><i class="fas fa-lock"></i> {{ __('Confirm Password') }} <span class="text-danger">*</span></label>
                             <input id="password_confirmation" class="form-control" type="password" name="password_confirmation" required autocomplete="new-password" placeholder="Confirm your password" />
-                            @error('password_confirmation')
-                                <span class="form-error">{{ $message }}</span>
-                            @enderror
-                        </div>
+                            <div class="invalid-feedback">
+                                Confirm Password is required.
+                           </div>
+                       
+                       </div>
                     </div>
                 </div>
     
@@ -136,32 +173,35 @@
                 <div class="row">
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label for="address.street_number" class="form-label"><i class="fas fa-home"></i> {{ __('Street Number') }}</label>
-                            <input id="address.street_number" class="form-control" type="text" name="address[street_number]" value="{{ old('address.street_number') }}" placeholder="Street number" />
-                            @error('address.street_number')
-                                <span class="form-error">{{ $message }}</span>
-                            @enderror
-                        </div>
+                            <label for="address.street_number" class="form-label"><i class="fas fa-home"></i> {{ __('Street Number') }} <span class="text-danger">*</span></label>
+                            <input id="address.street_number" class="form-control" type="text" name="address[street_number]" value="{{ old('address.street_number') }}" required placeholder="Street number" />
+                            <div class="invalid-feedback">
+                              Street Number is required.
+                           </div>
+                     
+                       </div>
                     </div>
 
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label for="address.street_name" class="form-label"><i class="fas fa-road"></i> {{ __('Street Name') }}</label>
-                            <input id="address.street_name" class="form-control" type="text" name="address[street_name]" value="{{ old('address.street_name') }}" placeholder="Street name" />
-                            @error('address.street_name')
-                                <span class="form-error">{{ $message }}</span>
-                            @enderror
-                        </div>
+                            <label for="address.street_name" class="form-label"><i class="fas fa-road"></i> {{ __('Street Name') }} <span class="text-danger">*</span></label>
+                            <input id="address.street_name" class="form-control" type="text" name="address[street_name]" value="{{ old('address.street_name') }}" required placeholder="Street name" />
+                            <div class="invalid-feedback">
+                                Street Name is required.
+                             </div>
+                        
+                         </div>
                     </div>
 
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label for="address.postal_code" class="form-label"><i class="fas fa-map-pin"></i> {{ __('Postal Code') }}</label>
-                            <input id="address.postal_code" class="form-control" type="text" name="address[postal_code]" value="{{ old('address.postal_code') }}" placeholder="Postal code" />
-                            @error('address.postal_code')
-                                <span class="form-error">{{ $message }}</span>
-                            @enderror
-                        </div>
+                            <label for="address.postal_code" class="form-label"><i class="fas fa-map-pin"></i> {{ __('Postal Code') }} <span class="text-danger">*</span></label>
+                            <input id="address.postal_code" class="form-control" type="text" name="address[postal_code]" value="{{ old('address.postal_code') }}" required pattern="^\d{5}(-\d{4})?$" placeholder="Postal code" />
+                            <div class="invalid-feedback">
+                               Postal Code is required.
+                             </div>
+                       
+                         </div>
                     </div>
                 </div>
     
@@ -169,27 +209,29 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="address.city" class="form-label"><i class="fas fa-city"></i> {{ __('City') }}</label>
+                            <label for="address.city" class="form-label"><i class="fas fa-city"></i> {{ __('City') }} <span class="text-danger">*</span></label>
                             <input id="address.city" class="form-control" type="text" name="address[city]" value="{{ old('address.city') }}" required placeholder="City name" />
-                            @error('address.city')
-                                <span class="form-error">{{ $message }}</span>
-                            @enderror
-                        </div>
+                            <div class="invalid-feedback">
+                             City is required.
+                             </div>
+                       
+                         </div>
                     </div>
 
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="address.province" class="form-label"><i class="fas fa-map"></i> {{ __('Province') }}</label>
-                            <select id="address.province" class="form-control" name="address[province]" required>
+                            <label for="address.province" class="form-label"><i class="fas fa-map"></i> {{ __('Province') }} <span class="text-danger">*</span></label>
+                            <select id="address.province" class="form-control" name="address[province]" required> 
                                 <option value="">{{ __('Select Province') }}</option>
                                 @foreach($provinces as $province)
                                     <option value="{{ $province->id }}" @if(old('address.province') == $province->id) selected @endif>{{ $province->name }}</option>
                                 @endforeach
                             </select>
-                            @error('address.province')
-                                <span class="form-error">{{ $message }}</span>
-                            @enderror
-                        </div>
+                            <div class="invalid-feedback">
+                            Province is required.
+                             </div>
+                       
+                         </div>
                     </div>
                 </div>
 
@@ -207,23 +249,39 @@
     <!-- JavaScript to Enable Form Validation -->
     <script>
         (function () {
-            'use strict'
-
+            'use strict';
+    
             // Enable validation on forms
-            var forms = document.querySelectorAll('.needs-validation')
-
-            Array.prototype.slice.call(forms)
-                .forEach(function (form) {
-                    form.addEventListener('submit', function (event) {
-                        if (!form.checkValidity()) {
-                            event.preventDefault()
-                            event.stopPropagation()
+            var forms = document.querySelectorAll('.needs-validation');
+    
+            Array.prototype.slice.call(forms).forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    var emailInput = form.querySelector('#email');
+                    var emailError = form.querySelector('#email + .invalid-feedback');
+    
+                    // Custom email validation logic
+                    if (emailInput) {
+                        var emailValue = emailInput.value;
+                        if (!emailValue.endsWith('.com')) {
+                            emailInput.setCustomValidity('Email must end with .com');
+                            emailError.textContent = 'Please enter a valid email address ending with ".com".';
+                        } else {
+                            emailInput.setCustomValidity(''); // Clear custom error
                         }
-                        form.classList.add('was-validated')
-                    }, false)
-                })
-        })()
+                    }
+    
+                    // General form validation
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+    
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        })();
     </script>
+    
 
 </body>
 </html>

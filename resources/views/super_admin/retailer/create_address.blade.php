@@ -147,38 +147,38 @@ document.getElementById('add-address').addEventListener('click', function () {
 
     // Reset input values and attributes in the cloned form
     newAddressForm.querySelectorAll('input, select').forEach(function (input) {
-        input.name = input.name.replace(/\d+/, addressCount);
+        let newName = input.name.replace(/\d+/, addressCount); // Increment name index
+        input.name = newName;
+        input.id = `${newName.replace(/\[|\]/g, '_')}`; // Add unique ID for better validation
         input.value = '';
-        input.setAttribute('required', 'required'); // Ensure required attribute is present
-        input.classList.remove('is-invalid'); // Remove invalid class from cloned inputs
+        input.classList.remove('is-invalid');
 
-        // Remove error message if it exists
         let errorDiv = input.nextElementSibling;
         if (errorDiv && errorDiv.classList.contains('invalid-feedback')) {
             errorDiv.style.display = 'none';
         }
 
-        // Add event listener to new inputs for dynamic error removal
         removeValidationErrors(input);
     });
 
-    // Display the remove button on new forms
+    // Adjust labels' `for` attributes to match new IDs
+    newAddressForm.querySelectorAll('label').forEach(function (label) {
+        let targetInput = label.htmlFor.replace(/\d+/, addressCount);
+        label.htmlFor = targetInput;
+    });
+
     newAddressForm.querySelector('.remove-address').style.display = 'inline-block';
     document.getElementById('address-forms').appendChild(newAddressForm);
     addressCount++;
 
-    // Apply city toggle functionality for new form
     handleCityDropdown(newAddressForm);
-
-    // Add validation event for cloned inputs
     validateClonedInputs(newAddressForm);
 });
 
-// Add event listener for form submit validation
+// Prevent form submission if any required field is empty
 document.querySelector('form').addEventListener('submit', function (event) {
     let isValid = true;
 
-    // Check each required input in each address form
     document.querySelectorAll('.address-form').forEach(function (form) {
         form.querySelectorAll('input[required], select[required]').forEach(function (input) {
             if (input.value.trim() === '') {
@@ -188,11 +188,11 @@ document.querySelector('form').addEventListener('submit', function (event) {
         });
     });
 
-    // Prevent form submission if there are validation errors
     if (!isValid) {
         event.preventDefault();
     }
 });
+
 
 // Validate each required field in a form on blur
 function validateClonedInputs(form) {

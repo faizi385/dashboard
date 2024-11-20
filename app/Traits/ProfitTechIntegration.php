@@ -303,12 +303,12 @@ trait ProfitTechIntegration
         $createdAtMonth = Carbon::parse($createdAt)->addMonth()->format('m');
         $createdAtYear = Carbon::parse($createdAt)->addMonth()->format('Y');
         $lpOffer = ProductVariation::whereMonth('created_at', $createdAtMonth)->whereYear('created_at', $createdAtYear)
-            ->where('provincial', $product->sku)
+            ->where('provincial_sku', $product->sku)
             ->where('province', $provinceName)
             ->first();
         if(empty($lpOffer)){
             $lpOffer = ProductVariation::whereMonth('created_at', $createdAtMonth)->whereYear('created_at', $createdAtYear)
-                ->where('provincial', $product->sku)
+                ->where('provincial_sku', $product->sku)
                 ->where('province', $provinceSlug)
                 ->first();
         }

@@ -103,7 +103,7 @@
     @enderror
 </div>
             <button type="submit" class="btn btn-primary mt-3">
-                <i class="fas fa-paper-plane"></i> {{ isset($retailer) ? 'Update Retailer' : 'Create Retailer' }}
+                <i class="fas fa-paper-plane"></i> {{ isset($retailer) ? 'Update Distributor' : 'Create Distributor' }}
             </button>
         </form>
     </div> <!-- End of white background div -->
@@ -113,25 +113,96 @@
 
 @push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Function to remove 'is-invalid' class and error message when user starts typing
-        function removeValidationErrors(input) {
-            input.addEventListener('input', function () {
-                if (input.classList.contains('is-invalid')) {
-                    input.classList.remove('is-invalid');
-                    const errorDiv = input.nextElementSibling;
-                    if (errorDiv && errorDiv.classList.contains('invalid-feedback')) {
-                        errorDiv.style.display = 'none'; // Hide the error message
-                    }
+document.addEventListener('DOMContentLoaded', function () {
+    // Function to remove 'is-invalid' class and error message when user interacts
+    function removeValidationErrors(input) {
+        input.addEventListener('input', function () {
+            if (input.classList.contains('is-invalid')) {
+                input.classList.remove('is-invalid');
+                const errorDiv = input.nextElementSibling;
+                if (errorDiv && errorDiv.classList.contains('invalid-feedback')) {
+                    errorDiv.style.display = 'none'; // Hide the error message
+                }
+            }
+        });
+
+        if (input.type === 'radio' || input.tagName === 'SELECT') {
+            input.addEventListener('change', function () {
+                const name = input.name;
+                const radios = document.querySelectorAll(`input[name="${name}"]`);
+                radios.forEach(function (radio) {
+                    radio.classList.remove('is-invalid');
+                });
+                const errorDiv = input.closest('.form-check, .form-group')?.querySelector('.invalid-feedback');
+                if (errorDiv) {
+                    errorDiv.style.display = 'none'; // Hide the error message
                 }
             });
         }
+    }
 
-        // Add event listeners to all form inputs to remove validation errors when typing
-        const formInputs = document.querySelectorAll('#retailerForm input[type="text"], #retailerForm input[type="email"], #retailerForm input[type="number"]');
-        formInputs.forEach(function (input) {
-            removeValidationErrors(input);
-        });
+    // Add event listeners to all form inputs and selects to remove validation errors on interaction
+    const formInputs = document.querySelectorAll(
+        '#retailerForm input[type="text"], #retailerForm input[type="email"], #retailerForm input[type="number"], #retailerForm select, #retailerForm input[type="radio"]'
+    );
+    formInputs.forEach(function (input) {
+        removeValidationErrors(input);
     });
+
+    // Form submit validation
+    document.querySelector('#retailerForm').addEventListener('submit', function (event) {
+        let isValid = true;
+        let radioErrorShown = false; // Flag to check if error for radio buttons is already shown
+
+        // Check all required inputs
+        formInputs.forEach(function (input) {
+            if (
+                (input.type === 'radio' && !document.querySelector(`input[name="${input.name}"]:checked`)) ||
+                (input.type !== 'radio' && input.value.trim() === '')
+            ) {
+                isValid = false;
+                input.classList.add('is-invalid');
+                let errorDiv = input.nextElementSibling;
+
+                // Handle error for radio buttons and dropdowns
+                if (input.type === 'radio' || input.tagName === 'SELECT') {
+                    const parent = input.closest('.form-check, .form-group');
+                    if (parent) {
+                        errorDiv = parent.querySelector('.invalid-feedback');
+                        if (!errorDiv) {
+                            errorDiv = document.createElement('div');
+                            errorDiv.classList.add('invalid-feedback');
+                            parent.appendChild(errorDiv);
+                        }
+                        errorDiv.textContent = 'This field is required.';
+                        errorDiv.style.display = 'block';
+
+                        // Only show the error for the last radio button in the group
+                        if (!radioErrorShown) {
+                            radioErrorShown = true;
+                        } else {
+                            errorDiv.style.display = 'none'; // Hide if it's not the last one
+                        }
+                    }
+                } else {
+                    // Handle other input types
+                    if (!errorDiv || !errorDiv.classList.contains('invalid-feedback')) {
+                        errorDiv = document.createElement('div');
+                        errorDiv.classList.add('invalid-feedback');
+                        input.parentNode.insertBefore(errorDiv, input.nextSibling);
+                    }
+                    errorDiv.textContent = 'This field is required.';
+                    errorDiv.style.display = 'block';
+                }
+            }
+        });
+
+        // Prevent form submission if any validation errors exist
+        if (!isValid) {
+            event.preventDefault();
+        }
+    });
+});
+
 </script>
 @endpush

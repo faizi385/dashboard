@@ -46,7 +46,15 @@ class RegisteredUserController extends Controller
         // Validate incoming request
         $validatedData = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'email' => [
+                'required', 
+                'string', 
+                'email', 
+                'max:255', 
+                'unique:users,email',
+                'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/', // Ensure valid email format
+                'ends_with:.com' // Ensure email ends with .com
+            ],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'dba' => ['required', 'string', 'max:255'],
             'primary_contact_phone' => ['required', 'string', 'max:20'],
@@ -54,7 +62,7 @@ class RegisteredUserController extends Controller
     
             'address.street_number' => 'nullable|string|max:50',
             'address.street_name' => 'nullable|string|max:255',
-            'address.postal_code' => 'nullable|string|max:20',
+            'address.postal_code' => 'nullable|integer',
             'address.city' => 'required|string|max:255',
             'address.province' => 'nullable|exists:provinces,id',
         ]);
@@ -74,7 +82,17 @@ class RegisteredUserController extends Controller
         ]);
         
         // Assign the "lp" role to the user
-      
+        // Assuming there's a relationship between LP and User
+        if ($user) {
+            // Find the LP role by its original_name
+            $role = Role::where('original_name', 'LP')->first();
+            if ($role) {
+                // Assign the role to the user
+                $user->assignRole($role->name);
+            } else {
+                return redirect()->back()->with('error', 'Role not found.');
+            }
+        }
     
         // Fire the Registered event
         event(new Registered($user));

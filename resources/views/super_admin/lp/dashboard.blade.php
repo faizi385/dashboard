@@ -109,7 +109,7 @@
         dataLabels: { enabled: false },
         legend: { show: false },
         xaxis: { categories: offerProvinceLabels, labels: { style: { colors: colors, fontSize: '12px' } } },
-        title: { text: 'Total Offers by Province', align: 'left' }
+        title: { text: 'Total Deals by Province', align: 'left' }
     };
     var chart3 = new ApexCharts(document.querySelector("#chart3"), options3);
     chart3.render();
@@ -120,7 +120,7 @@
 
     var options4 = {
         series: [{
-            name: 'Offers',
+            name: 'Deals',
             data: retailerOfferCounts
         }],
         chart: {
@@ -136,7 +136,7 @@
         dataLabels: {
             enabled: true,
             formatter: function (val) {
-                return val + " offers";
+                return val + " Deals";
             },
             offsetY: -20,
             style: {
@@ -149,10 +149,10 @@
             position: 'top'
         },
         yaxis: {
-            labels: { formatter: function (val) { return val + " offers"; } }
+            labels: { formatter: function (val) { return val + " deals"; } }
         },
         title: {
-            text: 'Top 5 Retailers with Offers',
+            text: 'Top 5 Distributor with Deals',
             align: 'center'
         }
     };

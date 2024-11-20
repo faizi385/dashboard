@@ -21,6 +21,7 @@
             margin: 0;
             font-family: 'Nunito', sans-serif;
             background: linear-gradient(135deg, #667eea, #764ba2);
+            /* background: linear-gradient(135deg, #6c757d, #343a40); */
             color: white;
         }
 

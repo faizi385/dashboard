@@ -2,8 +2,14 @@
 
 @section('content')
 <div class="container p-3">
+    <!-- Back Button -->
+   
+    <div class="d-flex justify-content-between mb-4">
     <h1 class="text-white" id="text">Supplier Statement</h1>
-
+    <a href="{{ url()->previous() }}" class="btn btn-primary mb-3">
+        <i class="fas fa-arrow-left"></i> Back
+    </a>
+</div>
     <div class="row">
         <div class="col">
             <table id="lpStatementsTable" class="table table-hover table-bordered text-center align-middle">
@@ -21,11 +27,11 @@
                     <tr>
                         <td>{{ $lp->dba ?? 'N/A' }}</td>
                         <td>{{ $lp->name ?? 'N/A' }}</td>
-                        <td>{{ number_format($totalFeeSum ?? 0, 2) }}</td>
-                        <td>{{ number_format($totalFeeWithTaxSum?? 0, 2) }}</td>
+                        <td>${{ number_format($totalFeeSum ?? 0, 2) }}</td>
+                        <td>${{ number_format($totalFeeWithTaxSum ?? 0, 2) }}</td>
                         <td>{{ \Carbon\Carbon::parse($lp->report_date)->format('Y-m-d') ?? 'N/A' }}</td>
                         <td class="text-center">
-                            <a href="{{ route('lp.statement.export', ['lp_id' => $lp->id,'date'=>$lp->report_date ?? now()->format('Y-m-d')]) }}" class="icon-action" data-bs-toggle="tooltip" data-bs-placement="top" title="Export Distributor  Statement">
+                            <a href="{{ route('lp.statement.export', ['lp_id' => $lp->id, 'date' => $lp->report_date ?? now()->format('Y-m-d')]) }}" class="icon-action" data-bs-toggle="tooltip" data-bs-placement="top" title="Export Distributor Statement">
                                 <i style="color: black" class="fas fa-file-download"></i>
                             </a>
                         </td>
@@ -43,7 +49,6 @@
         </div>
     </div>
 </div>
-
 
 <style>
     /* Styling similar to the Reports table */
@@ -65,13 +70,13 @@
         text-align: center;
         vertical-align: middle;
     }
-    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled{
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
         color: white !important;
     }
 </style>
 
 @push('scripts')
-<script>    
+<script>
     $(document).ready(function() {
         // Initialize tooltips
         $('[data-bs-toggle="tooltip"]').tooltip();

@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Exports\CleanSheetsExport;
 use App\Models\LP;
 use App\Exports\RetailerStatementExport;
-
+use Illuminate\Support\Facades\DB;
 use App\Models\RetailerStatement;
 use App\Models\TendyDiagnosticReport;
 use Illuminate\Http\Request;
@@ -197,7 +197,8 @@ class ReportController extends Controller
   
     public function store(Request $request, $retailerId)
     {
-
+        DB::beginTransaction();
+        try {
         $request->validate([
             'location' => 'required|string|max:255',
             'pos' => 'required|string',
@@ -522,11 +523,17 @@ class ReportController extends Controller
 
             }
 
-        $report->update([
-            'file_1' => $file1Path,
-            'file_2' => $file2Path,
-        ]);
-
-        return redirect()->route('retailers.show', $retailerId)->with('success', 'Report added successfully.');
+            $report->update([
+                'file_1' => $file1Path,
+                'file_2' => $file2Path,
+            ]);
+    
+            DB::commit(); // Commit the transaction
+    
+            return redirect()->route('retailers.show', $retailerId)->with('success', 'Report added successfully.');
+        } catch (\Exception $e) {
+            DB::rollBack(); // Rollback the transaction in case of an error
+            return redirect()->back()->with('error', $e->getMessage());
+        }
     }
-}
+}    

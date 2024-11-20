@@ -109,9 +109,12 @@ class RetailerController extends Controller
     
     public function create()
     {
-        $lps = Lp::all();
+        // Fetch only LPs with status 'approved'
+        $lps = Lp::where('status', 'approved')->get();
+    
         return view('super_admin.retailer.create', compact('lps'));
     }
+    
     public function store(Request $request)
     {
         // Validate the request

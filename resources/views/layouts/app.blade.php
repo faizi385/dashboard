@@ -183,13 +183,13 @@
         <li class="nav-item">
             <a href="{{ route('retailer.logs') }}" class="nav-link {{ Route::currentRouteName() == 'retailer.logs' ? 'active' : '' }}">
                 <i class="nav-icon"></i>
-                <p>Retailer Logs</p>
+                <p>Distributor Logs</p>
             </a>
         </li>
         <li class="nav-item">
             <a href="{{ route('lp.logs.index') }}" class="nav-link {{ Route::currentRouteName() == 'lp.logs.index' ? 'active' : '' }}">
                 <i class="nav-icon"></i>
-                <p>LP Logs</p>
+                <p>Supplier Logs</p>
             </a>
         </li>
         <li class="nav-item">

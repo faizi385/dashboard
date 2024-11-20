@@ -19,6 +19,7 @@
                 <th>DBA</th>
                 <th>Phone</th>
                 <th>Email</th>
+                <th>Type</th> <!-- New Column -->
                 <th>Action</th>
             </tr>
         </thead>
@@ -29,6 +30,7 @@
                     <td>{{ $retailer->dba ?? '-' }}</td>
                     <td>{{ $retailer->phone }}</td>
                     <td>{{ $retailer->email }}</td>
+                    <td>{{ $retailer->type ?? '-' }}</td> <!-- Display Type -->
                     <td class="text-center">
                         <!-- View Icon -->
                         <a href="{{ route('retailer.show', $retailer->id) }}" class="icon-action text-decoration-none " data-bs-toggle="tooltip" data-bs-placement="top" title="View Distributor ">
@@ -56,15 +58,12 @@
     </table>
 </div>
 <style>
-    
     .dataTables_wrapper .dataTables_paginate .paginate_button.disabled{
         color: white  !important;}
 </style>
 @endsection
 
-
 @push('scripts')
-
 
 <script>
   $(document).ready(function() {

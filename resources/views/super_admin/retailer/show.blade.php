@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="container">
+<div class="container p-2">
     <div class="d-flex justify-content-between mb-4">
         <h3 class="text-white">Distributor  Details</h3>
         <div>
@@ -82,36 +82,12 @@
 @endif
 
 <style>
-    .container {
-        margin-top: 20px;
-    }
+   
 
-    .card {
-        border: 1px solid #dee2e6;
-        border-radius: 8px;
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    }
 
-    .card-header {
-        background-color: white;
-        color: black;
-        padding: 10px;
-        font-weight: bold;
-        text-align: center;
-    }
 
-    .card-body {
-        padding: 15px;
-        background-color: #f9f9f9;
-    }
 
-    .mt-4 {
-        margin-top: 1.5rem;
-    }
 
-    .container {
-        padding-bottom: 100px; /* Adjust this value based on footer height */
-    }
 </style>
 
 @endsection

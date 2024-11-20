@@ -23,6 +23,7 @@
                 <th>DBA</th>
                 <th>Primary Contact Email</th>
                 <th>Status</th>
+                <th>Approval</th> <!-- New Approval Column -->
                 <th class="text-center">Action</th>
             </tr>
         </thead>
@@ -32,47 +33,39 @@
                     <td>{{ $lp->name }}</td>
                     <td>{{ $lp->dba }}</td>
                     <td>{{ $lp->primary_contact_email }}</td>
-                    <td>
-                       
-                        
-                            {{ ucfirst($lp->status) }}
-                        
-                    </td>
+                    <td>{{ ucfirst($lp->status) }}</td>
                     <td class="text-center">
-                        <!-- Approve Icon (only show if status is not approved yet) -->
                         @if($lp->status !== 'approved')
                         <form action="{{ route('lp.updateStatus', $lp->id) }}" method="POST" class="d-inline" id="approveForm{{ $lp->id }}">
                             @csrf
                             @method('PATCH')
-                            <input type="hidden" name="status" value=""> <!-- Hidden input to store status -->
-                            <button type="submit" class="btn btn-link p-0" data-bs-toggle="tooltip" data-bs-placement="top" title="Approve Supplier">
-                                <i style="color: green;" class="fas fa-check-circle"></i>
+                            <input type="hidden" name="status" value="approved">
+                            <button type="submit" class="btn btn-success btn-sm">
+                                Approve
                             </button>
                         </form>
                         @endif
 
-                        <!-- Reject Icon (only show if status is not rejected yet) -->
                         @if($lp->status !== 'rejected')
                         <form action="{{ route('lp.updateStatus', $lp->id) }}" method="POST" class="d-inline" id="rejectForm{{ $lp->id }}">
                             @csrf
                             @method('PATCH')
-                            <input type="hidden" name="status" value=""> <!-- Hidden input to store status -->
-                            <button type="submit" class="btn btn-link p-0" data-bs-toggle="tooltip" data-bs-placement="top" title="Reject Supplier">
-                                <i style="color: red;" class="fas fa-times-circle"></i>
+                            <input type="hidden" name="status" value="rejected">
+                            <button type="submit" class="btn btn-danger btn-sm">
+                                Reject
                             </button>
                         </form>
                         @endif
-                        
+                    </td>
+                    <td class="text-center">
                         <a href="{{ route('lp.show', $lp->id) }}" class="icon-action text-decoration-none" data-bs-toggle="tooltip" data-bs-placement="top" title="View Supplier">
                             <i style="color: black" class="fas fa-eye"></i>
                         </a>
 
-                        <!-- Edit Icon -->
                         <a href="{{ route('lp.edit', $lp) }}" class="icon-action text-decoration-none" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Supplier">
                             <i style="color: black" class="fas fa-edit"></i>
                         </a>
 
-                        <!-- Delete Icon -->
                         <form action="{{ route('lp.destroy', $lp) }}" method="POST" class="d-inline delete-form">
                             @csrf
                             @method('DELETE')
@@ -80,14 +73,13 @@
                                 <i style="color: black" class="fas fa-trash"></i>
                             </button>
                         </form>
-
                     </td>
                 </tr>
             @endforeach
         </tbody>
     </table>
 </div>
-<!-- Add Offer Modal -->
+
 <!-- Add Offer Modal -->
 <div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -98,11 +90,10 @@
             </div>
             <div class="modal-body">
                 <div class="d-flex justify-content-between">
-                    <!-- Bulk Offer Upload Option -->
                     <div>
                         <form action="{{ route('offers.import') }}" method="POST" enctype="multipart/form-data">
                             @csrf
-                            <input type="hidden" name="source" value="1"> <!-- Source for bulk upload -->
+                            <input type="hidden" name="source" value="1">
                             <div class="mb-3">
                                 <label for="lpSelect" class="form-label">Select Supplier</label>
                                 <select class="form-select" id="lpSelect" name="lp_id" required>
@@ -121,8 +112,6 @@
                             </button>
                         </form>
                     </div>
-
-                    <!-- Single Offer Add Option -->
                     <div>
                         <a href="{{ route('offers.create') }}" class="btn btn-primary">
                             <i class="fas fa-plus-circle"></i> Add Single Deal
