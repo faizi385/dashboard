@@ -15,10 +15,15 @@ class LpAddress extends Model
         'postal_code',
         'city',
         'province_id',
+        'address'
     ];
 
     public function lp()
     {
         return $this->belongsTo(Lp::class, 'lp_id');
     }
+    public function province()
+{
+    return $this->belongsTo(Province::class, 'province_id');
+}
 }

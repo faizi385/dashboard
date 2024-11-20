@@ -17,6 +17,7 @@
             <tr>
                 <th>Full Name</th>
                 <th>DBA</th>
+                <th> LP DBA</th> <!-- New Column for LP DBA -->
                 <th>Phone</th>
                 <th>Email</th>
                 <th>Type</th> <!-- New Column -->
@@ -28,6 +29,8 @@
                 <tr>
                     <td>{{ $retailer->first_name }} {{ $retailer->last_name }}</td>
                     <td>{{ $retailer->dba ?? '-' }}</td>
+                    <!-- Show LP DBA -->
+                    <td>{{ $retailer->lp->dba ?? '-' }}</td> <!-- Display the LP DBA -->
                     <td>{{ $retailer->phone }}</td>
                     <td>{{ $retailer->email }}</td>
                     <td>{{ $retailer->type ?? '-' }}</td> <!-- Display Type -->
@@ -54,12 +57,13 @@
                 </tr>
             @endforeach
         </tbody>
-        
     </table>
 </div>
+
 <style>
     .dataTables_wrapper .dataTables_paginate .paginate_button.disabled{
-        color: white  !important;}
+        color: white !important;
+    }
 </style>
 @endsection
 
@@ -70,7 +74,6 @@
     $("#loader").fadeOut("slow");
     $('#retailersTable').DataTable({
         "initComplete": function() {
-      
         }
     });
 

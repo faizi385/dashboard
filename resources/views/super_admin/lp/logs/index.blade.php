@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container">
-    <h1 class="text-white">LP Logs</h1>
+    <h1 class="text-white">Supplier Logs</h1>
 
     <!-- Loader -->
     <div id="loader" class="loader-overlay">

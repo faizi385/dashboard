@@ -22,7 +22,7 @@ class CreateOffersTable extends Migration
             $table->integer('case_quantity')->nullable(); // Make nullable
             $table->date('offer_start')->nullable(); // Make nullable
             $table->date('offer_end')->nullable(); // Make nullable
-            $table->integer('product_size')->nullable(); // Make nullable
+            $table->string('product_size')->nullable(); // Make nullable
             $table->string('thc_range')->nullable(); // Make nullable
             $table->string('cbd_range')->nullable(); // Make nullable
             $table->text('comment')->nullable(); // Make nullable

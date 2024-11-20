@@ -25,7 +25,8 @@ class ProductVariation extends Model
         'cbd_range',
         'comment',
         'product_link',
-        'price_per_unit'
+        'price_per_unit',
+        'province_id'
     ];
 
     // Define relationship to LP model

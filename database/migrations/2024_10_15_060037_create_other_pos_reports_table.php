@@ -14,7 +14,7 @@ class CreateOtherPosReportsTable extends Migration
             $table->string('sku')->index(); // Added index to SKU
             $table->string('name')->nullable(); // Make name nullable
             $table->string('barcode')->nullable(); // Barcode remains nullable
-            $table->string('brand')->index(); // Added index to brand
+            $table->string('brand')->index()->nullable(); // Added index to brand
             $table->string('compliance_category')->nullable(); // Compliance category remains nullable
             $table->decimal('opening', 10, 2)->default(0);
             $table->decimal('sold', 10, 2)->default(0);

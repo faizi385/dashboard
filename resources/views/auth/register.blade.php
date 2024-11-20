@@ -93,7 +93,7 @@
                     
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label for="dba" class="form-label"><i class="fas fa-building"></i> {{ __('DBA') }} <span class="text-danger">*</span></label>
+                            <label for="dba" class="form-label"><i class="fas fa-building"></i> {{ __('DBA (Doing Business As)') }} <span class="text-danger">*</span></label>
                             <input id="dba" class="form-control" type="text" name="dba" value="{{ old('dba') }}" required placeholder="Enter DBA name" />
                             <div class="invalid-feedback">
                                 DBA is required.
@@ -143,30 +143,13 @@
                             <label for="primary_contact_phone" class="form-label">
                                 <i class="fas fa-phone-alt"></i> {{ __('Primary Contact Phone') }} <span class="text-danger">*</span>
                             </label>
-                            <input 
-                                id="primary_contact_phone" 
-                                class="form-control @error('primary_contact_phone') is-invalid @enderror" 
-                                type="text" 
-                                name="primary_contact_phone" 
-                                value="{{ old('primary_contact_phone') }}" 
-                                required 
-                                placeholder="Enter contact phone number"
-                                pattern="\+1 \(\d{3}\) \d{3}-\d{4}" 
-                                title="Please enter a valid phone number in the format +1 (542) 168-5279"
-                            />
-                     
-                             
-                           
+                            <input id="primary_contact_phone" class="form-control" type="tel" name="primary_contact_phone" value="{{ old('primary_contact_phone') }}" required placeholder="Enter phone number" pattern="(\+1\s?)?\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{4}" />
                                 <div class="invalid-feedback">
                                     Phone is required.
                                 </div>
-                      
                         </div>
                     </div>
                     
-                
-                
-
                     <div class="col-md-4">
                         <div class="form-group">
                             <label for="primary_contact_position" class="form-label"><i class="fas fa-briefcase"></i> {{ __('Primary Contact Position') }} <span class="text-danger">*</span></label>
@@ -179,33 +162,17 @@
                     </div>
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label for="address.street_number" class="form-label"><i class="fas fa-home"></i> {{ __('Street Number') }} <span class="text-danger">*</span></label>
-                            <input id="address.street_number" class="form-control" type="text" name="address[street_number]" value="{{ old('address.street_number') }}" required placeholder="Street number" />
-                            <div class="invalid-feedback">
-                              Street Number is required.
-                           </div>
-                     
-                       </div>
-                    </div>
-                </div>
-
-                <!-- Password and Confirm Password -->
-                
-    
-                <!-- Address (Street Number, Street Name, Postal Code) -->
-                <div class="row">
+                            <label for="address" class="form-label">
+                                <i class="fas fa-map-marker-alt"></i> {{ __('Address') }} <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" name="address[address]" value="{{ old('address.address') }}" required class="form-control" id="address" />
                     
-
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label for="address.street_name" class="form-label"><i class="fas fa-road"></i> {{ __('Street Name') }} <span class="text-danger">*</span></label>
-                            <input id="address.street_name" class="form-control" type="text" name="address[street_name]" value="{{ old('address.street_name') }}" required placeholder="Street name" />
                             <div class="invalid-feedback">
-                                Street Name is required.
-                             </div>
-                        
-                         </div>
+                                Address is required.
+                            </div>
+                        </div>
                     </div>
+                    
 
                     <div class="col-md-4">
                         <div class="form-group">
@@ -227,10 +194,6 @@
                        
                          </div>
                     </div>
-                </div>
-    
-                <!-- City and Province -->
-                <div class="row">
                     <div class="col-md-4">
                         <div class="form-group">
                             <label for="address.province" class="form-label"><i class="fas fa-map"></i> {{ __('Province') }} <span class="text-danger">*</span></label>
@@ -246,6 +209,11 @@
                        
                          </div>
                     </div>
+                </div>
+    
+                <!-- City and Province -->
+                <div class="row">
+             
                     <div class="col-md-4">
                         <div class="form-group">
                             <label for="password" class="form-label"><i class="fas fa-lock"></i> {{ __('Password') }} <span class="text-danger">*</span></label>

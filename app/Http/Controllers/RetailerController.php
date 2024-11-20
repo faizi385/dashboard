@@ -204,7 +204,7 @@ class RetailerController extends Controller
         Mail::to($validatedData['email'])->send(new RetailerFormMail($link));
     
         // Redirect back with a success message
-        return redirect()->route('retailer.create')->with('success', 'Retailer created and email sent successfully!');
+        return redirect()->route('retailer.create')->with('success', 'Distributor created and email sent successfully!');
     }
     
     
@@ -216,59 +216,64 @@ class RetailerController extends Controller
         return view('super_admin.retailer.complete_form', compact('retailer', 'provinces'));
     }
     public function submitForm(Request $request)
-{
-    // Validate the request data
-    $validatedData = $request->validate([
-        'first_name' => 'required|string|max:255',
-        'last_name' => 'required|string|max:255',
-        'email' => 'required|email|unique:retailers,email,' . $request->retailer_id,
-        'phone' => 'required|string',
-        'corporate_name' => 'nullable|string',
-        'dba' => 'required|string',
-        'password' => 'required|confirmed|min:8',
-        'addresses.*.street_no' => 'nullable|string|max:50',
-        'addresses.*.street_name' => 'nullable|string|max:255',
-        'addresses.*.province' => 'nullable|string|max:255',
-        'addresses.*.city' => 'nullable|string|max:255',
-        'addresses.*.location' => 'nullable|string|max:255',
-        'addresses.*.contact_person_name' => 'nullable|string|max:255',
-        'addresses.*.contact_person_phone' => 'nullable|string|max:20',
-        'addresses.*.postal_code' => 'nullable|string|max:20', 
-    ]);
-    // Find the retailer based on the provided ID
-    $retailer = Retailer::findOrFail($request->retailer_id);
-    // Update retailer details with the validated data
-    $retailer->update([
-        'corporate_name' => $validatedData['corporate_name'],
-        'dba' => $validatedData['dba'],
-        'status' => 'approved', // Change status to 'approved'
-    ]);
-    // Create or update the User record for the retailer
-    $user = User::updateOrCreate(
-        ['email' => $validatedData['email']], // Unique identifier
-        [
-            'first_name' => $validatedData['first_name'],
-            'last_name' => $validatedData['last_name'],
-            'password' => Hash::make($validatedData['password']),
-            'phone' => $validatedData['phone'],
-        ]
-    );
-    // Fetch the role by original name (ensure the role exists)
-    $role = Role::where('original_name', 'Retailer')->first(); // Adjust 'Retailer' if necessary
-    if ($role) {
-        // Assign the role to the user
-        $user->assignRole($role->name);
-    } else {
-        return redirect()->back()->with('error', 'Role not found.');
+    {
+        // Validate the request data
+        $validatedData = $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|email|unique:retailers,email,' . $request->retailer_id,
+            'phone' => 'required|string|max:20',
+            'corporate_name' => 'nullable|string|max:255',
+            'dba' => 'required|string|max:255',
+            'password' => 'required|confirmed|min:8',
+            'addresses.*.address' => 'required|string|max:255', // Replace street_no and street_name with address
+            'addresses.*.province' => 'nullable|string|max:255',
+            'addresses.*.city' => 'nullable|string|max:255',
+            'addresses.*.location' => 'nullable|string|max:255',
+            'addresses.*.contact_person_name' => 'nullable|string|max:255',
+            'addresses.*.contact_person_phone' => 'nullable|string|max:20',
+            'addresses.*.postal_code' => 'nullable|string|max:20',
+        ]);
+    
+        // Find the retailer based on the provided ID
+        $retailer = Retailer::findOrFail($request->retailer_id);
+    
+        // Update retailer details with the validated data
+        $retailer->update([
+            'corporate_name' => $validatedData['corporate_name'] ?? null,
+            'dba' => $validatedData['dba'],
+            'status' => 'approved', // Change status to 'approved'
+        ]);
+    
+        // Create or update the User record for the retailer
+        $user = User::updateOrCreate(
+            ['email' => $validatedData['email']], // Unique identifier
+            [
+                'first_name' => $validatedData['first_name'],
+                'last_name' => $validatedData['last_name'],
+                'password' => Hash::make($validatedData['password']),
+                'phone' => $validatedData['phone'],
+            ]
+        );
+    
+        // Fetch the role by original name (ensure the role exists)
+        $role = Role::where('original_name', 'Retailer')->first();
+        if ($role) {
+            $user->assignRole($role->name);
+        } else {
+            return redirect()->back()->with('error', 'Role not found.');
+        }
+    
+        // Clear existing addresses and create new ones
+        $retailer->address()->delete();
+        foreach ($request->input('addresses', []) as $addressData) {
+            $retailer->address()->create($addressData);
+        }
+    
+        // Redirect to the login page with a success message
+        return redirect()->route('login')->with('success', 'Retailer information completed successfully. Please log in.');
     }
-    // Clear existing addresses and create new ones
-    $retailer->address()->delete();
-    foreach ($request->input('addresses', []) as $addressData) {
-        $retailer->address()->create($addressData);
-    }
-    // Redirect to the login page with a success message
-    return redirect()->route('login')->with('success', 'Retailer information completed successfully. Please log in.');
-}
+    
     public function edit($id)
     {
         $lps = Lp::all();

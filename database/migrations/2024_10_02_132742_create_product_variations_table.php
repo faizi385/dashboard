@@ -17,7 +17,7 @@ class CreateProductVariationsTable extends Migration
             $table->string('category')->nullable()->index(); // Make nullable and add index
             $table->string('brand')->nullable()->index(); // Make nullable and add index
             $table->foreignId('lp_id')->constrained()->onDelete('cascade')->index(); // Added index
-            $table->integer('product_size')->nullable(); // Make nullable
+            $table->string('product_size')->nullable(); // Make nullable
             $table->string('thc_range')->nullable(); // Make nullable
             $table->string('cbd_range')->nullable(); // Make nullable
             $table->string('comment')->nullable(); // Keep nullable

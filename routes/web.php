@@ -200,6 +200,9 @@ Route::get('superadmin/lp/{lp_id}/statement', [LpController::class, 'viewStateme
 Route::get('lp/statement/export/{lp_id}/{date}', [LpController::class, 'exportLpStatement'])->name('lp.statement.export');
 Route::patch('/lp/{lp}/status', [LPController::class, 'updateStatus'])->name('lp.updateStatus');
 
+Route::get('/account-created', function () {
+    return view('account-created');
+})->name('account.created');
 
 
 

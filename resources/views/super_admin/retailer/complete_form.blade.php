@@ -112,11 +112,6 @@
                 </div>
                 
     
-                <!-- Corporate Name -->
-                <div class="col-md-4 mb-3">
-                    <label for="corporate_name" class="form-label"><i class="fas fa-building"></i> Corporate Name</label>
-                    <input type="text" class="form-control" name="corporate_name" id="corporate_name" value="{{ $retailer->corporate_name }}">
-                </div>
     
                 <!-- DBA -->
                 <div class="col-md-4 mb-3">
@@ -152,26 +147,27 @@
                         <i class="fas fa-trash-alt"></i> Remove
                     </button>
                     <div class="row mb-3">
+                        <!-- Address -->
                         <div class="col-md-4 mb-3">
-                            <label for="street_no_0" class="form-label"><i class="fas fa-home"></i> Street No <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="addresses[0][street_no]" id="street_no_0" required>
-                            <div class="invalid-feedback">Please provide a valid street number.</div>
+                            <label for="address_0" class="form-label"><i class="fas fa-map-marker-alt"></i> Address <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="addresses[0][address]" id="address_0" required>
+                            <div class="invalid-feedback">Please provide a valid address.</div>
                         </div>
-            
-                        <div class="col-md-4 mb-3">
-                            <label for="street_name_0" class="form-label"><i class="fas fa-road"></i> Street Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="addresses[0][street_name]" id="street_name_0" required>
-                            <div class="invalid-feedback">Please provide a valid street name.</div>
-                        </div>
-            
+                        
                         <div class="col-md-4 mb-3">
                             <label for="location_0" class="form-label"><i class="fas fa-map-marker-alt"></i> Location <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="addresses[0][location]" id="location_0" required>
                             <div class="invalid-feedback">Please provide a valid location.</div>
                         </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="city_0" class="form-label"><i class="fas fa-city"></i> City <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="addresses[0][city]" id="city_0" required>
+                            <div class="invalid-feedback">Please provide a valid city.</div>
+                        </div>
                     </div>
-            
+                
                     <div class="row mb-3">
+                        <!-- Province -->
                         <div class="col-md-4 mb-3">
                             <label for="province_0" class="form-label"><i class="fas fa-globe"></i> Province <span class="text-danger">*</span></label>
                             <select class="form-control" name="addresses[0][province]" id="province_0" required>
@@ -180,16 +176,12 @@
                                     <option value="{{ $province->id }}">{{ $province->name }}</option>
                                 @endforeach
                             </select>
-                            <div class="invalid-feedback">Please provide a valid province.</div>
+                            <div class="invalid-feedback">Please select a province.</div>
                         </div>
-                        
-            
-                        <div class="col-md-4 mb-3">
-                            <label for="city_0" class="form-label"><i class="fas fa-city"></i> City <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="addresses[0][city]" id="city_0" required>
-                            <div class="invalid-feedback">Please provide a valid city.</div>
-                        </div>
-            
+                
+                      
+                
+                        <!-- Postal Code -->
                         <div class="col-md-4 mb-3">
                             <label for="postal_code_0" class="form-label"><i class="fas fa-envelope"></i> Postal Code <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="addresses[0][postal_code]" id="postal_code_0" required pattern="^\d{5}(-\d{4})?$">
@@ -197,6 +189,7 @@
                         </div>
                     </div>
                 </div>
+                
             </div>
     
             <button type="button" class="btn btn-secondary" onclick="addAddress()">Add Address</button>
@@ -234,59 +227,52 @@
         let addressCount = 1;
         function addAddress() {
             const addressTemplate = `
-                <div class="address-field mb-4">
-                    <button type="button" class="remove-address-btn" onclick="removeAddress(this)">
-                        <i class="fas fa-trash-alt"></i> Remove
-                    </button>
-                    <div class="row mb-3">
-                        <div class="col-md-4 mb-3">
-                            <label for="street_no_${addressCount}" class="form-label"><i class="fas fa-home"></i> Street No</label>
-                            <input type="text" class="form-control" name="addresses[${addressCount}][street_no]" id="street_no_${addressCount}" required>
-                            <div class="invalid-feedback">Please provide a valid street number.</div>
-                        </div>
-            
-                        <div class="col-md-4 mb-3">
-                            <label for="street_name_${addressCount}" class="form-label"><i class="fas fa-road"></i> Street Name</label>
-                            <input type="text" class="form-control" name="addresses[${addressCount}][street_name]" id="street_name_${addressCount}" required>
-                            <div class="invalid-feedback">Please provide a valid street name.</div>
-                        </div>
-            
-                        <div class="col-md-4 mb-3">
-                            <label for="location_${addressCount}" class="form-label"><i class="fas fa-map-marker-alt"></i> Location</label>
-                            <input type="text" class="form-control" name="addresses[${addressCount}][location]" id="location_${addressCount}" required>
-                            <div class="invalid-feedback">Please provide a valid location.</div>
-                        </div>
-                    </div>
-            
-                    <div class="row mb-3">
-                      <div class="col-md-4 mb-3">
-    <label for="province_${addressCount}" class="form-label"><i class="fas fa-globe"></i> Province</label>
-    <select class="form-control" name="addresses[${addressCount}][province]" id="province_${addressCount}" required>
-        <option value="">Select a province</option>
-        @foreach($provinces as $province)
-            <option value="{{ $province->id }}">{{ $province->name }}</option>
-        @endforeach
-    </select>
-    <div class="invalid-feedback">Please provide a valid province.</div>
-</div>
-
-            
-                        <div class="col-md-4 mb-3">
-                            <label for="city_${addressCount}" class="form-label"><i class="fas fa-city"></i> City</label>
-                            <input type="text" class="form-control" name="addresses[${addressCount}][city]" id="city_${addressCount}" required>
-                            <div class="invalid-feedback">Please provide a valid city.</div>
-                        </div>
-            
-                        <div class="col-md-4 mb-3">
-                            <label for="postal_code_${addressCount}" class="form-label"><i class="fas fa-envelope"></i> Postal Code</label>
-                            <input type="text" class="form-control" name="addresses[${addressCount}][postal_code]" id="postal_code_${addressCount}" required pattern="^\\d{5}(-\\d{4})?$">
-                            <div class="invalid-feedback">Please provide a valid postal code (5 digits).</div>
-                        </div>
-                    </div>
+        <div class="address-field mb-4">
+            <button type="button" class="remove-address-btn" onclick="removeAddress(this)">
+                <i class="fas fa-trash-alt"></i> Remove
+            </button>
+            <div class="row mb-3">
+                <div class="col-md-4 mb-3">
+                    <label for="address_${addressCount}" class="form-label"><i class="fas fa-map-marker-alt"></i> Address <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="addresses[${addressCount}][address]" id="address_${addressCount}" required>
+                    <div class="invalid-feedback">Please provide a valid address.</div>
                 </div>
-            `;
-            document.getElementById('address-fields').insertAdjacentHTML('beforeend', addressTemplate);
-            addressCount++;
+
+                <div class="col-md-4 mb-3">
+                    <label for="location_${addressCount}" class="form-label"><i class="fas fa-map-marker-alt"></i> Location <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="addresses[${addressCount}][location]" id="location_${addressCount}" required>
+                    <div class="invalid-feedback">Please provide a valid location.</div>
+                </div>
+                  <div class="col-md-4 mb-3">
+                    <label for="city_${addressCount}" class="form-label"><i class="fas fa-city"></i> City <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="addresses[${addressCount}][city]" id="city_${addressCount}" required>
+                    <div class="invalid-feedback">Please provide a valid city.</div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-4 mb-3">
+                    <label for="province_${addressCount}" class="form-label"><i class="fas fa-globe"></i> Province <span class="text-danger">*</span></label>
+                    <select class="form-control" name="addresses[${addressCount}][province]" id="province_${addressCount}" required>
+                        <option value="">Select a province</option>
+                        @foreach($provinces as $province)
+                            <option value="{{ $province->id }}">{{ $province->name }}</option>
+                        @endforeach
+                    </select>
+                    <div class="invalid-feedback">Please select a province.</div>
+                </div>
+
+              
+
+                <div class="col-md-4 mb-3">
+                    <label for="postal_code_${addressCount}" class="form-label"><i class="fas fa-envelope"></i> Postal Code <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="addresses[${addressCount}][postal_code]" id="postal_code_${addressCount}" required pattern="^\d{5}(-\d{4})?$">
+                    <div class="invalid-feedback">Please provide a valid postal code (5 digits).</div>
+                </div>
+            </div>
+        </div>`;
+    document.getElementById('address-fields').insertAdjacentHTML('beforeend', addressTemplate);
+    addressCount++;
         }
 
         // Remove address field

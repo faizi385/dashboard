@@ -1,3 +1,4 @@
+
 @extends('layouts.app')
 
 @section('content')
@@ -22,6 +23,7 @@
                 <th>Supplier Name</th>
                 <th>DBA</th>
                 <th>Primary Contact Email</th>
+                <th>Province</th> <!-- New Province Column -->
                 <th>Status</th>
                 <th>Approval</th> <!-- New Approval Column -->
                 <th class="text-center">Action</th>
@@ -33,6 +35,8 @@
                     <td>{{ $lp->name }}</td>
                     <td>{{ $lp->dba }}</td>
                     <td>{{ $lp->primary_contact_email }}</td>
+                    <td>{{ $lp->lp_addresses->province->name ?? 'N/A' }}</td>
+
                     <td>{{ ucfirst($lp->status) }}</td>
                     <td class="text-center">
                         @if($lp->status !== 'approved')
@@ -79,7 +83,6 @@
         </tbody>
     </table>
 </div>
-
 <!-- Add Offer Modal -->
 <div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">

@@ -223,7 +223,12 @@ class LpController extends Controller
                 'unique:users,email',
                 'regex:/^[\w\.-]+@[\w\.-]+\.\w{2,4}$/'  // Example regex for standard email formats
             ],
-            'primary_contact_phone' => 'required|string|max:20',
+         'primary_contact_phone' => [
+    'required',
+    'regex:/^\+?[0-9\s\-\(\)]+$/',
+    'max:20'
+],
+
             'primary_contact_position' => ['required', 'string', 'max:255', 'regex:/^[^\d]+$/'], // Disallow numeric characters
             'password' => 'nullable|string|min:8',
         ]);

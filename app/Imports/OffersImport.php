@@ -140,16 +140,15 @@ class OffersImport implements ToModel, WithHeadingRow
 
     private function storeProduct($data) 
     {
-        // Check if a product with the same GTIN exists in the product family
         $existingProduct = \App\Models\Product::where('gtin', $data['gtin'])->first();
     
-        // If GTIN doesn't match, create a new product in the product family
         if (!$existingProduct) {
             $product = Product::create([
                 'product_name' => $data['product_name'],
                 'provincial_sku' => $data['provincial_sku'],
                 'gtin' => $data['gtin'],
                 'province' => $data['province'],
+                'province_id' => $data['province_id'], // New field
                 'category' => $data['category'],
                 'brand' => $data['brand'],
                 'lp_id' => $data['lp_id'],
@@ -161,25 +160,23 @@ class OffersImport implements ToModel, WithHeadingRow
                 'unit_cost' => $data['unit_cost'],
             ]);
         } else {
-            // If GTIN matches, set $product to the existing product
-            $product = $existingProduct;
+            $existingProduct->update([
+                'province_id' => $data['province_id'], // Update province ID if necessary
+            ]);
         }
     
-        // Check if a product variation with the same SKU exists
         $existingVariation = \App\Models\ProductVariation::where('provincial_sku', $data['provincial_sku'])
                                     ->where('gtin', $data['gtin'])
                                     ->first();
     
-        // If an existing variation is found
         if ($existingVariation) {
-            // If province is different, create a new variation
             if ($existingVariation->province !== $data['province']) {
-                // Create a new product variation
                 \App\Models\ProductVariation::create([
                     'product_name' => $data['product_name'],
                     'provincial_sku' => $data['provincial_sku'],
                     'gtin' => $data['gtin'],
                     'province' => $data['province'],
+                    'province_id' => $data['province_id'], // New field
                     'category' => $data['category'],
                     'brand' => $data['brand'],
                     'lp_id' => $data['lp_id'],
@@ -191,15 +188,15 @@ class OffersImport implements ToModel, WithHeadingRow
                     'price_per_unit' => $data['unit_cost'],
                 ]);
             }
-            return; // SKU exists, no need to create a new product variation
+            return;
         }
     
-        // If SKU does not exist, create the product variation
         \App\Models\ProductVariation::create([
             'product_name' => $data['product_name'],
             'provincial_sku' => $data['provincial_sku'],
             'gtin' => $data['gtin'],
             'province' => $data['province'],
+            'province_id' => $data['province_id'], // New field
             'category' => $data['category'],
             'brand' => $data['brand'],
             'lp_id' => $data['lp_id'],
@@ -209,7 +206,6 @@ class OffersImport implements ToModel, WithHeadingRow
             'comment' => $data['comment'],
             'product_link' => $data['product_link'],
             'price_per_unit' => $data['unit_cost'],
-            // Add any additional fields as needed
         ]);
     }
     

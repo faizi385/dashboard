@@ -60,8 +60,8 @@ class RegisteredUserController extends Controller
             'primary_contact_phone' => ['required', 'string', 'max:20'],
             'primary_contact_position' => ['required', 'string', 'max:255'],
     
-            'address.street_number' => 'nullable|string|max:50',
-            'address.street_name' => 'nullable|string|max:255',
+          'address.address' => ['required', 'string', 'max:255'], // Ensure `address` is a single string
+
             'address.postal_code' => 'nullable|integer',
             'address.city' => 'required|string|max:255',
             'address.province' => 'nullable|exists:provinces,id',
@@ -112,8 +112,7 @@ class RegisteredUserController extends Controller
         $lp->address()->updateOrCreate(
             ['lp_id' => $lp->id], // Ensure the address is linked to the correct LP
             [
-                'street_number' => $validatedData['address']['street_number'],
-                'street_name' => $validatedData['address']['street_name'],
+                'address' => $validatedData['address']['address'],
                 'postal_code' => $validatedData['address']['postal_code'],
                 'city' => $validatedData['address']['city'],
                 'province_id' => $validatedData['address']['province'], // Store the province ID
@@ -124,7 +123,7 @@ class RegisteredUserController extends Controller
         Mail::to($validatedData['email'])->send(new LpPendingStatusMail($validatedData['name'], $validatedData['email']));
     
         // Redirect to the login page with a success message
-        return redirect()->route('login')->with('success', 'Your account has been created. You will be informed via email once the super admin approves or rejects your registration.');
+        return redirect()->route('account.created')->with('success', 'Your account has been created. You will be informed via email once the super admin approves or rejects your registration.');
 
     }
     

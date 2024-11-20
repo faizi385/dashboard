@@ -111,9 +111,9 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="retailer" class="form-label">Retailer <span class="text-danger">*</span></label>
+                        <label for="retailer" class="form-label">Distributor <span class="text-danger">*</span></label>
                         <select class="form-control" id="retailer" name="retailer" >
-                            <option value="" disabled selected>Select Retailer</option>
+                            <option value="" disabled selected>Select Distributor</option>
                             @foreach($retailers as $retailer)
                                 <option value="{{ $retailer->id }}">{{ $retailer->dba }}</option>
                             @endforeach
