@@ -17,7 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('address_id')->nullable()->after('location'); // Replace 'column_name' with the appropriate column to place the new column after, if necessary.
     
             // If the address table exists, you can also create a foreign key constraint:
-            $table->foreign('address_id')->references('id')->on('addresses')->onDelete('set null');
+            // $table->foreign('address_id')->references('id')->on('addresses')->onDelete('set null');
         });
     }
     
