@@ -92,7 +92,7 @@
 
                             <div class="mb-3">
                                 <label for="offerExcel" class="form-label">Upload Bulk Deals (Excel)</label>
-                                <input type="file" class="form-control" id="offerExcel" name="offerExcel" accept=".xlsx, .xls, .csv" required>
+                                <input type="file" class="form-control" id="offerExcel" name="offerExcel" accept=".xlsx, .xls, .csv" >
                             </div>
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-upload"></i> Upload Excel
@@ -129,14 +129,44 @@
 </style>
 
 <script>
-    // Initialize Toastr notifications
-    @if(session('toast_success'))
-        toastr.success("{{ session('toast_success') }}");
-    @endif
+    document.addEventListener('DOMContentLoaded', function () {
+        const modalForm = document.querySelector('form[action="{{ route('offers.import') }}"]');
+        const offerExcel = modalForm.querySelector('#offerExcel');
 
-    @if(session('error'))
-        toastr.error("{{ session('error') }}");
-    @endif
+        modalForm.addEventListener('submit', function (e) {
+            // Clear previous errors
+            const errorContainer = offerExcel.nextElementSibling;
+            if (errorContainer) {
+                errorContainer.remove();
+            }
+
+            let isValid = true;
+
+            // Validate the file input
+            if (!offerExcel.value.trim()) {
+                isValid = false;
+
+                // Add error message
+                const errorMessage = document.createElement('div');
+                errorMessage.classList.add('text-danger', 'mt-1');
+                errorMessage.textContent = 'Please upload a valid file.';
+                offerExcel.parentNode.appendChild(errorMessage);
+            }
+
+            if (!isValid) {
+                e.preventDefault(); // Prevent form submission if validation fails
+            }
+        });
+
+        // Remove error dynamically when user interacts
+        offerExcel.addEventListener('change', function () {
+            const errorContainer = offerExcel.nextElementSibling;
+            if (errorContainer) {
+                errorContainer.remove();
+            }
+        });
+    });
 </script>
+
 
 @endsection

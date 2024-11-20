@@ -33,9 +33,9 @@ class ManageInfoController extends Controller
     
         // Validate the request
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255',    
             'email' => 'required|email|max:255',
-            'phone' => 'nullable|string|max:15',
+            'phone' => 'required|string|max:15',
             'address.*.street_number' => 'nullable|string|max:255',
             'address.*.street_name' => 'nullable|string|max:255',
             'address.*.postal_code' => 'nullable|string|max:10',

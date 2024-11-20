@@ -1,77 +1,77 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container p-4">
-    <h1 class="mb-4 text-white">Manage Info</h1>
-
-    @if(session('success'))
-        <div class="alert alert-success">
-            {{ session('success') }}
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="alert alert-danger">
-            {{ session('error') }}
-        </div>
-    @endif
+<div class="container p-2">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="text-white">Manage Info</h1>
+        <a href="{{ url()->previous() }}" class="btn btn-primary">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
 
     <div class="bg-white p-4 rounded shadow-sm">
         <form action="{{ route('manage-info.update') }}" method="POST">
             @csrf
 
-            <!-- LP information -->
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="name">Name <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text"><i class="fas fa-user"></i></span>
-                            </div>
-                            <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name', $lp->name) }}" required>
+            <!-- LP Information Fields -->
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="name" class="form-label">
+                        <i class="fas fa-user"></i> Name <span class="text-danger">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        name="name" 
+                        id="name" 
+                        class="form-control @error('name') is-invalid @enderror" 
+                        value="{{ old('name', $lp->name) }}" 
+                        oninput="removeValidation(this)"
+                    >
+                    @error('name')
+                        <div class="invalid-feedback">
+                            {{ $message }}
                         </div>
-                        @error('name')
-                            <div class="invalid-feedback">
-                                {{ $message }}
-                            </div>
-                        @enderror
-                    </div>
+                    @enderror
                 </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="email">Email <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                            </div>
-                            <input type="email" name="email" id="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email', $lp->primary_contact_email) }}" required>
+
+                <div class="col-md-6 mb-3">
+                    <label for="email" class="form-label">
+                        <i class="fas fa-envelope"></i> Email <span class="text-danger">*</span>
+                    </label>
+                    <input 
+                        type="email" 
+                        name="email" 
+                        id="email" 
+                        class="form-control @error('email') is-invalid @enderror" 
+                        value="{{ old('email', $lp->primary_contact_email) }}" 
+                        oninput="removeValidation(this)"
+                    >
+                    @error('email')
+                        <div class="invalid-feedback">
+                            {{ $message }}
                         </div>
-                        @error('email')
-                            <div class="invalid-feedback">
-                                {{ $message }}
-                            </div>
-                        @enderror
-                    </div>
+                    @enderror
                 </div>
             </div>
 
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="phone">Phone</label>
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text"><i class="fas fa-phone"></i></span>
-                            </div>
-                            <input type="text" name="phone" id="phone" class="form-control @error('phone') is-invalid @enderror" value="{{ old('phone', $lp->primary_contact_phone) }}">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="phone" class="form-label">
+                        <i class="fas fa-phone"></i> Phone
+                    </label>
+                    <input 
+                        type="text" 
+                        name="phone" 
+                        id="phone" 
+                        class="form-control @error('phone') is-invalid @enderror" 
+                        value="{{ old('phone', $lp->primary_contact_phone) }}" 
+                        oninput="removeValidation(this)"
+                    >
+                    @error('phone')
+                        <div class="invalid-feedback">
+                            {{ $message }}
                         </div>
-                        @error('phone')
-                            <div class="invalid-feedback">
-                                {{ $message }}
-                            </div>
-                        @enderror
-                    </div>
+                    @enderror
                 </div>
             </div>
 
@@ -80,81 +80,94 @@
             @forelse($lp->address as $address)
                 <div class="row mb-3">
                     <div class="col-md-4">
-                        <div class="form-group">
-                            <label for="street_number_{{ $address->id }}">Street Number</label>
-                            <div class="input-group">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-home"></i></span>
-                                </div>
-                                <input type="text" name="address[{{ $address->id }}][street_number]" class="form-control @error('address.'.$address->id.'.street_number') is-invalid @enderror" value="{{ old('address.'.$address->id.'.street_number', $address->street_number) }}">
+                        <label for="street_number_{{ $address->id }}" class="form-label">Street Number</label>
+                        <input 
+                            type="text" 
+                            name="address[{{ $address->id }}][street_number]" 
+                            class="form-control @error('address.'.$address->id.'.street_number') is-invalid @enderror" 
+                            value="{{ old('address.'.$address->id.'.street_number', $address->street_number) }}" 
+                            oninput="removeValidation(this)"
+                        >
+                        @error('address.'.$address->id.'.street_number')
+                            <div class="invalid-feedback">
+                                {{ $message }}
                             </div>
-                            @error('address.'.$address->id.'.street_number')
-                                <div class="invalid-feedback">
-                                    {{ $message }}
-                                </div>
-                            @enderror
-                        </div>
+                        @enderror
                     </div>
 
                     <div class="col-md-4">
-                        <div class="form-group">
-                            <label for="street_name_{{ $address->id }}">Street Name</label>
-                            <div class="input-group">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-road"></i></span>
-                                </div>
-                                <input type="text" name="address[{{ $address->id }}][street_name]" class="form-control @error('address.'.$address->id.'.street_name') is-invalid @enderror" value="{{ old('address.'.$address->id.'.street_name', $address->street_name) }}">
+                        <label for="street_name_{{ $address->id }}" class="form-label">Street Name</label>
+                        <input 
+                            type="text" 
+                            name="address[{{ $address->id }}][street_name]" 
+                            class="form-control @error('address.'.$address->id.'.street_name') is-invalid @enderror" 
+                            value="{{ old('address.'.$address->id.'.street_name', $address->street_name) }}" 
+                            oninput="removeValidation(this)"
+                        >
+                        @error('address.'.$address->id.'.street_name')
+                            <div class="invalid-feedback">
+                                {{ $message }}
                             </div>
-                            @error('address.'.$address->id.'.street_name')
-                                <div class="invalid-feedback">
-                                    {{ $message }}
-                                </div>
-                            @enderror
-                        </div>
+                        @enderror
                     </div>
 
                     <div class="col-md-4">
-                        <div class="form-group">
-                            <label for="postal_code_{{ $address->id }}">Postal Code</label>
-                            <div class="input-group">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-map-pin"></i></span>
-                                </div>
-                                <input type="text" name="address[{{ $address->id }}][postal_code]" class="form-control @error('address.'.$address->id.'.postal_code') is-invalid @enderror" value="{{ old('address.'.$address->id.'.postal_code', $address->postal_code) }}">
+                        <label for="postal_code_{{ $address->id }}" class="form-label">Postal Code</label>
+                        <input 
+                            type="text" 
+                            name="address[{{ $address->id }}][postal_code]" 
+                            class="form-control @error('address.'.$address->id.'.postal_code') is-invalid @enderror" 
+                            value="{{ old('address.'.$address->id.'.postal_code', $address->postal_code) }}" 
+                            oninput="removeValidation(this)"
+                        >
+                        @error('address.'.$address->id.'.postal_code')
+                            <div class="invalid-feedback">
+                                {{ $message }}
                             </div>
-                            @error('address.'.$address->id.'.postal_code')
-                                <div class="invalid-feedback">
-                                    {{ $message }}
-                                </div>
-                            @enderror
-                        </div>
+                        @enderror
                     </div>
                 </div>
 
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="city_{{ $address->id }}">City</label>
-                            <div class="input-group">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-city"></i></span>
-                                </div>
-                                <input type="text" name="address[{{ $address->id }}][city]" class="form-control @error('address.'.$address->id.'.city') is-invalid @enderror" value="{{ old('address.'.$address->id.'.city', $address->city) }}">
+                        <label for="city_{{ $address->id }}" class="form-label">City</label>
+                        <input 
+                            type="text" 
+                            name="address[{{ $address->id }}][city]" 
+                            class="form-control @error('address.'.$address->id.'.city') is-invalid @enderror" 
+                            value="{{ old('address.'.$address->id.'.city', $address->city) }}" 
+                            oninput="removeValidation(this)"
+                        >
+                        @error('address.'.$address->id.'.city')
+                            <div class="invalid-feedback">
+                                {{ $message }}
                             </div>
-                            @error('address.'.$address->id.'.city')
-                                <div class="invalid-feedback">
-                                    {{ $message }}
-                                </div>
-                            @enderror
-                        </div>
+                        @enderror
                     </div>
                 </div>
             @empty
                 <p>No addresses available.</p>
             @endforelse
 
-            <button type="submit" class="btn btn-primary">Update</button>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Update
+            </button>
         </form>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script>
+    function removeValidation(element) {
+        console.log("removeValidation triggered for:", element.name); // Debug log
+        if (element.value.trim()) {
+            element.classList.remove('is-invalid');
+            const errorFeedback = element.nextElementSibling;
+            if (errorFeedback && errorFeedback.classList.contains('invalid-feedback')) {
+                errorFeedback.style.display = 'none';
+            }
+        }
+    }
+</script>
 @endsection

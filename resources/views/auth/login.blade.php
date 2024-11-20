@@ -52,6 +52,7 @@
         .text-link:hover {
             text-decoration: underline;
         }
+
     </style>
 </head>
 <body>
@@ -60,21 +61,27 @@
         <h2 class="form-header text-center">Login to Your Account</h2>
         <p class="form-description text-center">Enter your email and password to continue.</p>
 
-        <form method="POST" action="{{ route('login') }}">
+        <form id="loginForm" method="POST" action="{{ route('login') }}">
             @csrf
 
             <!-- Email Address -->
             <div class="mb-3">
-                <label for="email" class="form-label">Email</label>
-                <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus 
+                <label for="email" class="form-label required">Email <span class="text-danger">*</span></label>
+                <input id="email" type="email" name="email" value="{{ old('email') }}" autofocus 
                        class="form-control @error('email') is-invalid @enderror">
+                @error('email')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
             </div>
 
             <!-- Password -->
             <div class="mb-3">
-                <label for="password" class="form-label">Password</label>
-                <input id="password" type="password" name="password" required 
+                <label for="password" class="form-label required">Password <span class="text-danger">*</span></label>
+                <input id="password" type="password" name="password" 
                        class="form-control @error('password') is-invalid @enderror">
+                @error('password')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
             </div>
 
             <!-- Remember Me -->
@@ -86,7 +93,7 @@
             <!-- Forgot Password and Submit Button -->
             <div class="d-flex justify-content-between align-items-center">
                 @if (Route::has('password.request'))
-                    <a href="{{ route('password.request') }}" class="text-link">Forgot your password?</a>
+                    <a style="text-decoration: none" href="{{ route('password.request') }}" class="text-link ">Forgot your password?</a>
                 @endif
                 <button type="submit" class="btn btn-primary">Log in</button>
             </div>
@@ -94,18 +101,11 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-  
-   
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
- 
-   
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            // Show success or error messages using Toastr
             @if (session('success'))
                 toastr.success("{{ session('success') }}");
             @endif
@@ -115,8 +115,65 @@
             @endif
 
             @if (session('pending_invitation'))
-            toastr.warning("{{ session('pending_invitation') }}");
-        @endif
+                toastr.warning("{{ session('pending_invitation') }}");
+            @endif
+        });
+
+        // JavaScript for client-side validation
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            let email = document.getElementById('email');
+            let password = document.getElementById('password');
+            let isValid = true;
+
+            // Clear previous error styles
+            email.classList.remove('is-invalid');
+            password.classList.remove('is-invalid');
+            email.nextElementSibling?.classList.remove('invalid-feedback');
+            password.nextElementSibling?.classList.remove('invalid-feedback');
+
+            // Validate email
+            if (email.value.trim() === '') {
+                isValid = false;
+                email.classList.add('is-invalid');
+                let emailError = document.createElement('div');
+                emailError.classList.add('invalid-feedback');
+                emailError.textContent = 'Email is required.';
+                email.parentNode.appendChild(emailError);
+            }
+
+            // Validate password
+            if (password.value.trim() === '') {
+                isValid = false;
+                password.classList.add('is-invalid');
+                let passwordError = document.createElement('div');
+                passwordError.classList.add('invalid-feedback');
+                passwordError.textContent = 'Password is required.';
+                password.parentNode.appendChild(passwordError);
+            }
+
+            // If validation fails, prevent form submission
+            if (!isValid) {
+                event.preventDefault();
+            }
+        });
+
+        // Remove validation errors when the user types
+        document.getElementById('email').addEventListener('input', function() {
+            let email = document.getElementById('email');
+            email.classList.remove('is-invalid');
+            let emailError = email.parentNode.querySelector('.invalid-feedback');
+            if (emailError) {
+                emailError.remove();
+            }
+        });
+
+        document.getElementById('password').addEventListener('input', function() {
+            let password = document.getElementById('password');
+            password.classList.remove('is-invalid');
+            let passwordError = password.parentNode.querySelector('.invalid-feedback');
+            if (passwordError) {
+                passwordError.remove();
+            }
         });
     </script>
 </body>

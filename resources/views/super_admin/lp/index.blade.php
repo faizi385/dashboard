@@ -96,7 +96,7 @@
                             <input type="hidden" name="source" value="1">
                             <div class="mb-3">
                                 <label for="lpSelect" class="form-label">Select Supplier</label>
-                                <select class="form-select" id="lpSelect" name="lp_id" required>
+                                <select class="form-select" id="lpSelect" name="lp_id" >
                                     <option value="" selected disabled>Select Supplier</option>
                                     @foreach($lps as $lp)
                                         <option value="{{ $lp->id }}">{{ $lp->name }} ({{ $lp->dba }})</option>
@@ -105,7 +105,7 @@
                             </div>
                             <div class="mb-3">
                                 <label for="offerExcel" class="form-label">Upload Bulk Deals (Excel)</label>
-                                <input type="file" class="form-control" id="offerExcel" name="offerExcel" accept=".xlsx, .xls, .csv" required>
+                                <input type="file" class="form-control" id="offerExcel" name="offerExcel" accept=".xlsx, .xls, .csv" >
                             </div>
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-upload"></i> Upload Excel
@@ -131,7 +131,7 @@
 </style>
 
 @push('scripts')
-@push('scripts')
+
 <script>
     $(document).ready(function() {
         $("#loader").fadeOut("slow");
@@ -205,8 +205,43 @@
                 }
             });
         });
+        document.addEventListener('DOMContentLoaded', function () {
+        const modalForm = document.querySelector('form[action="{{ route('offers.import') }}"]');
+        const offerExcel = modalForm.querySelector('#offerExcel');
 
-        // Toastr messages
+        modalForm.addEventListener('submit', function (e) {
+            // Clear previous errors
+            const errorContainer = offerExcel.nextElementSibling;
+            if (errorContainer) {
+                errorContainer.remove();
+            }
+
+            let isValid = true;
+
+            // Validate the file input
+            if (!offerExcel.value.trim()) {
+                isValid = false;
+
+                // Add error message
+                const errorMessage = document.createElement('div');
+                errorMessage.classList.add('text-danger', 'mt-1');
+                errorMessage.textContent = 'Please upload a valid file.';
+                offerExcel.parentNode.appendChild(errorMessage);
+            }
+
+            if (!isValid) {
+                e.preventDefault(); // Prevent form submission if validation fails
+            }
+        });
+
+        // Remove error dynamically when user interacts
+        offerExcel.addEventListener('change', function () {
+            const errorContainer = offerExcel.nextElementSibling;
+            if (errorContainer) {
+                errorContainer.remove();
+            }
+        });
+    });
         @if(session('toast_success'))
             toastr.success("{{ session('toast_success') }}");
         @endif
@@ -214,9 +249,62 @@
             toastr.error("{{ session('error') }}");
         @endif
     });
+    document.addEventListener('DOMContentLoaded', function () {
+        const modalForm = document.querySelector('form[action="{{ route('offers.import') }}"]');
+        const lpSelect = modalForm.querySelector('#lpSelect');
+        const offerExcel = modalForm.querySelector('#offerExcel');
+
+        modalForm.addEventListener('submit', function (e) {
+            // Clear previous errors
+            [lpSelect, offerExcel].forEach((field) => {
+                const errorContainer = field.nextElementSibling;
+                if (errorContainer) {
+                    errorContainer.remove();
+                }
+            });
+
+            let isValid = true;
+
+            // Validate the Supplier dropdown
+            if (!lpSelect.value.trim()) {
+                isValid = false;
+
+                // Add error message
+                const errorMessage = document.createElement('div');
+                errorMessage.classList.add('text-danger', 'mt-1');
+                errorMessage.textContent = 'Please select a supplier.';
+                lpSelect.parentNode.appendChild(errorMessage);
+            }
+
+            // Validate the file input
+            if (!offerExcel.value.trim()) {
+                isValid = false;
+
+                // Add error message
+                const errorMessage = document.createElement('div');
+                errorMessage.classList.add('text-danger', 'mt-1');
+                errorMessage.textContent = 'Please upload a valid file.';
+                offerExcel.parentNode.appendChild(errorMessage);
+            }
+
+            if (!isValid) {
+                e.preventDefault(); // Prevent form submission if validation fails
+            }
+        });
+
+        // Remove error dynamically when user interacts
+        [lpSelect, offerExcel].forEach((field) => {
+            field.addEventListener('change', function () {
+                const errorContainer = field.nextElementSibling;
+                if (errorContainer) {
+                    errorContainer.remove();
+                }
+            });
+        });
+    });
 </script>
 @endpush
 
-@endpush
+
 
 @endsection

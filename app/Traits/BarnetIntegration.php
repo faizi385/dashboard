@@ -101,7 +101,7 @@ trait BarnetIntegration
             $offer = $this->DQISummaryFlag($report,$barnetReport->sku,$barnetReport->barcode,$barnetReport->name,$provinceName,$provinceSlug,$provinceId,$lpId );
             if (!empty($offer)) {
                 $cleanSheetData['offer_id'] = $offer->id;
-                $cleanSheetData['lp_id'] = $offer->lp_id;
+                // $cleanSheetData['lp_id'] = $offer->lp_id;
                 $cleanSheetData['lp_name'] = $offer->lp_name;
                 if((int) $cleanSheetData['purchase'] > 0){
                     $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$offer->lp_id,$offer->lp_name,$offer->provincial_sku);
@@ -126,7 +126,7 @@ trait BarnetIntegration
             }
             else{
                 $cleanSheetData['offer_id'] = null;
-                $cleanSheetData['lp_id'] = $lpId;
+                // $cleanSheetData['lp_id'] = $lpId;
                 $cleanSheetData['lp_name'] = $lpName;
                 $cleanSheetData['c_flag'] = '';
                 $cleanSheetData['dqi_flag'] = 0;
@@ -147,7 +147,7 @@ trait BarnetIntegration
                 $cleanSheetData['retailer_id'] = $retailer_id;
                 $cleanSheetData['offer_id'] = $offer->id;
                 $cleanSheetData['pos_report_id'] = $barnetReport->id;
-                $cleanSheetData['lp_id'] = $offer->lp_id;
+                // $cleanSheetData['lp_id'] = $offer->lp_id;
                 $cleanSheetData['retailer_name'] = $retailerName;
                 $cleanSheetData['lp_name'] = $offer->lp_name;
                 $cleanSheetData['thc_range'] = $offer->thc_range;
@@ -202,7 +202,7 @@ trait BarnetIntegration
                 $cleanSheetData['retailer_id'] = $retailer_id;
                 $cleanSheetData['offer_id'] = null;
                 $cleanSheetData['pos_report_id'] = $barnetReport->id;
-                $cleanSheetData['lp_id'] = null;
+                // $cleanSheetData['lp_id'] = null;
                 $cleanSheetData['retailer_name'] = $retailerName;
                 $cleanSheetData['lp_name'] = null;
                 $cleanSheetData['thc_range'] = null;

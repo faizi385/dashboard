@@ -52,56 +52,6 @@
             </div>
         </div>
 
-        <div class="card mt-4">
-            <div class="card-header">
-                <h5 class="card-title">Address Details</h5>
-            </div>
-            <div class="card-body">
-                <div class="form-row">
-                    <div class="col-md-6 form-group">
-                        <label for="address_line_1"><i class="fas fa-map-marker-alt"></i> Address Line 1 <span class="text-danger">*</span></label>
-                        <input type="text" name="address_line_1" id="address_line_1" class="form-control @error('address_line_1') is-invalid @enderror" value="{{ old('address_line_1', $lp->address_line_1) }}">
-                        @error('address_line_1')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-        
-                    <div class="col-md-6 form-group">
-                        <label for="address_line_2"><i class="fas fa-map-marker-alt"></i> Address Line 2</label>
-                        <input type="text" name="address_line_2" id="address_line_2" class="form-control @error('address_line_2') is-invalid @enderror" value="{{ old('address_line_2', $lp->address_line_2) }}">
-                        @error('address_line_2')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                </div>
-        
-                <div class="form-row">
-                    <div class="col-md-4 form-group">
-                        <label for="city"><i class="fas fa-city"></i> City <span class="text-danger">*</span></label>
-                        <input type="text" name="city" id="city" class="form-control @error('city') is-invalid @enderror" value="{{ old('city', $lp->city) }}">
-                        @error('city')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-        
-                    <div class="col-md-4 form-group">
-                        <label for="province"><i class="fas fa-map"></i> Province <span class="text-danger">*</span></label>
-                        <input type="text" name="province" id="province" class="form-control @error('province') is-invalid @enderror" value="{{ old('province', $lp->province) }}">
-                        @error('province')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-        
-                    <div class="col-md-4 form-group">
-                        <label for="postal_code"><i class="fas fa-mail-bulk"></i> Postal Code <span class="text-danger">*</span></label>
-                        <input type="text" name="postal_code" id="postal_code" class="form-control @error('postal_code') is-invalid @enderror" value="{{ old('postal_code', $lp->postal_code) }}">
-                        @error('postal_code')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                </div>
-            </div>
-        </div>
         
         <!-- Submit Button -->
         <div class="form-group mt-4">

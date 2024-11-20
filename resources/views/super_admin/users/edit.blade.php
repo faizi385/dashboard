@@ -112,7 +112,7 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="roles" class="form-label">
-                        <i class="fas fa-user-tag"></i> Roles <span class="text-danger">*</span>
+                        <i class="fas fa-user-tag"></i> Roles 
                     </label>
                     <select name="roles[]" id="roles" class="form-select @error('roles') is-invalid @enderror"  oninput="removeValidation(this)">
                         @foreach($roles as $role)

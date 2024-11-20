@@ -152,9 +152,12 @@ $formattedDate = Carbon::parse($date)->format('M-Y') ?? 'Date';
         // Clear the session variable when loading the offers index
         session()->forget('viewing_offers_from_lp_show');
     
-        $lps = Lp::all();
+        // Fetch LPs ordered by creation date, most recent first
+        $lps = Lp::orderBy('created_at', 'desc')->get();
+    
         return view('super_admin.lp.index', compact('lps'));
     }
+    
     
     public function show($id)
     {

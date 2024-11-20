@@ -4,21 +4,19 @@
 <div class="container p-2">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="text-white">
-            <i class="fas fa-user-plus"></i> 
+            <i class="fas fa-user-plus"></i>
             {{ isset($retailer) ? 'Edit Distributor ' : 'Create Distributor ' }}
         </h1>
         <a href="{{ route('retailer.index') }}" class="btn btn-primary">
             <i class="fas fa-arrow-left"></i> Back
         </a>
     </div>
-
     <div class="bg-white p-4 rounded shadow-sm mb-4">
         <form action="{{ isset($retailer) ? route('retailers.update', $retailer) : route('retailers.store') }}" method="POST" id="retailerForm">
             @csrf
             @if(isset($retailer))
                 @method('PUT')
             @endif
-
             @if(auth()->user()->hasRole('Super Admin'))
             <div class="mb-3 col-lg-6">
                 <label for="lp_id" class="form-label">Select Supplier <span class="text-danger">*</span></label>
@@ -31,12 +29,10 @@
                     @endforeach
                 </select>
                 @error('lp_id')
-                    <div class="text-danger">{{ $message }}</div>
+                    <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
             @endif
-
-         
 
             <!-- First Name and Last Name Fields -->
             <div class="row">
@@ -49,7 +45,6 @@
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
-
                 <div class="col-md-6 mb-3">
                     <label for="last_name" class="form-label">
                         <i class="fas fa-user"></i> Last Name <span class="text-danger">*</span>
@@ -72,7 +67,6 @@
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
-
                 <div class="col-md-6 mb-3">
                     <label for="phone" class="form-label">
                         <i class="fas fa-phone"></i> Phone Number <span class="text-danger">*</span>
@@ -83,126 +77,130 @@
                     @enderror
                 </div>
             </div>
-   <!-- Role Selection Radio Button Group -->
-   <div class="mb-3">
+
+            <!-- Role Selection Radio Button Group -->
+          <!-- Role Selection Radio Button Group -->
+<div class="mb-3">
     <label class="form-label">Select Type <span class="text-danger">*</span></label>
     <div class="form-check">
-        <input class="form-check-input" type="radio" name="type" id="distributor" value="Distributor" {{ old('type', $retailer->type ?? '') == 'Distributor' ? 'checked' : '' }}>
+        <input class="form-check-input @error('type') is-invalid @enderror" type="radio" name="type" id="distributor" value="Distributor" {{ old('type', $retailer->type ?? '') == 'Distributor' ? 'checked' : '' }}>
         <label class="form-check-label" for="distributor">
             Distributor
         </label>
     </div>
     <div class="form-check">
-        <input class="form-check-input" type="radio" name="type" id="shop" value="Shop" {{ old('type', $retailer->type ?? '') == 'Shop' ? 'checked' : '' }}>
+        <input class="form-check-input @error('type') is-invalid @enderror" type="radio" name="type" id="shop" value="Shop" {{ old('type', $retailer->type ?? '') == 'Shop' ? 'checked' : '' }}>
         <label class="form-check-label" for="shop">
             Shop
         </label>
     </div>
+
+    <!-- Show error message only if 'type' has an error -->
     @error('type')
-        <div class="text-danger">{{ $message }}</div>
+        <div class="invalid-feedback d-block">{{ $message }}</div>
     @enderror
 </div>
+
+            
+            
             <button type="submit" class="btn btn-primary mt-3">
                 <i class="fas fa-paper-plane"></i> {{ isset($retailer) ? 'Update Distributor' : 'Create Distributor' }}
             </button>
         </form>
-    </div> <!-- End of white background div -->
+    </div>
 </div>
 @endsection
-
 
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // Function to remove 'is-invalid' class and error message when user interacts
-    function removeValidationErrors(input) {
-        input.addEventListener('input', function () {
-            if (input.classList.contains('is-invalid')) {
-                input.classList.remove('is-invalid');
-                const errorDiv = input.nextElementSibling;
-                if (errorDiv && errorDiv.classList.contains('invalid-feedback')) {
-                    errorDiv.style.display = 'none'; // Hide the error message
-                }
+    const form = document.getElementById('retailerForm');
+
+    // Validation function
+    function validateForm(event) {
+        let isValid = true;
+
+        // Clear all previous errors
+        document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        document.querySelectorAll('.invalid-feedback').forEach(feedback => feedback.remove());
+
+        // Validate text fields
+        const textFields = ['first_name', 'last_name', 'email', 'phone'];
+        textFields.forEach(field => {
+            const input = document.getElementById(field);
+            if (!input.value.trim()) {
+                showValidationError(input, `${capitalize(field.replace('_', ' '))} is required.`);
+                isValid = false;
             }
         });
 
-        if (input.type === 'radio' || input.tagName === 'SELECT') {
-            input.addEventListener('change', function () {
-                const name = input.name;
-                const radios = document.querySelectorAll(`input[name="${name}"]`);
-                radios.forEach(function (radio) {
-                    radio.classList.remove('is-invalid');
-                });
-                const errorDiv = input.closest('.form-check, .form-group')?.querySelector('.invalid-feedback');
-                if (errorDiv) {
-                    errorDiv.style.display = 'none'; // Hide the error message
-                }
-            });
+        // Validate dropdown
+        const lpId = document.getElementById('lp_id');
+        if (lpId && lpId.value === '') {
+            showValidationError(lpId, 'Supplier selection is required.');
+            isValid = false;
+        }
+
+        // Validate radio buttons
+        const typeRadios = document.querySelectorAll('input[name="type"]');
+        const isTypeSelected = Array.from(typeRadios).some(radio => radio.checked);
+        if (!isTypeSelected) {
+            const typeContainer = typeRadios[0].closest('.mb-3');
+            const errorDiv = document.createElement('div');
+            errorDiv.classList.add('invalid-feedback', 'd-block');
+            errorDiv.textContent = 'Select a type.';
+            typeContainer.appendChild(errorDiv);
+            isValid = false;
+        }
+
+        if (!isValid) {
+            event.preventDefault(); // Prevent form submission if validation fails
         }
     }
 
-    // Add event listeners to all form inputs and selects to remove validation errors on interaction
-    const formInputs = document.querySelectorAll(
-        '#retailerForm input[type="text"], #retailerForm input[type="email"], #retailerForm input[type="number"], #retailerForm select, #retailerForm input[type="radio"]'
-    );
-    formInputs.forEach(function (input) {
-        removeValidationErrors(input);
-    });
+    // Show validation error
+    function showValidationError(input, message) {
+        input.classList.add('is-invalid');
+        let errorDiv = input.closest('.mb-3')?.querySelector('.invalid-feedback');
+        if (!errorDiv) {
+            errorDiv = document.createElement('div');
+            errorDiv.classList.add('invalid-feedback');
+            input.closest('.mb-3').appendChild(errorDiv);
+        }
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+    }
 
-    // Form submit validation
-    document.querySelector('#retailerForm').addEventListener('submit', function (event) {
-        let isValid = true;
-        let radioErrorShown = false; // Flag to check if error for radio buttons is already shown
+    // Remove validation error dynamically
+    function removeValidationError(event) {
+        const input = event.target;
+        if (input.classList.contains('is-invalid')) {
+            input.classList.remove('is-invalid');
+        }
 
-        // Check all required inputs
-        formInputs.forEach(function (input) {
-            if (
-                (input.type === 'radio' && !document.querySelector(`input[name="${input.name}"]:checked`)) ||
-                (input.type !== 'radio' && input.value.trim() === '')
-            ) {
-                isValid = false;
-                input.classList.add('is-invalid');
-                let errorDiv = input.nextElementSibling;
+        const errorDiv = input.closest('.mb-3')?.querySelector('.invalid-feedback');
+        if (errorDiv) {
+            errorDiv.remove();
+        }
+    }
 
-                // Handle error for radio buttons and dropdowns
-                if (input.type === 'radio' || input.tagName === 'SELECT') {
-                    const parent = input.closest('.form-check, .form-group');
-                    if (parent) {
-                        errorDiv = parent.querySelector('.invalid-feedback');
-                        if (!errorDiv) {
-                            errorDiv = document.createElement('div');
-                            errorDiv.classList.add('invalid-feedback');
-                            parent.appendChild(errorDiv);
-                        }
-                        errorDiv.textContent = 'This field is required.';
-                        errorDiv.style.display = 'block';
+    // Capitalize helper function
+    function capitalize(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }
 
-                        // Only show the error for the last radio button in the group
-                        if (!radioErrorShown) {
-                            radioErrorShown = true;
-                        } else {
-                            errorDiv.style.display = 'none'; // Hide if it's not the last one
-                        }
-                    }
-                } else {
-                    // Handle other input types
-                    if (!errorDiv || !errorDiv.classList.contains('invalid-feedback')) {
-                        errorDiv = document.createElement('div');
-                        errorDiv.classList.add('invalid-feedback');
-                        input.parentNode.insertBefore(errorDiv, input.nextSibling);
-                    }
-                    errorDiv.textContent = 'This field is required.';
-                    errorDiv.style.display = 'block';
-                }
-            }
-        });
+    // Attach the validation function to form submission
+    form.addEventListener('submit', validateForm);
 
-        // Prevent form submission if any validation errors exist
-        if (!isValid) {
-            event.preventDefault();
+    // Attach dynamic error removal on input
+    const formInputs = document.querySelectorAll('#retailerForm input, #retailerForm select');
+    formInputs.forEach(input => {
+        input.addEventListener('input', removeValidationError);
+        if (input.type === 'radio') {
+            input.addEventListener('change', removeValidationError);
         }
     });
 });
-
 </script>
 @endpush
+

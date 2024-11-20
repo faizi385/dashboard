@@ -94,12 +94,11 @@
         </div>
     </div>
 </div>
-<!-- Add Offer Modal -->
 <div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Add Deals to {{ $lp->name  ?? null}}</h5>
+                <h5 class="modal-title" id="addOfferModalLabel">Add Deals</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -108,14 +107,18 @@
                     <div>
                         <form action="{{ route('offers.import') }}" method="POST" enctype="multipart/form-data">
                             @csrf
-                            <!-- Hidden LP ID -->
-                            <input type="hidden" name="lp_id" value="{{ $lp->id ?? null }}">
-                            <!-- Display LP Name -->
-                            <p><strong>LP:</strong> {{ $lp->name ?? null }} ({{ $lp->dba ?? null }})</p>
+                            <input type="hidden" name="lp_id" value="{{ $lp->id ?? null}}"> <!-- Hidden LP ID -->
+                            <input type="hidden" name="source" value="1"> <!-- Source for bulk upload -->
+
+                            <!-- Display LP Name instead of Dropdown -->
+                            <div class="mb-3">
+                                <label class="form-label">Supplier</label>
+                                <p><strong>{{ $lp->name ?? null  }} ({{ $lp->dba ?? null }})</strong></p>
+                            </div>
 
                             <div class="mb-3">
                                 <label for="offerExcel" class="form-label">Upload Bulk Deals (Excel)</label>
-                                <input type="file" class="form-control" id="offerExcel" name="offerExcel" accept=".xlsx, .xls, .csv" required>
+                                <input type="file" class="form-control" id="offerExcel" name="offerExcel" accept=".xlsx, .xls, .csv" >
                             </div>
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-upload"></i> Upload Excel
@@ -134,7 +137,6 @@
         </div>
     </div>
 </div>
-
 
 <!-- Include DataTables and SweetAlert -->
 <script>
