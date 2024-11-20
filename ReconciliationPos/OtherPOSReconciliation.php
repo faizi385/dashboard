@@ -39,7 +39,7 @@ if ($report) {
                 DB::table('other_pos_reports')->where('report_id', $report->id)->update(['status' => 'done']);
             }
         }
-dd('end');
+
         DB::table('reports')->where('id', $report->id)->update(['status' => 'Retailer Statement Process']);
         DB::commit();
     } catch (\Exception $e) {
