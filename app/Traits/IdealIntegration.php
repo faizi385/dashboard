@@ -117,7 +117,7 @@ trait IdealIntegration
             if (!empty($offer)) {
                 $cleanSheetData['offer_id'] = $offer->id;
                 if((int) $cleanSheetData['purchase'] > 0){
-                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$lpId,$lpName,$offer->provincial_sku);
+                    $checkCarveout = $this->checkCarveOuts($report,$provinceId, $provinceSlug, $provinceName,$lpId,$lpName,$offer->provincial_sku);
                     $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
                 }
                 else{
@@ -128,7 +128,7 @@ trait IdealIntegration
                 $TotalQuantityGet = $cleanSheetData['purchase'];
                 $TotalUnitCostGet = $cleanSheetData['average_cost'];
                 $TotalPurchaseCostMake = (float)$TotalQuantityGet * (float)$TotalUnitCostGet;
-                $FinalDQIFEEMake = (float)trim($offer->data, '%') * 100;
+                $FinalDQIFEEMake = (float)trim($offer->data_fee, '%') * 100;
                 $FinalFeeInDollar = (float)$TotalPurchaseCostMake * $FinalDQIFEEMake / 100;
                 $cleanSheetData['dqi_per'] = $FinalDQIFEEMake;
                 $cleanSheetData['dqi_fee'] = number_format($FinalFeeInDollar,2);
@@ -175,7 +175,7 @@ trait IdealIntegration
                 $cleanSheetData['report_price_og'] = $this->avgCostForIdeal($IdealSalesSummaryReport);
                 $cleanSheetData['barcode'] = $gtin;
                 if((int) $cleanSheetData['purchase'] > 0){
-                    $checkCarveout = $this->checkCarveOuts($report, $provinceSlug, $provinceName,$lpId,$lpName,$offer->provincial_sku);
+                    $checkCarveout = $this->checkCarveOuts($report,$provinceId, $provinceSlug, $provinceName,$lpId,$lpName,$offer->provincial_sku);
                     $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
                 }
                 else{
@@ -203,7 +203,7 @@ trait IdealIntegration
                 $TotalQuantityGet = $cleanSheetData['purchase'];
                 $TotalUnitCostGet = $cleanSheetData['average_cost'];
                 $TotalPurchaseCostMake = (float)$TotalQuantityGet * (float)$TotalUnitCostGet;
-                $FinalDQIFEEMake = (float)trim($offer->data, '%') * 100;
+                $FinalDQIFEEMake = (float)trim($offer->data_fee, '%') * 100;
                 $FinalFeeInDollar = (float)$TotalPurchaseCostMake * $FinalDQIFEEMake / 100;
                 $cleanSheetData['dqi_per'] = $FinalDQIFEEMake;
                 $cleanSheetData['dqi_fee'] = number_format($FinalFeeInDollar,2);

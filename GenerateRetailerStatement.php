@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 // Fetch the report with status 'retailer_statement_process'
-$report = DB::table('reports')->where('status', 'retailer_statement_process')->first();
+$report = DB::table('reports')->where('status', 'Retailer Statement Process')->first();
 
 if (!$report) {
     Log::info('No pending retailer statement found.');
@@ -22,8 +22,8 @@ dump("Processing report ID: {$report->id} -- " . date('Y-m-d H:i:s'));
 try {
     DB::beginTransaction();
 
-    DB::table('reports')->where('id', $report->id)->update(['status' => 'retailer_statement_start']);
-    
+    DB::table('reports')->where('id', $report->id)->update(['status' => 'Retailer Statement Start']);
+
     // Initialize variables needed for batch processing
     $retailerStatements = [];
     $insertionCount = 0;
@@ -53,14 +53,14 @@ try {
     // Mark report as completed upon successful processing
     DB::table('reports')->where('id', $report->id)->update(['status' => 'Completed']);
     DB::commit();
-    
+
     print_r('Retailer statement process completed successfully.');
 
 } catch (\Exception $e) {
     // Log error and roll back transaction in case of failure
     Log::error('Error in retailer statement process: ' . $e->getMessage());
     DB::rollBack();
-    
+
     // Update report status to "failed" if an exception occurs
     DB::table('reports')->where('id', $report->id)->update(['status' => 'failed']);
 }

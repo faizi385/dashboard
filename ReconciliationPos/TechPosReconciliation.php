@@ -10,7 +10,7 @@ if($report) {
     dump($report->id . '  -- ' . date('Y-m-d H:i:s'));
     try {
         DB::beginTransaction();
-        DB::table('reports')->where('id', $report->id)->update(['status' => 'reconciliation_start']);
+        DB::table('reports')->where('id', $report->id)->update(['status' => 'Reconciliation Start']);
         $techPOSReports = TechPosReport::where('report_id', $report->id)->where('status', 'pending')->get();
         dump('techPOSReports fetched -- ' . date('Y-m-d H:i:s'));
         $cleanSheet = [];
@@ -31,7 +31,7 @@ if($report) {
                 DB::table('tech_pos_reports')->where('report_id', $report->id)->update(['status' => 'done']);
             }
         }
-        DB::table('reports')->where('id', $report->id)->update(['status' => 'retailer_statement_process']);
+        DB::table('reports')->where('id', $report->id)->update(['status' => 'Retailer Statement Process']);
         DB::commit();
     } catch (\Exception $e) {
         Log::error('Error in TechPOS reconciliation: ' . $e->getMessage());

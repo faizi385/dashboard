@@ -11,7 +11,7 @@ if($report) {
 
     try {
         DB::beginTransaction();
-        DB::table('reports')->where('id', $report->id)->update(['status' => 'reconciliation_start']);
+        DB::table('reports')->where('id', $report->id)->update(['status' => 'Reconciliation Start']);
 
         // Fetch Ideal reports where status is pending
         $idealDaignosticReport = IdealDiagnosticReport::where('report_id', $report->id)->where('status', 'pending')->get();
@@ -40,7 +40,7 @@ if($report) {
             }
         }
 
-        DB::table('reports')->where('id', $report->id)->update(['status' => 'retailer_statement_process']);
+        DB::table('reports')->where('id', $report->id)->update(['status' => 'Retailer Statement Process']);
         DB::commit();
 
     } catch (\Exception $e) {

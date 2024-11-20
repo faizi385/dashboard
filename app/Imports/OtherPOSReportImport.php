@@ -9,7 +9,7 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Illuminate\Support\Facades\Log;
 
 class OtherPOSReportImport implements ToModel, WithHeadingRow
-{   
+{
     protected $location;
     protected $reportId;
     protected $retailerId; // New property for retailer ID
@@ -22,7 +22,7 @@ class OtherPOSReportImport implements ToModel, WithHeadingRow
         $this->location = $location;
         $this->reportId = $reportId;
         $this->retailerId = $retailerId; // Assign retailer ID
-        $this->lpId = $lpId; 
+        $this->lpId = $lpId;
     }
 
     public function model(array $row)
@@ -49,16 +49,6 @@ class OtherPOSReportImport implements ToModel, WithHeadingRow
             }
         }
 
-        // Fetch the report ID based on the location
-        $report = Report::where('location', $this->location)->first();
-        
-        // Log the fetched report for debugging
-        if ($report) {
-            Log::info('Fetched report ID: ' . $report->id . ' for location: ' . $this->location);
-        } else {
-            Log::warning('No report found for location: ' . $this->location);
-        }
-
         // Proceed with creating the model if headers are valid
         return new OtherPOSReport([
             'sku' => $row['sku'] ?? null,
@@ -72,7 +62,7 @@ class OtherPOSReportImport implements ToModel, WithHeadingRow
             'closing' => $row['closing'] ?? null,
             'average_price' => $this->convertToDecimal($row['average_price'] ?? null),
             'average_cost' => $this->convertToDecimal($row['average_cost'] ?? null),
-            'report_id' => $report ? $report->id : null,
+            'report_id' => $this->reportId,
             'retailer_id' => $this->retailerId, // Include retailer ID
             'lp_id' => $this->lpId,
         ]);

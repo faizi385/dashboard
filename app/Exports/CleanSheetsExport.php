@@ -101,9 +101,9 @@ class CleanSheetsExport implements FromCollection, WithMapping, WithHeadings, Wi
             "Gross Profit ($)",
             "DQI Purchase",
             "Carveout Flag",
-            "DQI Fee (%)",
+            "DQI Per (%)",
             "DQI Fee ($)",
-           
+
         ];
     }
 

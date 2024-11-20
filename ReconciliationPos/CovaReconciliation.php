@@ -10,7 +10,7 @@ $report = DB::table('reports')->where('pos', 'cova')->where('status', 'pending')
 if($report) {
     dump($report->id . '  -- ' . date('Y-m-d H:i:s'));
     try {
-        DB::table('reports')->where('id', $report->id)->update(['status' => 'reconciliation_start']);
+        DB::table('reports')->where('id', $report->id)->update(['status' => 'Reconciliation Start']);
         DB::beginTransaction();
 //    $retailer_id = $retailerReportSubmission->retailer_id;
         $covaDaignosticReports = CovaDiagnosticReport::with('CovaSalesSummaryReport')->where('report_id', $report->id)->where('status', 'pending')->get();
@@ -35,7 +35,7 @@ if($report) {
                 DB::table('cova_diagnostic_reports')->where('report_id', $report->id)->update(['status' => 'done']);
             }
         }
-        DB::table('reports')->where('id', $report->id)->update(['status' => 'retailer_statement_process']);
+        DB::table('reports')->where('id', $report->id)->update(['status' => 'Retailer Statement Process']);
         // $insertIntoLogs = DB::table('cron_logs')->where('report_id', $report->id)->update([
         //     'end_time' => now()
         // ]);
