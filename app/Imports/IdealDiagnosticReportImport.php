@@ -22,7 +22,7 @@ class IdealDiagnosticReportImport implements ToModel, WithHeadingRow
         $this->location = $location;
         $this->reportId = $reportId;
         $this->retailerId = $retailerId; // Assign retailer ID
-        $this->lpId = $lpId;  
+        $this->lpId = $lpId;
     }
 
     public function model(array $row)
@@ -60,26 +60,28 @@ class IdealDiagnosticReportImport implements ToModel, WithHeadingRow
             }
         }
 
-        // Create the diagnostic report and save it to the database
-        $diagnosticReport = IdealDiagnosticReport::create([
-            'report_id' => $this->reportId,
-            'sku' => $row['sku'],
-            'description' => $row['description'],
-            'opening' => $row['opening'],
-            'purchases' => $row['purchases'],
-            'returns' => $row['returns'],
-            'trans_in' => $row['trans_in'],
-            'trans_out' => $row['trans_out'],
-            'unit_sold' => $row['unit_sold'],
-            'write_offs' => $row['write_offs'],
-            'closing' => $row['closing'],
-            'net_sales_ex' => $row['net_sales_ex'],
-            'retailer_id' => $this->retailerId, // Include retailer ID
-            'lp_id' => $this->lpId,
-        ]);
+        if(!empty($row['sku']) || !empty($row['description'])) {
+            // Create the diagnostic report and save it to the database
+            $diagnosticReport = IdealDiagnosticReport::create([
+                'report_id' => $this->reportId,
+                'sku' => $row['sku'],
+                'description' => $row['description'],
+                'opening' => $row['opening'],
+                'purchases' => $row['purchases'],
+                'returns' => $row['returns'],
+                'trans_in' => $row['trans_in'],
+                'trans_out' => $row['trans_out'],
+                'unit_sold' => $row['unit_sold'],
+                'write_offs' => $row['write_offs'],
+                'closing' => $row['closing'],
+                'net_sales_ex' => $row['net_sales_ex'],
+                'retailer_id' => $this->retailerId, // Include retailer ID
+                'lp_id' => $this->lpId,
+            ]);
 
-        // Store the ID of the last inserted diagnostic report
-        $this->diagnosticReportId = $diagnosticReport->id;
+            // Store the ID of the last inserted diagnostic report
+            $this->diagnosticReportId = $diagnosticReport->id;
+        }
     }
 
     public function getErrors()

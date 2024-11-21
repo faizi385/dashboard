@@ -49,23 +49,25 @@ class OtherPOSReportImport implements ToModel, WithHeadingRow
             }
         }
 
-        // Proceed with creating the model if headers are valid
-        return new OtherPOSReport([
-            'sku' => $row['sku'] ?? null,
-            'name' => $row['name'] ?? null,
-            'barcode' => $row['barcode'] ?? null,
-            'brand' => $row['brand'] ?? null,
-            'compliance_category' => $row['compliance_category'] ?? null,
-            'opening' => $row['opening'] ?? null,
-            'sold' => $row['sold'] ?? null,
-            'purchased' => $row['purchased'] ?? null,
-            'closing' => $row['closing'] ?? null,
-            'average_price' => $this->convertToDecimal($row['average_price'] ?? null),
-            'average_cost' => $this->convertToDecimal($row['average_cost'] ?? null),
-            'report_id' => $this->reportId,
-            'retailer_id' => $this->retailerId, // Include retailer ID
-            'lp_id' => $this->lpId,
-        ]);
+        if(!empty($row['sku']) || !empty($row['barcode']) || $row['name']) {
+            // Proceed with creating the model if headers are valid
+            return new OtherPOSReport([
+                'sku' => $row['sku'] ?? null,
+                'name' => $row['name'] ?? null,
+                'barcode' => $row['barcode'] ?? null,
+                'brand' => $row['brand'] ?? null,
+                'compliance_category' => $row['compliance_category'] ?? null,
+                'opening' => $row['opening'] ?? null,
+                'sold' => $row['sold'] ?? null,
+                'purchased' => $row['purchased'] ?? null,
+                'closing' => $row['closing'] ?? null,
+                'average_price' => $this->convertToDecimal($row['average_price'] ?? null),
+                'average_cost' => $this->convertToDecimal($row['average_cost'] ?? null),
+                'report_id' => $this->reportId,
+                'retailer_id' => $this->retailerId, // Include retailer ID
+                'lp_id' => $this->lpId,
+            ]);
+        }
     }
 
     public function getErrors()

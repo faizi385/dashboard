@@ -44,7 +44,7 @@ class ReportController extends Controller
             if ($retailers) {
                 // Fetch reports and statements for the retailer
                 $reports = Report::with('retailer')->where('retailer_id', $retailers->id)->get();
-                $statements = RetailerStatement::where('retailer_id', $retailers->id)->get();
+                $statements = RetailerStatement::where('retailer_id', $retailers->id)->where('flag',0)->where('reconciliation_date',now()->startOfMonth())->get();
             } else {
                 // Empty collections if no retailer found
                 $reports = collect();
@@ -58,7 +58,7 @@ class ReportController extends Controller
                 // Fetch reports uploaded by the LP
                 $reports = Report::with('retailer')->where('lp_id', $lp->id)->get();
                 $statements = RetailerStatement::whereHas('report', function ($query) use ($lp) {
-                    $query->where('lp_id', $lp->id);
+                    $query->where('lp_id', $lp->id)->where('flag',0)->where('reconciliation_date',now()->startOfMonth());
                 })->get();
             } else {
                 // Empty collections if no LP found
@@ -68,7 +68,7 @@ class ReportController extends Controller
         } else {
             // For Super Admin: Fetch all reports and statements
             $reports = Report::with('retailer')->get();
-            $statements = RetailerStatement::all();
+            $statements = RetailerStatement::where('flag',0)->where('reconciliation_date',now()->startOfMonth())->get();
         }
 
         // Initialize arrays for sums
