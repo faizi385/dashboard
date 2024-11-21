@@ -70,6 +70,7 @@ trait BarnetIntegration
             $cleanSheetData['cbd_range'] = $product->cbd_range;
             $cleanSheetData['size_in_gram'] =  $product->product_size;
             $cleanSheetData['location'] = $location;
+            $cleanSheetData['province_id'] = $provinceId;
             $cleanSheetData['province'] = $provinceName;
             $cleanSheetData['province_slug'] = $provinceSlug;
             $cleanSheetData['sku'] = $sku;
@@ -147,6 +148,7 @@ trait BarnetIntegration
                 $cleanSheetData['cbd_range'] = $offer->cbd_range;
                 $cleanSheetData['size_in_gram'] = $offer->product_size;
                 $cleanSheetData['location'] = $location;
+                $cleanSheetData['province_id'] = $provinceId;
                 $cleanSheetData['province'] = $offer->province;
                 $cleanSheetData['province_slug'] = $offer->province_slug;
                 $cleanSheetData['sku'] = $sku;
@@ -200,6 +202,7 @@ trait BarnetIntegration
                 $cleanSheetData['cbd_range'] = null;
                 $cleanSheetData['size_in_gram'] = null;
                 $cleanSheetData['location'] = $location;
+                $cleanSheetData['province_id'] = $provinceId;
                 $cleanSheetData['province'] = $provinceName;
                 $cleanSheetData['province_slug'] = $provinceSlug;
                 $cleanSheetData['sku'] = $sku;
