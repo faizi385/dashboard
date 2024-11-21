@@ -52,7 +52,54 @@
             </div>
         </div>
 
+        <!-- Address Information Card (If addresses are available) -->
+        @if($lp->address->isNotEmpty())
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title">Address Information</h5>
+            </div>
+            <div class="card-body">
+                @foreach ($lp->address as $index => $address)
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h6 class="card-title">Address {{ $index + 1 }}</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-row">
+                                <div class="col-md-6 form-group">
+                                    <label for="address_{{ $index }}"><i class="fas fa-map-marker-alt"></i> Address <span class="text-danger">*</span></label>
+                                    <input type="text" name="address[{{ $index }}][address]" id="address_{{ $index }}" class="form-control @error('address.' . $index . '.address') is-invalid @enderror" value="{{ old('address.' . $index . '.address', $address->full_address) }}">
+                                    @error('address.' . $index . '.address')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="col-md-6 form-group">
+                                    <label for="province_{{ $index }}"><i class="fas fa-map-marker-alt"></i> Province <span class="text-danger">*</span></label>
+                                    <input type="text" name="address[{{ $index }}][province]" id="province_{{ $index }}" class="form-control @error('address.' . $index . '.province') is-invalid @enderror" value="{{ old('address.' . $index . '.province', $address->province_id) }}">
+                                    @error('address.' . $index . '.province')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="form-row">
+                            
+                                <div class="col-md-6 form-group">
+                                    <label for="city_{{ $index }}"><i class="fas fa-city"></i> City <span class="text-danger">*</span></label>
+                                    <input type="text" name="address[{{ $index }}][city]" id="city_{{ $index }}" class="form-control @error('address.' . $index . '.city') is-invalid @enderror" value="{{ old('address.' . $index . '.city', $address->city) }}">
+                                    @error('address.' . $index . '.city')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
         
+        @endif
+
         <!-- Submit Button -->
         <div class="form-group mt-4">
             <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Update Supplier</button>
