@@ -86,7 +86,7 @@
                                 title="Full name must contain only alphabets and spaces."
                             />
                             <div class="invalid-feedback">
-                                Full Name is required .
+                                Full Name is required with only alphabets .
                             </div>
                         </div>
                     </div>

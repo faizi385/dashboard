@@ -36,7 +36,7 @@ class DashboardController extends Controller
             ->orderByDesc('total_purchases')
             ->take(5)
             ->get();
-    
+    // dd(  $topProducts);
         // Check if the user is a retailer
         if ($user->hasRole('Retailer')) {
             $statements = RetailerStatement::where('retailer_id', $user->id)

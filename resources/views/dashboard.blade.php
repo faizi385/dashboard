@@ -212,51 +212,62 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Top 5 Products Chart (Third Chart)
     const topProducts = @json($topProducts); // Pass the top products array from PHP to JavaScript
-    const productSKUs = topProducts.map(product => product.sku);
-    const productPurchases = topProducts.map(product => Math.round(product.total_purchases));  // Round purchase totals
+const productSKUs = topProducts.map(product => product.sku);
+const productPurchases = topProducts.map(product => Math.round(product.total_purchases));  // Round purchase totals
 
-    const thirdChartOptions = {
-        series: [{
-            name: 'Total Purchases',
-            data: productPurchases  // Rounded values
-        }],
-        chart: {
-            type: 'bar',
-            height: 350
-        },
-        plotOptions: {
-            bar: {
-                borderRadius: 4,
-                borderRadiusApplication: 'end',
-                horizontal: true,
-            }
-        },
-        dataLabels: {
-            enabled: false
-        },
-        xaxis: {
-            categories: productSKUs, // Use SKUs as categories
-            labels: {
-                style: {
-                    fontWeight: 'bold' // Bold the SKUs in the x-axis
-                }
-            }
-        },
-        yaxis: {
-            title: {
-                text: 'Purchases'
-            }
-        },
-        tooltip: {
-            y: {
-                formatter: val => val.toFixed(2) + " units"  // Round to 2 decimal places in tooltip
+const thirdChartOptions = {
+    series: [{
+        name: 'Total Purchases',
+        data: productPurchases  // Rounded values
+    }],
+    chart: {
+        type: 'bar',
+        height: 350
+    },
+    plotOptions: {
+        bar: {
+            borderRadius: 4,
+            borderRadiusApplication: 'end',
+            horizontal: true,
+        }
+    },
+    dataLabels: {
+        enabled: false
+    },
+    title: {
+        text: 'Top 5 Products',
+        align: 'center', // Center the title
+        margin: 10,      // Optional: Adjust margin
+        style: {
+            fontSize: '18px',   // Customize font size
+            fontWeight: 'bold', // Customize font weight
+            color: '#333'       // Optional: Set color
+        }
+    },
+    xaxis: {
+        categories: productSKUs, // Use SKUs as categories
+        // categories: ['Vape', 'Gum', '11144', '55544', '88888'],
+        labels: {
+            style: {
+                fontWeight: 'bold' // Bold the SKUs in the x-axis
             }
         }
-    };
+    },
+    yaxis: {
+        title: {
+            text: 'Units Sold' // Rename the y-axis title if necessary
+        }
+    },
+    tooltip: {
+        y: {
+            formatter: val => val + " units"  // Show units in tooltip
+        }
+    }
+};
 
-    new ApexCharts(document.querySelector("#third-chart"), thirdChartOptions).render();
+new ApexCharts(document.querySelector("#third-chart"), thirdChartOptions).render();
+
 });
 
 
