@@ -9,6 +9,8 @@ class RetailerAddress extends Model
     protected $fillable = [
         'retailer_id',
         'address',
+        'street_no',
+        'street_name',
         'province',
         'city',
         'location',

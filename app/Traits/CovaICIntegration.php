@@ -125,7 +125,7 @@ trait CovaICIntegration
             $cleanSheetData['product_variation_id'] = $product->id;
             $cleanSheetData['dqi_per'] = 0.00;
             $cleanSheetData['dqi_fee'] = 0.00;
-            $offer = $this->getDQIMatchedData($report, $covaDaignosticReport, $provinceName, $provinceSlug,$provinceId);
+            $offer = $this->getDQIMatchedData($report, $covaDaignosticReport, $provinceName, $provinceSlug,$provinceId,$lpId);
             if (!empty($offer)) {
                 $cleanSheetData['offer_id'] = $offer->id;
                 if((int) $cleanSheetData['purchase'] > 0){
@@ -319,18 +319,18 @@ trait CovaICIntegration
         }
         return  $product ?? '';
     }
-    private function getDQIMatchedData($report, $covaDaignosticReport, $provinceName, $provinceSlug, $provinceId)
+    private function getDQIMatchedData($report, $covaDaignosticReport, $provinceName, $provinceSlug, $provinceId,$lpId)
     {
         if ($report->province == 'ON' || $report->province == 'Ontario') {
-            return $this->DQISummaryFlag($report, trim($covaDaignosticReport->ocs_sku),  trim($covaDaignosticReport->ontario_barcode_upc), $covaDaignosticReport->product_name, $provinceName, $provinceSlug, $provinceId);
+            return $this->DQISummaryFlag($report, trim($covaDaignosticReport->ocs_sku),  trim($covaDaignosticReport->ontario_barcode_upc), $covaDaignosticReport->product_name, $provinceName, $provinceSlug, $provinceId,$lpId);
         } elseif ($report->province == 'AB' || $report->province == 'Alberta') {
-            return $this->DQISummaryFlag($report, trim($covaDaignosticReport->aglc_sku),  trim($covaDaignosticReport->manitoba_barcode_upc), $covaDaignosticReport->product_name, $provinceName, $provinceSlug, $provinceId);
+            return $this->DQISummaryFlag($report, trim($covaDaignosticReport->aglc_sku),  trim($covaDaignosticReport->manitoba_barcode_upc), $covaDaignosticReport->product_name, $provinceName, $provinceSlug, $provinceId,$lpId);
         } elseif ($report->province == 'MB' || $report->province == 'Manitoba') {
-            return $this->DQISummaryFlag($report, trim($covaDaignosticReport->new_brunswick_sku),  trim($covaDaignosticReport->manitoba_barcode_upc), $covaDaignosticReport->product_name, $provinceName, $provinceSlug, $provinceId);
+            return $this->DQISummaryFlag($report, trim($covaDaignosticReport->new_brunswick_sku),  trim($covaDaignosticReport->manitoba_barcode_upc), $covaDaignosticReport->product_name, $provinceName, $provinceSlug, $provinceId,$lpId);
         } elseif ($report->province == 'BC' || $report->province == 'British Columbia') {
-            return $this->DQISummaryFlag($report, trim($covaDaignosticReport->new_brunswick_sku),  trim($covaDaignosticReport->manitoba_barcode_upc), $covaDaignosticReport->product_name, $provinceName, $provinceSlug, $provinceId);
+            return $this->DQISummaryFlag($report, trim($covaDaignosticReport->new_brunswick_sku),  trim($covaDaignosticReport->manitoba_barcode_upc), $covaDaignosticReport->product_name, $provinceName, $provinceSlug, $provinceId,$lpId);
         } elseif ($report->province == 'SK' || $report->province == 'Saskatchewan') {
-            return $this->DQISummaryFlag($report, trim($covaDaignosticReport->new_brunswick_sku),  trim($covaDaignosticReport->saskatchewan_barcode_upc), $covaDaignosticReport->product_name, $provinceName, $provinceSlug, $provinceId);
+            return $this->DQISummaryFlag($report, trim($covaDaignosticReport->new_brunswick_sku),  trim($covaDaignosticReport->saskatchewan_barcode_upc), $covaDaignosticReport->product_name, $provinceName, $provinceSlug, $provinceId,$lpId);
         }
     }
     private function MatchedOffer($report, $provinceName, $provinceSlug, $provinceId, $sku, $barcode, $product_name,$lpId)
