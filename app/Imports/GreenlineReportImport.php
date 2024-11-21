@@ -12,8 +12,8 @@ class GreenLineReportImport implements ToModel, WithHeadingRow
     protected $reportId;
     protected $retailerId; // New property for retailer ID
     protected $lpId;      // New property for LP ID (optional)
-    protected $errors = []; 
-    protected $hasCheckedHeaders = false; 
+    protected $errors = [];
+    protected $hasCheckedHeaders = false;
     protected $requiredHeaders = [
         'sku', 'name', 'barcode', 'brand', 'compliance_category',
         'opening', 'sold', 'purchased', 'closing', 'average_price', 'average_cost'
@@ -48,27 +48,29 @@ class GreenLineReportImport implements ToModel, WithHeadingRow
         }
 
         // Proceed with creating the model
-        return new GreenLineReport([
-            'sku' => $row['sku'] ?? null,
-            'name' => $row['name'] ?? null,
-            'barcode' => $row['barcode'] ?? null,
-            'brand' => $row['brand'] ?? null,
-            'compliance_category' => $row['compliance_category'] ?? null,
-            'opening' => $row['opening'] ?? null,
-            'sold' => $row['sold'] ?? null,
-            'purchased' => $row['purchased'] ?? null,
-            'closing' => $row['closing'] ?? null,
-            'average_price' => $this->convertToDecimal($row['average_price'] ?? null),
-            'average_cost' => $this->convertToDecimal($row['average_cost'] ?? null),
-            'report_id' => $this->reportId,
-            'retailer_id' => $this->retailerId, // Include retailer ID
-            'lp_id' => $this->lpId,             // Include LP ID if provided
-        ]);
+        if(!empty($row['sku']) || !empty($row['barcode']) || $row['name']){
+            return new GreenLineReport([
+                'sku' => $row['sku'] ?? null,
+                'name' => $row['name'] ?? null,
+                'barcode' => $row['barcode'] ?? null,
+                'brand' => $row['brand'] ?? null,
+                'compliance_category' => $row['compliance_category'] ?? null,
+                'opening' => $row['opening'] ?? null,
+                'sold' => $row['sold'] ?? null,
+                'purchased' => $row['purchased'] ?? null,
+                'closing' => $row['closing'] ?? null,
+                'average_price' => $this->convertToDecimal($row['average_price'] ?? null),
+                'average_cost' => $this->convertToDecimal($row['average_cost'] ?? null),
+                'report_id' => $this->reportId,
+                'retailer_id' => $this->retailerId, // Include retailer ID
+                'lp_id' => $this->lpId,             // Include LP ID if provided
+            ]);
+        }
     }
 
     public function getErrors()
     {
-        return $this->errors; 
+        return $this->errors;
     }
 
     private function convertToDecimal($value)

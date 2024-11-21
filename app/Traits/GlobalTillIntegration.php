@@ -225,7 +225,7 @@ trait GlobalTillIntegration
                 $cleanSheetData['province'] = $provinceName;
                 $cleanSheetData['province_slug'] = $provinceSlug;
                 $cleanSheetData['province_id'] =  $provinceId ;
-                $cleanSheetData['sku'] = $gobatellDiagnosticReport->sku;
+                $cleanSheetData['sku'] = $sku;
                 $cleanSheetData['product_name'] = $gobatellDiagnosticReport->description;
                 $cleanSheetData['category'] = null;
                 $cleanSheetData['brand'] = null;
@@ -234,7 +234,7 @@ trait GlobalTillIntegration
                 $cleanSheetData['average_price'] = $this->avgPriceForGlobaltill($GobatellSalesSummaryReport);
                 $cleanSheetData['average_cost'] = $this->avgCostForGlobaltill($GobatellSalesSummaryReport);
                 $cleanSheetData['report_price_og'] = $gobatellDiagnosticReport->average_cost;
-                $cleanSheetData['barcode'] = null;
+                $cleanSheetData['barcode'] = $gtin;
                 $cleanSheetData['c_flag'] = '';
                 $cleanSheetData['report_id'] = $report->id;
                 if ($gobatellDiagnosticReport->other_additions_additions > 0) {

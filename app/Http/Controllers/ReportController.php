@@ -1,9 +1,22 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Models\BarnetPosReport;
+use App\Models\CleanSheet;
+use App\Models\CovaDiagnosticReport;
+use App\Models\CovaSalesReport;
+use App\Models\GlobalTillDiagnosticReport;
+use App\Models\GlobalTillSalesSummaryReport;
+use App\Models\GreenlineReport;
+use App\Models\IdealDiagnosticReport;
+use App\Models\IdealSalesSummaryReport;
+use App\Models\OtherPOSReport;
+use App\Models\ProfitTechInventoryLog;
 use App\Models\Report;
 use App\Models\Retailer;
 use App\Models\Province;
+use App\Models\TechPOSReport;
+use App\Models\TendySalesSummaryReport;
 use Illuminate\Support\Facades\Storage;
 use App\Exports\CleanSheetsExport;
 use App\Models\LP;
@@ -44,7 +57,7 @@ class ReportController extends Controller
             if ($retailers) {
                 // Fetch reports and statements for the retailer
                 $reports = Report::with('retailer')->where('retailer_id', $retailers->id)->get();
-                $statements = RetailerStatement::where('retailer_id', $retailers->id)->get();
+                $statements = RetailerStatement::where('retailer_id', $retailers->id)->where('flag',0)->where('reconciliation_date',now()->startOfMonth())->get();
             } else {
                 // Empty collections if no retailer found
                 $reports = collect();
@@ -58,7 +71,7 @@ class ReportController extends Controller
                 // Fetch reports uploaded by the LP
                 $reports = Report::with('retailer')->where('lp_id', $lp->id)->get();
                 $statements = RetailerStatement::whereHas('report', function ($query) use ($lp) {
-                    $query->where('lp_id', $lp->id);
+                    $query->where('lp_id', $lp->id)->where('flag',0)->where('reconciliation_date',now()->startOfMonth());
                 })->get();
             } else {
                 // Empty collections if no LP found
@@ -68,7 +81,7 @@ class ReportController extends Controller
         } else {
             // For Super Admin: Fetch all reports and statements
             $reports = Report::with('retailer')->get();
-            $statements = RetailerStatement::all();
+            $statements = RetailerStatement::where('flag',0)->where('reconciliation_date',now()->startOfMonth())->get();
         }
 
         // Initialize arrays for sums
@@ -178,14 +191,66 @@ class ReportController extends Controller
 
     public function destroy($id)
     {
-        $report = Report::findOrFail($id);
+        try {
+            DB::beginTransaction();
+            $report = Report::findOrFail($id);
 
+            if ($report->pos == 'greenline') {
+                GreenlineReport::where('report_id', $report->id)->delete();
+            }
+            if ($report->pos == 'techpos') {
+                TechPOSReport::where('report_id', $report->id)->delete();
+            }
+            if ($report->pos == 'otherpos') {
+                OtherPOSReport::where('report_id', $report->id)->delete();
+            }
+            if ($report->pos == 'barnet') {
+                BarnetPosReport::where('report_id', $report->id)->delete();
+            }
+            if ($report->pos == 'profittech') {
+                ProfitTechInventoryLog::where('report_id', $report->id)->delete();
+            }
+            if ($report->pos == 'global') {
+                $globalDiagnostics = GlobalTillDiagnosticReport::where('report_id', $report->id)->get();
+                foreach ($globalDiagnostics as $globalDiagnostic) {
+                    GlobalTillSalesSummaryReport::where('gb_diagnostic_report_id', $globalDiagnostic->id)->delete();
+                }
+                GlobalTillDiagnosticReport::where('report_id', $report->id)->delete();
+            }
+            if ($report->pos == 'ideal') {
+                $idealDiagnostics = IdealDiagnosticReport::where('report_id', $report->id)->get();
+                foreach ($idealDiagnostics as $idealDiagnostic) {
+                    IdealSalesSummaryReport::where('ideal_diagnostic_report_id', $idealDiagnostic->id)->delete();
+                }
+                IdealDiagnosticReport::where('report_id', $report->id)->delete();
+            }
+            if ($report->pos == 'tendy') {
+                $tendyDiagnostics = TendyDiagnosticReport::where('report_id', $report->id)->get();
+                foreach ($tendyDiagnostics as $tendyDiagnostic) {
+                    TendySalesSummaryReport::where('diagnostic_report_id', $tendyDiagnostic->id)->delete();
+                }
+                TendyDiagnosticReport::where('report_id', $report->id)->delete();
+            }
+            if ($report->pos == 'cova') {
+                $coavDiagnostics = CovaDiagnosticReport::where('report_id', $report->id)->get();
+                foreach ($coavDiagnostics as $coavDiagnostic) {
+                    CovaSalesReport::where('cova_diagnostic_report_id', $coavDiagnostic->id)->delete();
+                }
+                CovaDiagnosticReport::where('report_id', $report->id)->delete();
+            }
 
+            CleanSheet::where('report_id', $report->id)->delete();
+            RetailerStatement::where('report_id', $report->id)->delete();
 
-        // Proceed with deletion
-        $report->delete();
+            $report->delete();
 
-        return redirect()->back()->with('success', 'Report deleted successfully');
+            DB::commit();
+            return redirect()->back()->with('success', 'Report deleted successfully');
+        }
+        catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', $e->getMessage());
+        }
     }
 
     public function store(Request $request, $retailerId)

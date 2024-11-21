@@ -23,7 +23,7 @@ class GlobalTillDiagnosticReportImport implements ToModel, WithHeadingRow
         $this->location = $location;
         $this->reportId = $reportId;
         $this->retailerId = $retailerId; // Assign retailer ID
-        $this->lpId = $lpId;  
+        $this->lpId = $lpId;
     }
 
     /**
@@ -78,39 +78,41 @@ class GlobalTillDiagnosticReportImport implements ToModel, WithHeadingRow
                 }, $missingHeaders);
 
                 // Throw an exception for missing headers
-                throw new \Exception('Missing headers: ' . implode(', ', $formattedHeaders)); 
+                throw new \Exception('Missing headers: ' . implode(', ', $formattedHeaders));
             }
             $this->hasCheckedHeaders = true; // Set the flag to prevent further checks
         }
 
-        // Proceed with creating the model if headers are valid
-        $diagnosticReport = new GlobalTillDiagnosticReport([
-            'report_id' => $this->reportId,
-            'storelocation' => $row['storelocation'] ?? null,
-            'store_sku' => $row['store_sku'] ?? null,
-            'product' => $row['product'] ?? null,
-            'compliance_code' => $row['compliance_code'] ?? null,
-            'supplier_sku' => $row['supplier_sku'] ?? null,
-            'pos_equivalent_grams' => $this->cleanNumericValue($row['pos_equivalent_grams']),
-            'compliance_weight' => $this->cleanNumericValue($row['compliance_weight']),
-            'opening_inventory' => $this->cleanNumericValue($row['opening_inventory']),
-            'purchases_from_suppliers_additions' => $this->cleanNumericValue($row['purchases_from_suppliers_additions']),
-            'returns_from_customers_additions' => $this->cleanNumericValue($row['returns_from_customers_additions']),
-            'other_additions_additions' => $this->cleanNumericValue($row['other_additions_additions']),
-            'sales_reductions' => $this->cleanNumericValue($row['sales_reductions']),
-            'destruction_reductions' => $this->cleanNumericValue($row['destruction_reductions']),
-            'theft_reductions' => $this->cleanNumericValue($row['theft_reductions']),
-            'returns_to_suppliers_reductions' => $this->cleanNumericValue($row['returns_to_suppliers_reductions']),
-            'other_reductions_reductions' => $this->cleanNumericValue($row['other_reductions_reductions']),
-            'closing_inventory' => $this->cleanNumericValue($row['closing_inventory']),
-            'product_url' => $row['product_url'] ?? null,
-            'inventory_transactions_url' => $row['inventory_transactions_url'] ?? null,
-            'retailer_id' => $this->retailerId, // Include retailer ID
-            'lp_id' => $this->lpId,
-        ]);
+        if(!empty($row['store_sku']) || !empty($row['compliance_code']) || $row['product']){
+            // Proceed with creating the model if headers are valid
+            $diagnosticReport = new GlobalTillDiagnosticReport([
+                'report_id' => $this->reportId,
+                'storelocation' => $row['storelocation'] ?? null,
+                'store_sku' => $row['store_sku'] ?? null,
+                'product' => $row['product'] ?? null,
+                'compliance_code' => $row['compliance_code'] ?? null,
+                'supplier_sku' => $row['supplier_sku'] ?? null,
+                'pos_equivalent_grams' => $this->cleanNumericValue($row['pos_equivalent_grams']),
+                'compliance_weight' => $this->cleanNumericValue($row['compliance_weight']),
+                'opening_inventory' => $this->cleanNumericValue($row['opening_inventory']),
+                'purchases_from_suppliers_additions' => $this->cleanNumericValue($row['purchases_from_suppliers_additions']),
+                'returns_from_customers_additions' => $this->cleanNumericValue($row['returns_from_customers_additions']),
+                'other_additions_additions' => $this->cleanNumericValue($row['other_additions_additions']),
+                'sales_reductions' => $this->cleanNumericValue($row['sales_reductions']),
+                'destruction_reductions' => $this->cleanNumericValue($row['destruction_reductions']),
+                'theft_reductions' => $this->cleanNumericValue($row['theft_reductions']),
+                'returns_to_suppliers_reductions' => $this->cleanNumericValue($row['returns_to_suppliers_reductions']),
+                'other_reductions_reductions' => $this->cleanNumericValue($row['other_reductions_reductions']),
+                'closing_inventory' => $this->cleanNumericValue($row['closing_inventory']),
+                'product_url' => $row['product_url'] ?? null,
+                'inventory_transactions_url' => $row['inventory_transactions_url'] ?? null,
+                'retailer_id' => $this->retailerId, // Include retailer ID
+                'lp_id' => $this->lpId,
+            ]);
 
-        $diagnosticReport->save();
-        $this->diagnosticReportId = $diagnosticReport->id; // Store the ID of the last imported diagnostic report
+            $diagnosticReport->save();
+            $this->diagnosticReportId = $diagnosticReport->id; // Store the ID of the last imported diagnostic report
+        }
     }
 
     public function getErrors()
