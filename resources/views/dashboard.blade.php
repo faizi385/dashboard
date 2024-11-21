@@ -11,7 +11,7 @@
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-success">
                     <div class="inner">
-                        <h3>{{ number_format($totalPayoutWithTaxAllRetailers, 2) }}</h3>
+                        <h3>{{ number_format($totalPayoutWithTaxAllRetailers, 2) }}</sup></h3>
                         <p>Total Payout (With Tax)</p>
                     </div>
                     <div class="icon">
@@ -103,7 +103,6 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        const currentMonthIndex = new Date().getMonth();
         const currentMonth = new Date().toLocaleString('default', { month: 'short' });
 
         // ApexCharts Config
@@ -173,6 +172,7 @@
         });
     });
 </script>
+
 
 <style>
     .small-box>.inner {

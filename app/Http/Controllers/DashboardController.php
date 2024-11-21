@@ -64,7 +64,7 @@ class DashboardController extends Controller
                 foreach ($statements as $statement) {
                     $payout = $statement->quantity_sold * $statement->average_price;
                     $totalPayout += $payout;
-
+                  
                     $taxAmount = $payout * 0.13;
                     $payoutWithTax = $payout + $taxAmount;
                     $totalPayoutWithTax += $payoutWithTax;
@@ -81,8 +81,9 @@ class DashboardController extends Controller
                 $totalPayoutWithTaxAllRetailers += $totalPayoutWithTax;
                 $totalIrccDollarAllRetailers += $totalIrccDollar;
             }
+ 
         }
-
+   
         // Calculate mapped and unmapped offers
         $totalMappedOffers = CleanSheet::whereNotNull('offer_id')->count();
         $totalUnmappedOffers = CleanSheet::whereNull('offer_id')->count();

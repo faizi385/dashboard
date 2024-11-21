@@ -83,7 +83,7 @@ class ReportController extends Controller
             $reports = Report::with('retailer')->get();
             $statements = RetailerStatement::where('flag',0)->where('reconciliation_date',now()->startOfMonth())->get();
         }
-
+        dd(     $statements ); 
         // Initialize arrays for sums
         $retailerSumsByLocation = [];
         $totalPayoutWithoutTax = 0;
@@ -304,7 +304,7 @@ class ReportController extends Controller
     
         $lpId = $retailer->lp_id ?? null; 
 
-        // dd( $request);
+        // dd( $request,now()->startOfMonth());
         $report = Report::create([
             'retailer_id' => $retailerId,
             'location' => $locationString,
