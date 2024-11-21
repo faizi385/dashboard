@@ -28,8 +28,9 @@ class LpController extends Controller
 
     public function dashboard()
     {
+        $lp = Lp::where('user_id',Auth::user()->id)->first();
         // Fetch all purchase data
-        $purchases = CleanSheet::all();
+        $purchases = CleanSheet::where('lp_id',$lp->id)->where('dqi_flag',1)->get();
 
         // Get total purchases
         $totalPurchases = $purchases->sum('purchase'); // Assuming 'purchase' is the column name
@@ -46,6 +47,7 @@ class LpController extends Controller
         // Fetch total offers by province
         $provinceOffers = DB::table('offers')
             ->select('province_id', DB::raw('count(*) as total_offers'))
+            ->where('lp_id',$lp->id)
             ->groupBy('province_id')
             ->pluck('total_offers', 'province_id');
 
@@ -61,6 +63,7 @@ class LpController extends Controller
 
 
         $topRetailers = CleanSheet::select('retailer_id', DB::raw('COUNT(DISTINCT offer_id) as offer_count'))
+        ->where('lp_id',$lp->id)
         ->groupBy('retailer_id')
         ->orderByDesc('offer_count')
         ->take(5)
