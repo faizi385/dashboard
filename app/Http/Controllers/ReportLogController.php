@@ -12,6 +12,7 @@ class ReportLogController extends Controller
         // Fetch the report logs from the database
         $reportLogs = ReportLog::with('report.retailer', 'user')->latest()->get();
     
+        // dd($reportLogs);
         return view('reports.report_logs.index', compact('reportLogs'));
     }
  

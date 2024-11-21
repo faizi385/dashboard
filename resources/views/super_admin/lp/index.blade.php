@@ -35,7 +35,8 @@
                     <td>{{ $lp->name }}</td>
                     <td>{{ $lp->dba }}</td>
                     <td>{{ $lp->primary_contact_email }}</td>
-                    <td>{{ $lp->lp_addresses->province->name ?? 'N/A' }}</td>
+                    <td>{{ $lp->address->first()?->province->name ?? 'N/A' }}</td>
+
 
                     <td>{{ ucfirst($lp->status) }}</td>
                     <td class="text-center">

@@ -82,6 +82,7 @@ class ReportObserver
             'action' => $action,
             'description' => json_encode($description), // Store details as JSON
         ]);
+        // dd($report);
     }
 
     protected function mapFields(Report $report, array $fieldsMap)

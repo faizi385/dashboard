@@ -236,10 +236,10 @@ class ReportController extends Controller
             return redirect()->back()->with('error', 'A report has already been uploaded for this POS and province this month.');
         }
 
-        // Retrieve the lp_id associated with the retailer
-        $lpId = $retailer->lp_id ?? null; // Assuming `lp_id` is a field in the `retailers` table
+    
+        $lpId = $retailer->lp_id ?? null; 
 
-
+        // dd( $request);
         $report = Report::create([
             'retailer_id' => $retailerId,
             'location' => $locationString,
@@ -251,7 +251,7 @@ class ReportController extends Controller
             'submitted_by' => auth()->id(),
             'status' => 'Pending',
             'date' => now()->startOfMonth(),
-            'lp_id' => $lpId, // Store the lp_id in the report
+            'lp_id' => $lpId, 
         ]);
 
         $file1Path = null;
@@ -263,7 +263,7 @@ class ReportController extends Controller
                 $file2Path = $request->file('sales_summary_report')->storeAs('uploads', $request->file('sales_summary_report')->getClientOriginalName());
 
                 try {
-                    // Import diagnostic report and check for errors
+          
                     $diagnosticImport = new CovaDiagnosticReportImport($request->location, $report->id, $report->retailer_id, $report->lp_id);
                     Excel::import($diagnosticImport, $file1Path);
 
@@ -272,22 +272,21 @@ class ReportController extends Controller
                     }
 
                 } catch (\Exception $e) {
-                    // Catch any exceptions (including missing headers) and display the error
+    
                     return redirect()->back()->with('error', 'Diagnostic report errors: ' . $e->getMessage());
                 }
 
                 try {
-                    // Import sales summary report and check for errors
+           
                     $salesImport = new CovaSalesReportImport($request->location, $report->id, $diagnosticImport->getId());
                     Excel::import($salesImport, $file2Path);
 
-                    // Check for errors from sales summary import
                     if ($salesImport->getErrors()) {
                         return redirect()->back()->withErrors($salesImport->getErrors());
                     }
 
                 } catch (\Exception $e) {
-                    // Catch any exceptions (including missing headers) and display the error
+     
                     return redirect()->back()->with('error', 'Sales summary report errors: ' . $e->getMessage());
                 }
 
@@ -301,22 +300,22 @@ class ReportController extends Controller
                 $file2Path = $request->file('sales_summary_report')->storeAs('uploads', $request->file('sales_summary_report')->getClientOriginalName());
 
                 try {
-                    // Import Tendy diagnostic report and check for errors
+          
                     $diagnosticImport = new TendyDiagnosticReportImport($report->id, $request->location, $report->retailer_id, $report->lp_id);
                     Excel::import($diagnosticImport, $file1Path);
 
                 } catch (\Exception $e) {
-                    // Catch any exceptions (including missing headers) and display the error
+    
                     return redirect()->back()->with('error', 'Diagnostic report errors: ' . $e->getMessage());
                 }
 
                 try {
-                    // Import Tendy sales summary report and check for errors
+       
                     $salesSummaryImport = new TendySalesSummaryReportImport($request->location, $report->id);
                     Excel::import($salesSummaryImport, $file2Path);
 
                 } catch (\Exception $e) {
-                    // Catch any exceptions (including missing headers) and display the error
+
                     return redirect()->back()->with('error', 'Sales summary report errors: ' . $e->getMessage());
                 }
 
@@ -325,31 +324,30 @@ class ReportController extends Controller
             }
 
         }elseif ($request->pos === 'global') {
-            // Check for both diagnostic and sales summary report files
+   
             if ($request->hasFile('diagnostic_report') && $request->hasFile('sales_summary_report')) {
                 $file1Path = $request->file('diagnostic_report')->storeAs('uploads', $request->file('diagnostic_report')->getClientOriginalName());
                 $file2Path = $request->file('sales_summary_report')->storeAs('uploads', $request->file('sales_summary_report')->getClientOriginalName());
 
                 try {
-                    // Import Global Till diagnostic report and check for errors
+  
                     $diagnosticImport = new GlobalTillDiagnosticReportImport($request->location, $report->id ,$report->retailer_id, $report->lp_id);
                     Excel::import($diagnosticImport, $file1Path);
 
-                    // Get the ID of the imported diagnostic report
                     $diagnosticReportId = $diagnosticImport->getId();
 
                 } catch (\Exception $e) {
-                    // Catch any exceptions (including missing headers) and display the error
+          
                     return redirect()->back()->with('error', 'Diagnostic report errors: ' . $e->getMessage());
                 }
 
                 try {
-                    // Import Global Till sales summary report and include diagnostic report ID
+      
                     $salesImport = new GlobalTillSalesSummaryReportImport($request->location, $report->id, $diagnosticReportId);
                     Excel::import($salesImport, $file2Path);
 
                 } catch (\Exception $e) {
-                    // Catch any exceptions (including missing headers) and display the error
+           
                     return redirect()->back()->with('error', 'Sales summary report errors: ' . $e->getMessage());
                 }
 
@@ -528,6 +526,7 @@ class ReportController extends Controller
         } catch (\Exception $e) {
             DB::rollBack(); // Rollback the transaction in case of an error
             return redirect()->back()->with('error', $e->getMessage());
+            // dd($e);
         }
     }
 }
