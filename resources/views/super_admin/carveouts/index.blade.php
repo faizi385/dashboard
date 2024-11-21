@@ -8,10 +8,11 @@
     <div class="d-flex justify-content-between mb-4">
         <h3 class="text-white">Carveout List</h3>
         <div>
+            @if(auth()->user()->hasRole('LP'))
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCarveoutModal">
                 Add Carveout
             </button>
-
+@endif
             <a href="{{ url()->previous() }}" class="btn btn-primary">
                 <i class="fas fa-arrow-left"></i> Back
             </a>

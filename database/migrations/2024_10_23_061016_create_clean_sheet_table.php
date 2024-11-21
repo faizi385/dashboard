@@ -21,7 +21,7 @@ class CreateCleanSheetTable extends Migration
             $table->string('location')->nullable(); // Make nullable
             $table->unsignedBigInteger('province_id')->index(); // Added index
             $table->string('province_slug')->nullable(); // Make nullable
-            $table->string('sku')->index(); // Added index
+            $table->string('sku')->nullable()->index(); // Added index
             $table->string('product_name')->nullable()->index(); // Make nullable
             $table->string('category')->nullable(); // Make nullable
             $table->string('brand')->nullable(); // Make nullable

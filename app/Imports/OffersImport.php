@@ -160,17 +160,20 @@ class OffersImport implements ToModel, WithHeadingRow
                 'unit_cost' => $data['unit_cost'],
             ]);
         } else {
-            $existingProduct->update([
+            $product = $existingProduct; // Use the existing product
+            $product->update([
                 'province_id' => $data['province_id'], // Update province ID if necessary
             ]);
         }
     
+        // Check if the product variation exists based on provincial_sku and gtin
         $existingVariation = \App\Models\ProductVariation::where('provincial_sku', $data['provincial_sku'])
                                     ->where('gtin', $data['gtin'])
                                     ->first();
     
         if ($existingVariation) {
             if ($existingVariation->province !== $data['province']) {
+                // Create a new variation if the province is different
                 \App\Models\ProductVariation::create([
                     'product_name' => $data['product_name'],
                     'provincial_sku' => $data['provincial_sku'],
@@ -186,11 +189,13 @@ class OffersImport implements ToModel, WithHeadingRow
                     'comment' => $data['comment'],
                     'product_link' => $data['product_link'],
                     'price_per_unit' => $data['unit_cost'],
+                    'product_id' => $product->id, // Link to the product
                 ]);
             }
             return;
         }
     
+        // Create a new product variation and link it to the product_id
         \App\Models\ProductVariation::create([
             'product_name' => $data['product_name'],
             'provincial_sku' => $data['provincial_sku'],
@@ -206,6 +211,7 @@ class OffersImport implements ToModel, WithHeadingRow
             'comment' => $data['comment'],
             'product_link' => $data['product_link'],
             'price_per_unit' => $data['unit_cost'],
+            'product_id' => $product->id, // Link to the product
         ]);
     }
     

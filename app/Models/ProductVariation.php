@@ -26,7 +26,8 @@ class ProductVariation extends Model
         'comment',
         'product_link',
         'price_per_unit',
-        'province_id'
+        'province_id',
+        'product_id'
     ];
 
     // Define relationship to LP model

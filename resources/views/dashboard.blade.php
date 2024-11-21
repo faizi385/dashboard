@@ -11,7 +11,7 @@
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-success">
                     <div class="inner">
-                        <h3>{{ number_format($totalPayoutWithTaxAllRetailers, 2) }}</sup></h3>
+                        <h3>{{ number_format(round($totalPayoutWithTaxAllRetailers), 2) }}</h3>
                         <p>Total Payout (With Tax)</p>
                     </div>
                     <div class="icon">
@@ -24,7 +24,7 @@
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-warning">
                     <div class="inner">
-                        <h3 class="text-white">{{ number_format($totalIrccDollarAllRetailers, 2) }}</h3>
+                        <h3 class="text-white">{{ number_format(round($totalIrccDollarAllRetailers), 2) }}</h3>
                         <p class="text-white">Overall Revenue</p>
                     </div>
                     <div class="icon">
@@ -84,7 +84,15 @@
                 </div>
             </section>
         </div>
-
+        <div class="row">
+            <!-- Third Graph -->
+            <div class="col-lg-6 mt-4">
+                <div class="chart-container">
+                    <div id="third-chart"></div>
+                </div>
+            </div>
+        </div>
+        
        
     </div>
 </section>
@@ -94,7 +102,11 @@
         padding: 10px;
         border-radius: 8px;
         box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-        min-height: 350px;
+        min-height: 350px;       
+    }
+    .small-box>.inner {
+        height: 20vh;
+        padding: 10px;
     }
 </style>
 <!-- Include Chart.js and ApexCharts -->
@@ -102,83 +114,153 @@
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script> 
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const currentMonth = new Date().toLocaleString('default', { month: 'short' });
+document.addEventListener("DOMContentLoaded", function () {
+    const currentMonth = new Date().toLocaleString('default', { month: 'short' });
 
-        // ApexCharts Config
-        const apexOptions = {
-            series: [
-                {
-                    name: 'Payout (Without Tax)',
-                    data: [{{ $totalPayoutAllRetailers }}]
-                },
-                {
-                    name: 'Payout (With Tax)',
-                    data: [{{ $totalPayoutWithTaxAllRetailers }}]
-                }
-            ],
-            chart: {
-                type: 'bar',
-                height: 350
+    // Static data for September and October
+    const staticData = {
+        payoutWithoutTax: {
+            September: 65,  // Static value for September
+            October: 86,    // Static value for October
+        },
+        payoutWithTax: {
+            September: 78,  // Static value for September (with tax)
+            October: 98,    // Static value for October (with tax)
+        }
+    };
+
+    // Dynamic data (from backend)
+    const dynamicPayoutWithoutTax = Math.round({{ $totalPayoutAllRetailers }});  // Dynamic value for current month
+    const dynamicPayoutWithTax = Math.round({{ $totalPayoutWithTaxAllRetailers }});  // Dynamic value for current month
+
+    // ApexCharts Config for First Chart (with static and dynamic data)
+    const apexOptions = {
+        series: [
+            {
+                name: 'Payout (Without Tax)',
+                data: [
+                    staticData.payoutWithoutTax.September,  // Static value for September
+                    staticData.payoutWithoutTax.October,    // Static value for October
+                    dynamicPayoutWithoutTax                 // Current month dynamic value
+                ]
             },
-            xaxis: {
-                categories: [currentMonth]
-            },
-            yaxis: {
-                title: {
-                    text: '$ (thousands)'
-                }
-            },
-            tooltip: {
-                y: {
-                    formatter: val => "$ " + val.toFixed(2)
-                }
+            {
+                name: 'Payout (With Tax)',
+                data: [
+                    staticData.payoutWithTax.September,  // Static value for September
+                    staticData.payoutWithTax.October,    // Static value for October
+                    dynamicPayoutWithTax                 // Current month dynamic value
+                ]
             }
-        };
-
-        // Render Apex Chart
-        new ApexCharts(document.querySelector("#chart"), apexOptions).render();
-
-        // Province-Wise Purchase Cost Chart
-        const provinceData = {
-            Alberta: {{ $totalPurchaseCostByProvince['Alberta'] ?? 0 }},
-            Ontario: {{ $totalPurchaseCostByProvince['Ontario'] ?? 0 }},
-            "British Columbia": {{ $totalPurchaseCostByProvince['British Columbia'] ?? 0 }},
-            Manitoba: {{ $totalPurchaseCostByProvince['Manitoba'] ?? 0 }},
-            Saskatchewan: {{ $totalPurchaseCostByProvince['Saskatchewan'] ?? 0 }}
-        };
-
-        const provinceLabels = Object.keys(provinceData);
-        const provincePurchaseCosts = Object.values(provinceData);
-
-        new Chart(document.getElementById('province-purchase-cost-chart').getContext('2d'), {
+        ],
+        chart: {
             type: 'bar',
-            data: {
-                labels: provinceLabels,
-                datasets: [{
-                    label: 'Purchase Cost by Province',
-                    data: provincePurchaseCosts,
-                    backgroundColor: ['#FF6347', '#3b8bba', '#FFD700', '#32CD32', '#8A2BE2'],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: { beginAtZero: true }
+            height: 350
+        },
+        xaxis: {
+            categories: ['Sep', 'Oct', currentMonth]  // Include September, October, and current month labels
+        },
+        yaxis: {
+            title: {
+                text: '$ (thousands)'
+            }
+        },
+        tooltip: {
+            y: {
+                formatter: val => "$ " + val.toFixed(2)  // Round to 2 decimal places in tooltip
+            }
+        }
+    };
+
+    // Render Apex Chart
+    new ApexCharts(document.querySelector("#chart"), apexOptions).render();
+
+
+
+
+    // Province-Wise Purchase Cost Chart
+    const provinceData = {
+        Alberta: {{ $totalPurchaseCostByProvince['Alberta'] ?? 0 }},
+        Ontario: {{ $totalPurchaseCostByProvince['Ontario'] ?? 0 }},
+        "British Columbia": {{ $totalPurchaseCostByProvince['British Columbia'] ?? 0 }},
+        Manitoba: {{ $totalPurchaseCostByProvince['Manitoba'] ?? 0 }},
+        Saskatchewan: {{ $totalPurchaseCostByProvince['Saskatchewan'] ?? 0 }}
+    };
+
+    // Round the province-wise purchase costs
+    const provincePurchaseCosts = Object.values(provinceData).map(value => Math.round(value));
+
+    const provinceLabels = Object.keys(provinceData);
+
+    new Chart(document.getElementById('province-purchase-cost-chart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: provinceLabels,
+            datasets: [{
+                label: 'Purchase Cost by Province',
+                data: provincePurchaseCosts,  // Rounded values
+                backgroundColor: ['#FF6347', '#3b8bba', '#FFD700', '#32CD32', '#8A2BE2'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+
+    // Top 5 Products Chart (Third Chart)
+    const topProducts = @json($topProducts); // Pass the top products array from PHP to JavaScript
+    const productSKUs = topProducts.map(product => product.sku);
+    const productPurchases = topProducts.map(product => Math.round(product.total_purchases));  // Round purchase totals
+
+    const thirdChartOptions = {
+        series: [{
+            name: 'Total Purchases',
+            data: productPurchases  // Rounded values
+        }],
+        chart: {
+            type: 'bar',
+            height: 350
+        },
+        plotOptions: {
+            bar: {
+                borderRadius: 4,
+                borderRadiusApplication: 'end',
+                horizontal: true,
+            }
+        },
+        dataLabels: {
+            enabled: false
+        },
+        xaxis: {
+            categories: productSKUs, // Use SKUs as categories
+            labels: {
+                style: {
+                    fontWeight: 'bold' // Bold the SKUs in the x-axis
                 }
             }
-        });
-    });
+        },
+        yaxis: {
+            title: {
+                text: 'Purchases'
+            }
+        },
+        tooltip: {
+            y: {
+                formatter: val => val.toFixed(2) + " units"  // Round to 2 decimal places in tooltip
+            }
+        }
+    };
+
+    new ApexCharts(document.querySelector("#third-chart"), thirdChartOptions).render();
+});
+
+
+
+
 </script>
-
-
-<style>
-    .small-box>.inner {
-        height: 20vh;
-        padding: 10px;
-    }
-</style>
-
 @endsection
