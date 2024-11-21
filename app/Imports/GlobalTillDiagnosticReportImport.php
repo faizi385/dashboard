@@ -83,7 +83,7 @@ class GlobalTillDiagnosticReportImport implements ToModel, WithHeadingRow
             $this->hasCheckedHeaders = true; // Set the flag to prevent further checks
         }
 
-        if(!empty($row['store_sku']) || !empty($row['compliance_code']) || $row['product']){
+        if(!empty($row['supplier_sku']) || !empty($row['compliance_code']) || $row['product']){
             // Proceed with creating the model if headers are valid
             $diagnosticReport = new GlobalTillDiagnosticReport([
                 'report_id' => $this->reportId,
