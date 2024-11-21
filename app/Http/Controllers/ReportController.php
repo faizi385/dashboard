@@ -243,6 +243,7 @@ class ReportController extends Controller
             RetailerStatement::where('report_id', $report->id)->delete();
 
             $report->delete();
+
             DB::commit();
             return redirect()->back()->with('success', 'Report deleted successfully');
         }

@@ -32,7 +32,7 @@ trait BarnetIntegration
             Log::warning('Retailer ID not found for report:', ['report_id' => $report->id]);
         }
         $sku = $barnetReport->product_sku;
-        $gtin = $barnetReport->barcode;
+        $gtin = '';
         $productName = $barnetReport->description;
         $provinceId = $report->province_id;
         $provinceName = $report->province;
@@ -98,7 +98,7 @@ trait BarnetIntegration
             $cleanSheetData['product_variation_id'] = $product->id;
             $cleanSheetData['dqi_per'] = 0.00;
             $cleanSheetData['dqi_fee'] = 0.00;
-            $offer = $this->DQISummaryFlag($report,$barnetReport->sku,$barnetReport->barcode,$barnetReport->name,$provinceName,$provinceSlug,$provinceId,$lpId);
+            $offer = $this->DQISummaryFlag($report,$sku,'',$productName,$provinceName,$provinceSlug,$provinceId,$lpId);
             if (!empty($offer)) {
                 $cleanSheetData['offer_id'] = $offer->id;
                 if((int) $cleanSheetData['purchase'] > 0){
@@ -134,8 +134,6 @@ trait BarnetIntegration
             $offer = null;
             if (!empty($sku)) {
                 $offer = $this->matchOfferSku($report->date,$sku,$provinceName,$provinceSlug,$provinceId,$report->retailer_id,$lpId);
-            } if (!empty($gtin) && empty($offer)) {
-                $offer = $this->matchOfferBarcode($report->date,$gtin,$provinceName,$provinceSlug,$provinceId,$report->retailer_id,$lpId);
             } if (!empty($productName) && empty($offer)) {
                 $offer = $this->matchOfferProductName($report->date,$productName,$provinceName,$provinceSlug,$provinceId,$report->retailer_id,$lpId);
             }
