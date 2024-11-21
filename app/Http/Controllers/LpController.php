@@ -351,35 +351,53 @@ class LpController extends Controller
 
     public function update(Request $request, Lp $lp)
     {
+        // Define custom validation messages
+        $customMessages = [
+            'address.*.address.required' => 'Address is required',  // Custom message for address field
+            'address.*.province.required' => 'Province is required',  // Custom message for province field
+            'address.*.city.required' => 'City is required',  // Custom message for city field
+        ];
+    
+        // Validate the incoming request data with custom messages
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
-            'dba' => 'required|string|max:255',
+            'primary_contact' => 'required|string|max:20',
             'primary_contact_email' => 'required|email|max:255',
-            'primary_contact_phone' => 'required|string|max:20',
-            'primary_contact_position' => 'required|string|max:255',
-            'password' => 'nullable|string|min:8',
-        ]);
-
-        // Update LP record
+            'primary_contact_position' => 'nullable|string|max:255',
+    
+            // Address validation with correct structure
+            'address.*.address' => 'required|string|max:255',  // Ensure each address is provided
+            'address.*.province' => 'required|exists:provinces,id',  // Validate province_id exists
+            'address.*.city' => 'required|string|max:100',  // Ensure city is provided
+        ], $customMessages); // Pass custom validation messages
+    
+        // Update LP record with validated data
         $lp->update([
             'name' => $validatedData['name'],
-            'dba' => $validatedData['dba'],
+            'primary_contact' => $validatedData['primary_contact'],
             'primary_contact_email' => $validatedData['primary_contact_email'],
-            'primary_contact_phone' => $validatedData['primary_contact_phone'] ?? null,
             'primary_contact_position' => $validatedData['primary_contact_position'] ?? null,
         ]);
-
-        // Update user password if provided
-        if (!empty($validatedData['password'])) {
-            $user = User::where('email', $lp->primary_contact_email)->first();
-            if ($user) {
-                $user->password = Hash::make($validatedData['password']);
-                $user->save();
+    
+        // Update address information (if necessary)
+        if (isset($request->address)) {
+            foreach ($request->address as $index => $addressData) {
+                // Update the address in the database for the LP
+                $lp->address[$index]->update([
+                    'address' => $addressData['address'],  // Store the address text
+                    'province_id' => $addressData['province'],  // Store the province_id
+                    'city' => $addressData['city'],  // Store the city
+                ]);
             }
         }
-
+    
+        // Redirect to LP index
         return redirect()->route('lp.index')->with('toast_success', 'LP updated successfully.');
     }
+    
+    
+    
+
 
     public function destroy(Lp $lp)
     {
