@@ -3,7 +3,7 @@
 @section('content')
 <div class="container p-2">
     <h1 class="text-white text-center mb-4">Supplier Dashboard</h1>
-    
+
     <div class="row gy-4 gx-5"> <!-- gy-4 adds vertical spacing, gx-5 adds horizontal spacing -->
         <!-- First Chart Container -->
         <div class="col-lg-6">
@@ -11,7 +11,7 @@
                 <div id="chart1"></div>
             </div>
         </div>
-        
+
         <!-- Second Chart Container -->
         <div class="col-lg-6">
             <div class="chart-container">
@@ -27,7 +27,7 @@
                 <div id="chart3"></div>
             </div>
         </div>
-        
+
         <!-- Fourth Chart Container -->
         <div class="col-lg-6">
             <div class="chart-container">
@@ -53,7 +53,7 @@
 
 <script>
     var displayDates = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    var rawDates = @json($purchases->pluck('date'));
+    var rawDates = @json($purchases->pluck('reconciliation_date'));
     var rawPurchases = @json($purchases->pluck('purchase'));
     var monthlyPurchases = {};
 
@@ -114,9 +114,9 @@
     var chart3 = new ApexCharts(document.querySelector("#chart3"), options3);
     chart3.render();
 
-    
-    var retailerNames = @json(  $retailerNames); 
-    var retailerOfferCounts = @json($retailerOfferCounts); 
+
+    var retailerNames = @json(  $retailerNames);
+    var retailerOfferCounts = @json($retailerOfferCounts);
 
     var options4 = {
         series: [{
