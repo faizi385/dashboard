@@ -19,7 +19,7 @@ class OffersImport implements ToModel, WithHeadingRow
     protected $errors = [];
     protected $hasCheckedHeaders = false;
 
-  
+
     public function __construct($lpId, $source, $lpName)
     {
         $this->lpId = $lpId;
@@ -27,12 +27,12 @@ class OffersImport implements ToModel, WithHeadingRow
         $this->lpName = $lpName;
     }
 
-   
+
     public function model(array $row)
     {
         $requiredHeaders = [
-            'gtin_unit', 'product', 
-            'offer_start', 'provincial_sku', 'province', 'data_fee', 
+            'gtin_unit', 'product',
+            'offer_start', 'provincial_sku', 'province', 'data_fee',
             'category', 'brand', 'thc_range', 'cbd_range'
         ];
 
@@ -87,7 +87,7 @@ class OffersImport implements ToModel, WithHeadingRow
             'product_link' => $row['product_link'] ?? null,
             'lp_id' => $this->lpId,
             'lp_name' => $this->lpName, // Ensure lp_name is correctly assigned
-            'offer_date' => now()->startOfMonth(),
+            'offer_date' => now()->startOfMonth()->subMonth(),
             'retailer_id' => $row['retailer_id'] ?? null,
             'source' => $this->source,
         ]);
@@ -138,10 +138,10 @@ class OffersImport implements ToModel, WithHeadingRow
         return null;
     }
 
-    private function storeProduct($data) 
+    private function storeProduct($data)
     {
         $existingProduct = \App\Models\Product::where('gtin', $data['gtin'])->first();
-    
+
         if (!$existingProduct) {
             $product = Product::create([
                 'product_name' => $data['product_name'],
@@ -165,12 +165,12 @@ class OffersImport implements ToModel, WithHeadingRow
                 'province_id' => $data['province_id'], // Update province ID if necessary
             ]);
         }
-    
+
         // Check if the product variation exists based on provincial_sku and gtin
         $existingVariation = \App\Models\ProductVariation::where('provincial_sku', $data['provincial_sku'])
                                     ->where('gtin', $data['gtin'])
                                     ->first();
-    
+
         if ($existingVariation) {
             if ($existingVariation->province !== $data['province']) {
                 // Create a new variation if the province is different
@@ -194,7 +194,7 @@ class OffersImport implements ToModel, WithHeadingRow
             }
             return;
         }
-    
+
         // Create a new product variation and link it to the product_id
         \App\Models\ProductVariation::create([
             'product_name' => $data['product_name'],
@@ -214,5 +214,5 @@ class OffersImport implements ToModel, WithHeadingRow
             'product_id' => $product->id, // Link to the product
         ]);
     }
-    
+
 }

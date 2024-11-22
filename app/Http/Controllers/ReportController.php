@@ -83,7 +83,7 @@ class ReportController extends Controller
             $reports = Report::with('retailer')->get();
             $statements = RetailerStatement::where('flag',0)->where('reconciliation_date',now()->startOfMonth())->get();
         }
-        dd(     $statements ); 
+        dd(     $statements );
         // Initialize arrays for sums
         $retailerSumsByLocation = [];
         $totalPayoutWithoutTax = 0;
@@ -293,16 +293,16 @@ class ReportController extends Controller
         $existingReport = Report::where('retailer_id', $retailerId)
             ->where('pos', $request->pos)
             ->where('province', $province->name)
-            ->whereYear('date', now()->year)
-            ->whereMonth('date', now()->month)
+            ->whereYear('date', now()->startOfMonth()->subMonth()->year)
+            ->whereMonth('date', now()->startOfMonth()->subMonth()->month)
             ->first();
 
         if ($existingReport) {
             return redirect()->back()->with('error', 'A report has already been uploaded for this POS and province this month.');
         }
 
-    
-        $lpId = $retailer->lp_id ?? null; 
+
+        $lpId = $retailer->lp_id ?? null;
 
         // dd( $request,now()->startOfMonth());
         $report = Report::create([
@@ -315,8 +315,8 @@ class ReportController extends Controller
             'province_slug' => $province->slug,
             'submitted_by' => auth()->id(),
             'status' => 'Pending',
-            'date' => now()->startOfMonth(),
-            'lp_id' => $lpId, 
+            'date' => now()->startOfMonth()->subMonth(),
+            'lp_id' => $lpId,
         ]);
 
         $file1Path = null;
@@ -328,7 +328,7 @@ class ReportController extends Controller
                 $file2Path = $request->file('sales_summary_report')->storeAs('uploads', $request->file('sales_summary_report')->getClientOriginalName());
 
                 try {
-          
+
                     $diagnosticImport = new CovaDiagnosticReportImport($request->location, $report->id, $report->retailer_id, $report->lp_id);
                     Excel::import($diagnosticImport, $file1Path);
 
@@ -337,12 +337,12 @@ class ReportController extends Controller
                     }
 
                 } catch (\Exception $e) {
-    
+
                     return redirect()->back()->with('error', 'Diagnostic report errors: ' . $e->getMessage());
                 }
 
                 try {
-           
+
                     $salesImport = new CovaSalesReportImport($request->location, $report->id, $diagnosticImport->getId());
                     Excel::import($salesImport, $file2Path);
 
@@ -351,7 +351,7 @@ class ReportController extends Controller
                     }
 
                 } catch (\Exception $e) {
-     
+
                     return redirect()->back()->with('error', 'Sales summary report errors: ' . $e->getMessage());
                 }
 
@@ -365,17 +365,17 @@ class ReportController extends Controller
                 $file2Path = $request->file('sales_summary_report')->storeAs('uploads', $request->file('sales_summary_report')->getClientOriginalName());
 
                 try {
-          
+
                     $diagnosticImport = new TendyDiagnosticReportImport($report->id, $request->location, $report->retailer_id, $report->lp_id);
                     Excel::import($diagnosticImport, $file1Path);
 
                 } catch (\Exception $e) {
-    
+
                     return redirect()->back()->with('error', 'Diagnostic report errors: ' . $e->getMessage());
                 }
 
                 try {
-       
+
                     $salesSummaryImport = new TendySalesSummaryReportImport($request->location, $report->id);
                     Excel::import($salesSummaryImport, $file2Path);
 
@@ -389,30 +389,30 @@ class ReportController extends Controller
             }
 
         }elseif ($request->pos === 'global') {
-   
+
             if ($request->hasFile('diagnostic_report') && $request->hasFile('sales_summary_report')) {
                 $file1Path = $request->file('diagnostic_report')->storeAs('uploads', $request->file('diagnostic_report')->getClientOriginalName());
                 $file2Path = $request->file('sales_summary_report')->storeAs('uploads', $request->file('sales_summary_report')->getClientOriginalName());
 
                 try {
-  
+
                     $diagnosticImport = new GlobalTillDiagnosticReportImport($request->location, $report->id ,$report->retailer_id, $report->lp_id);
                     Excel::import($diagnosticImport, $file1Path);
 
                     $diagnosticReportId = $diagnosticImport->getId();
 
                 } catch (\Exception $e) {
-          
+
                     return redirect()->back()->with('error', 'Diagnostic report errors: ' . $e->getMessage());
                 }
 
                 try {
-      
+
                     $salesImport = new GlobalTillSalesSummaryReportImport($request->location, $report->id, $diagnosticReportId);
                     Excel::import($salesImport, $file2Path);
 
                 } catch (\Exception $e) {
-           
+
                     return redirect()->back()->with('error', 'Sales summary report errors: ' . $e->getMessage());
                 }
 
