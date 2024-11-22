@@ -145,7 +145,7 @@
                             </label>
                             <input id="primary_contact_phone" class="form-control" type="tel" name="primary_contact_phone" value="{{ old('primary_contact_phone') }}" required placeholder="Enter phone number" pattern="(\+1\s?)?\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{4}" />
                                 <div class="invalid-feedback">
-                                    Phone is required.
+                                    Phone no is required with only digits.
                                 </div>
                         </div>
                     </div>
