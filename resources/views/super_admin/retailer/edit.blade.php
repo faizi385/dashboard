@@ -100,11 +100,21 @@
                     <div class="form-row">
                         <div class="col-md-6 form-group">
                             <label for="province_{{ $index }}"><i class="fas fa-map-marker-alt"></i> Province <span class="text-danger">*</span></label>
-                            <input type="text" name="address[{{ $index }}][province]" id="province_{{ $index }}" class="form-control @error('address.' . $index . '.province') is-invalid @enderror" value="{{ old('address.' . $index . '.province', $address->province) }}">
+                            <select name="address[{{ $index }}][province]" id="province_{{ $index }}"
+                                    class="form-control @error('address.' . $index . '.province') is-invalid @enderror">
+                                <option value="">Select Province</option>
+                                @foreach($provinces as $province)
+                                    <option value="{{ $province->id }}"
+                                            {{ old('address.' . $index . '.province', $address->province_id) == $province->id ? 'selected' : '' }}>
+                                        {{ $province->name }}
+                                    </option>
+                                @endforeach
+                            </select>
                             @error('address.' . $index . '.province')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+                        
                         <div class="col-md-6 form-group">
                             <label for="city_{{ $index }}"><i class="fas fa-city"></i> City <span class="text-danger">*</span></label>
                             <input type="text" name="address[{{ $index }}][city]" id="city_{{ $index }}" class="form-control @error('address.' . $index . '.city') is-invalid @enderror" value="{{ old('address.' . $index . '.city', $address->city) }}">

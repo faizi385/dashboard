@@ -27,7 +27,7 @@
                     </div>
                     <div class="col-md-6 form-group">
                         <label for="primary_contact"><i class="fas fa-phone"></i> Primary Contact <span class="text-danger">*</span></label>
-                        <input type="text" name="primary_contact" id="primary_contact" class="form-control @error('primary_contact') is-invalid @enderror" value="{{ old('primary_contact', $lp->primary_contact) }}">
+                        <input type="text" name="primary_contact" id="primary_contact" class="form-control @error('primary_contact') is-invalid @enderror" value="{{ old('primary_contact', $lp->primary_contact_phone) }}">
                         @error('primary_contact')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -76,11 +76,21 @@
 
                                 <div class="col-md-6 form-group">
                                     <label for="province_{{ $index }}"><i class="fas fa-map-marker-alt"></i> Province <span class="text-danger">*</span></label>
-                                    <input type="text" name="address[{{ $index }}][province]" id="province_{{ $index }}" class="form-control @error('address.' . $index . '.province') is-invalid @enderror" value="{{ old('address.' . $index . '.province', $address->province_id) }}">
+                                    <select name="address[{{ $index }}][province]" id="province_{{ $index }}" 
+                                            class="form-control @error('address.' . $index . '.province') is-invalid @enderror">
+                                        <option value="">Select Province</option>
+                                        @foreach($provinces as $province)
+                                            <option value="{{ $province->id }}" 
+                                                    {{ old('address.' . $index . '.province', $address->province_id) == $province->id ? 'selected' : '' }}>
+                                                {{ $province->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                     @error('address.' . $index . '.province')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
+                                
                             </div>
                             <div class="form-row">
                             

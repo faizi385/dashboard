@@ -11,9 +11,11 @@
     <div class="d-flex justify-content-between mb-4">
         <h3 class="text-white">Products Family</h3>
         <div>
+            @if(isset($lp)) 
             <a href="{{ url()->previous() }}" class="btn btn-primary">
                 <i class="fas fa-arrow-left"></i> Back
             </a>
+            @endif
         </div>
     </div>
 

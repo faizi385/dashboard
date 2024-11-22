@@ -16,9 +16,11 @@
                     <i class="fas fa-upload"></i> Upload Offer
                 </button>
             @endif
+            @if(isset($lp))
             <a href="{{ url()->previous() }}" class="btn btn-primary">
                 <i class="fas fa-arrow-left"></i> Back
             </a>
+            @endif
         </div>
     </div>
     

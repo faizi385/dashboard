@@ -278,7 +278,8 @@ class RetailerController extends Controller
     {
         $lps = Lp::all();
         $retailer = Retailer::with('address')->findOrFail($id);
-        return view('super_admin.retailer.edit', compact('retailer','lps'));
+        $provinces = Province::all();   
+        return view('super_admin.retailer.edit', compact('retailer','lps', 'provinces'));
     }
     public function update(Request $request, $id) 
     {

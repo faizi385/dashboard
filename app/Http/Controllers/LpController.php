@@ -346,7 +346,8 @@ class LpController extends Controller
 
     public function edit(Lp $lp)
     {
-        return view('super_admin.lp.edit', compact('lp'));
+        $provinces = Province::all(); 
+        return view('super_admin.lp.edit', compact('lp', 'provinces'));
     }
 
     public function update(Request $request, Lp $lp)
