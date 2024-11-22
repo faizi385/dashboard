@@ -11,11 +11,11 @@
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-success">
                     <div class="inner">
-                        <h3>{{ number_format(round($totalPayoutWithTaxAllRetailers), 2) }}</h3>
+                        <h3> ${{ number_format(round($totalPayoutWithTaxAllRetailers), 2) }}</h3>
                         <p>Total Payout (With Tax)</p>
                     </div>
                     <div class="icon">
-                        <i class="ion ion-stats-bars"></i>
+                        <i class=""></i>
                     </div>
                 </div>
             </div>
@@ -24,11 +24,11 @@
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-warning">
                     <div class="inner">
-                        <h3 class="text-white">{{ number_format(round($totalIrccDollarAllRetailers), 2) }}</h3>
+                        <h3 class="text-white">${{ number_format(round($totalIrccDollarAllRetailers), 2) }}</h3>
                         <p class="text-white">Overall Revenue</p>
                     </div>
                     <div class="icon">
-                        <i class="ion ion-person-add"></i>
+                        <i class=""></i>
                     </div>
                 </div>
             </div>
@@ -41,7 +41,7 @@
                         <p>Availed Deals</p>
                     </div>
                     <div class="icon">
-                        <i class="ion ion-map"></i>
+                        <i class=""></i>
                     </div>
                 </div>
             </div>
@@ -54,7 +54,7 @@
                         <p>Unavailed Deals</p>
                     </div>
                     <div class="icon">
-                        <i class="ion ion-android-close"></i>
+                        <i class=""></i>
                     </div>
                 </div>
             </div>
@@ -68,14 +68,17 @@
                     <div id="chart"></div>
                 </div>
             </div>
-            <!-- Province-Wise Purchase Cost Chart -->
+          
+
             <section class="col-lg-6 connectedSortable mt-4 ">
                 <div class="card">
+                
                     <div class="card-header">
-                        <h3 class="card-title">
-                            <i class="fas fa-chart-bar mr-1"></i> Province-Wise Purchase Cost
+                        <h3 style="font-weight: 600;" class="card-title ">
+                            <i  class=" "></i> Province-Wise Purchase Cost
                         </h3>
                     </div>
+                
                     <div class="card-body">
                         <div class="chart" style="position: relative; height: 300px;">
                             <canvas id="province-purchase-cost-chart" height="300"></canvas>
@@ -83,6 +86,7 @@
                     </div>
                 </div>
             </section>
+           
         </div>
         <div class="row">
             <!-- Third Graph -->
@@ -120,12 +124,12 @@ document.addEventListener("DOMContentLoaded", function () {
     // Static data for September and October
     const staticData = {
         payoutWithoutTax: {
-            September: 65,  // Static value for September
-            October: 86,    // Static value for October
+            September:  1065,  // Static value for September
+            October: 1186,    // Static value for October
         },
         payoutWithTax: {
-            September: 78,  // Static value for September (with tax)
-            October: 98,    // Static value for October (with tax)
+            September: 1190,  // Static value for September (with tax)
+            October: 1287,    // Static value for October (with tax)
         }
     };
 
@@ -158,16 +162,26 @@ document.addEventListener("DOMContentLoaded", function () {
             height: 350
         },
         xaxis: {
-            categories: ['Sep', 'Oct', currentMonth]  // Include September, October, and current month labels
+            categories: ['Aug', 'Sep', 'Oct']  // Include September, October, and current month labels
         },
+        title: {
+        text: 'Yearly Payouts 2024',
+       // Center the title
+        margin: 10,      // Optional: Adjust margin
+        style: {
+            fontSize: '18px',   // Customize font size
+            fontWeight: 'bold', // Customize font weight
+            color: '#333'       // Optional: Set color
+        }
+    },
         yaxis: {
             title: {
-                text: '$ (thousands)'
+                text: '$(Thousands)'
             }
         },
         tooltip: {
             y: {
-                formatter: val => "$ " + val.toFixed(2)  // Round to 2 decimal places in tooltip
+                formatter: val => "$" + val.toFixed(2)  // Round to 2 decimal places in tooltip
             }
         }
     };
@@ -197,7 +211,7 @@ document.addEventListener("DOMContentLoaded", function () {
         data: {
             labels: provinceLabels,
             datasets: [{
-                label: 'Purchase Cost by Province',
+                label: '',
                 data: provincePurchaseCosts,  // Rounded values
                 backgroundColor: ['#FF6347', '#3b8bba', '#FFD700', '#32CD32', '#8A2BE2'],
                 borderWidth: 1
@@ -206,6 +220,10 @@ document.addEventListener("DOMContentLoaded", function () {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            plugins:{
+            legend: {
+                display:false
+            }},
             scales: {
                 y: { beginAtZero: true }
             }
@@ -215,7 +233,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const topProducts = @json($topProducts); // Pass the top products array from PHP to JavaScript
 const productSKUs = topProducts.map(product => product.sku);
 const productPurchases = topProducts.map(product => Math.round(product.total_purchases));  // Round purchase totals
-
+console.log(productSKUs);
 const thirdChartOptions = {
     series: [{
         name: 'Total Purchases',
@@ -236,8 +254,8 @@ const thirdChartOptions = {
         enabled: false
     },
     title: {
-        text: 'Top 5 Products',
-        align: 'center', // Center the title
+        text: 'Top 5 Purchased Products October',
+       
         margin: 10,      // Optional: Adjust margin
         style: {
             fontSize: '18px',   // Customize font size
@@ -256,7 +274,7 @@ const thirdChartOptions = {
     },
     yaxis: {
         title: {
-            text: 'Units Sold' // Rename the y-axis title if necessary
+            text: 'SKUs' // Rename the y-axis title if necessary
         }
     },
     tooltip: {

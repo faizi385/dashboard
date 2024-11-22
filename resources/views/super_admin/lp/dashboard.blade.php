@@ -54,6 +54,7 @@
 <script>
     var displayDates = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     var rawDates = @json($purchases->pluck('reconciliation_date'));
+    var rawDates = @json(['2024-10-01']);
     var rawPurchases = @json($purchases->pluck('purchase'));
     var monthlyPurchases = {};
 
@@ -92,7 +93,7 @@
         plotOptions: { bar: { borderRadius: 4, horizontal: true } },
         dataLabels: { enabled: false },
         xaxis: { categories: provinceLabels },
-        title: { text: 'Purchases by Province', align: 'left' }
+        title: { text: 'Purchases by Province - October', align: 'left' }
     };
     var chart2 = new ApexCharts(document.querySelector("#chart2"), options2);
     chart2.render();
@@ -109,7 +110,7 @@
         dataLabels: { enabled: false },
         legend: { show: false },
         xaxis: { categories: offerProvinceLabels, labels: { style: { colors: colors, fontSize: '12px' } } },
-        title: { text: 'Total Deals by Province', align: 'left' }
+        title: { text: 'Total Deals by Province - October', align: 'left' }
     };
     var chart3 = new ApexCharts(document.querySelector("#chart3"), options3);
     chart3.render();
@@ -128,13 +129,13 @@
             height: 350
         },
         plotOptions: {
-            bar: {
-                borderRadius: 10,
-                dataLabels: { position: 'top' }
-            }
+            // bar: {
+            //     borderRadius: 10,
+            //     // dataLabels: { position: 'center' }
+            // }
         },
         dataLabels: {
-            enabled: true,
+            enabled: false,
             formatter: function (val) {
                 return val + " Deals";
             },
@@ -146,14 +147,14 @@
         },
         xaxis: {
             categories: retailerNames,
-            position: 'top'
+            position: 'bottom'
         },
         yaxis: {
-            labels: { formatter: function (val) { return val + " deals"; } }
+            labels: { formatter: function (val) { return val + " Deals"; } }
         },
         title: {
-            text: 'Top 5 Distributor with Deals',
-            align: 'center'
+            text: 'Top 5 Distributor with Deals - October',
+           
         }
     };
 

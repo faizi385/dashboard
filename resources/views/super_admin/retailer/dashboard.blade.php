@@ -36,143 +36,150 @@
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+  document.addEventListener('DOMContentLoaded', function () {
     // First chart configuration (Total IRCC Revenue)
-// Convert IRCC Revenue data to thousands (k format)
-var totalIrccDollarAllRetailers = @json($totalIrccDollarAllRetailers) / 1000;
+    var totalIrccDollarAllRetailers = Math.round(@json($totalIrccDollarAllRetailers) / 1000);
 
-// Chart configuration (Total IRCC Revenue)
-var optionsChart1 = {
+    var optionsChart1 = {
+        series: [{
+            name: "Total Revenue",
+            data: [totalIrccDollarAllRetailers] // Rounded to nearest integer
+        }],
+        chart: {
+            height: 350,
+            type: 'line',
+            zoom: { enabled: false }
+        },
+        dataLabels: { enabled: false },
+        stroke: { curve: 'straight' },
+        title: { text: 'Total Revenue - October', align: 'left' },
+        grid: {
+            row: {
+                colors: ['#f3f3f3', 'transparent'],
+                opacity: 0.5
+            },
+        },
+        xaxis: { categories: ['Total'] },
+        yaxis: {
+            labels: {
+                formatter: function(value) {
+                    return Math.round(value) + "k"; // Rounded Y-axis in 'k' format
+                }
+            }
+        }
+    };
+
+    var chart1 = new ApexCharts(document.querySelector("#chart"), optionsChart1);
+    chart1.render();
+
+    // Second chart configuration (Total Purchases)
+    var totalPurchaseSum = Math.round(@json($totalPurchaseSum));
+    var optionsChart2 = {
+        series: [{
+            name: "Overall Purchases",
+            data: [totalPurchaseSum]
+        }],
+        chart: {
+            type: 'area',
+            height: 350,
+            zoom: { enabled: false }
+        },
+        dataLabels: { enabled: false },
+        stroke: { curve: 'smooth' },
+        title: { text: 'Overall Purchases - October', align: 'left' },
+        xaxis: { categories: ['Total'] },
+        yaxis: {
+            opposite: true,
+            labels: {
+                formatter: function(value) {
+                    return Math.round(value); // Rounded Y-axis values
+                }
+            }
+        },
+        legend: { horizontalAlign: 'left' }
+    };
+
+    var chart2 = new ApexCharts(document.querySelector("#chart1"), optionsChart2);
+    chart2.render();
+
+    // Third chart configuration: Total Purchase Cost by Province
+    var provinceData = @json($provinceData);  // Array of objects with province and total purchase
+    var provinces = provinceData.map(function(item) { return item.province; });
+    var purchases = provinceData.map(function(item) { return Math.round(item.total_purchase); });
+
+    var options = {
     series: [{
-        name: "IRCC Revenue",
-        data: [totalIrccDollarAllRetailers] // Displayed in 'k' format
+        name: 'Total Purchases',
+        data: purchases
     }],
     chart: {
         height: 350,
-        type: 'line',
-        zoom: { enabled: false }
+        type: 'bar',
     },
-    dataLabels: { enabled: false },
-    stroke: { curve: 'straight' },
-    title: { text: 'Total IRCC Revenue', align: 'left' },
-    grid: {
-        row: {
-            colors: ['#f3f3f3', 'transparent'],
-            opacity: 0.5
+    plotOptions: {
+        bar: {
+            borderRadius: 10,
+            dataLabels: {
+                position: 'top', // Position at the top of the bars
+            },
+        }
+    },
+    dataLabels: {
+        enabled: true,
+        formatter: function (val) {
+            return '$' + Math.round(val); // Rounded values as currency
         },
+        offsetY: -20,
+        style: {
+            fontSize: '12px',
+            colors: ["#304758"]
+        }
     },
-    xaxis: { categories: ['Total'] },
-    yaxis: {
-        labels: {
-            formatter: function(value) {
-                return value + "k"; // Y-axis in 'k' format
+    xaxis: {
+        categories: provinces,  // Provinces dynamically on the X-axis
+        position: 'bottom',
+        axisBorder: { show: false },
+        axisTicks: { show: false },
+        crosshairs: {
+            fill: {
+                type: 'gradient',
+                gradient: {
+                    colorFrom: '#D8E3F0',
+                    colorTo: '#BED1E6',
+                    stops: [0, 100],
+                    opacityFrom: 0.4,
+                    opacityTo: 0.5,
+                }
             }
+        },
+        tooltip: { enabled: true },
+    },
+    yaxis: {
+        axisBorder: { show: false },
+        axisTicks: { show: false },
+        labels: {
+            show: true,
+            formatter: function (val) {
+                return '$' + Math.round(val); // Rounded Y-axis values as currency
+            }
+        }
+    },
+    title: {
+        text: 'Total Purchase Cost by Province - October',
+        floating: false,
+        offsetY: 15, // Adjust this value to add more space below the title
+        style: {
+            fontSize: '16px',
+            color: '#444'
         }
     }
 };
 
-var chart1 = new ApexCharts(document.querySelector("#chart"), optionsChart1);
-chart1.render();
+var chart = new ApexCharts(document.querySelector("#chart2"), options);
+chart.render();
 
+});
 
-        // Second chart configuration (Total Purchases)
-        var totalPurchaseSum = @json($totalPurchaseSum);
-        var optionsChart2 = {
-            series: [{
-                name: "Overall Purchases",
-                data: [totalPurchaseSum]
-            }],
-            chart: {
-                type: 'area',
-                height: 350,
-                zoom: { enabled: false }
-            },
-            dataLabels: { enabled: false },
-            stroke: { curve: 'smooth' },
-            title: { text: 'Overall Purchases', align: 'left' },
-            xaxis: { categories: ['Total'] },
-            yaxis: { opposite: true },
-            legend: { horizontalAlign: 'left' }
-        };
-        var chart2 = new ApexCharts(document.querySelector("#chart1"), optionsChart2);
-        chart2.render();
-
-        // Third chart configuration: Total Purchase Cost by Province
-        var provinceData = @json($provinceData);  // Array of objects with province and total purchase
-        var provinces = provinceData.map(function(item) { return item.province; });
-        var purchases = provinceData.map(function(item) { return item.total_purchase; });
-
-        var options = {
-            series: [{
-                name: 'Total Purchases',
-                data: purchases
-            }],
-            chart: {
-                height: 350,
-                type: 'bar',
-            },
-            plotOptions: {
-                bar: {
-                    borderRadius: 10,
-                    dataLabels: {
-                        position: 'top', // Position at the top of the bars
-                    },
-                }
-            },
-            dataLabels: {
-                enabled: true,
-                formatter: function (val) {
-                    return '$' + val.toFixed(2);  // Format the value as currency
-                },
-                offsetY: -20,
-                style: {
-                    fontSize: '12px',
-                    colors: ["#304758"]
-                }
-            },
-            xaxis: {
-                categories: provinces,  // Provinces dynamically on the X-axis
-                position: 'top',
-                axisBorder: { show: false },
-                axisTicks: { show: false },
-                crosshairs: {
-                    fill: {
-                        type: 'gradient',
-                        gradient: {
-                            colorFrom: '#D8E3F0',
-                            colorTo: '#BED1E6',
-                            stops: [0, 100],
-                            opacityFrom: 0.4,
-                            opacityTo: 0.5,
-                        }
-                    }
-                },
-                tooltip: { enabled: true },
-            },
-            yaxis: {
-                axisBorder: { show: false },
-                axisTicks: { show: false },
-                labels: {
-                    show: true,
-                    formatter: function (val) {
-                        return '$' + val.toFixed(2);  // Format the value as currency
-                    }
-                }
-            },
-            title: {
-                text: 'Total Purchase Cost by Location',
-                floating: true,
-                offsetY: 330,
-                align: 'center',
-                style: {
-                    color: '#444'
-                }
-            }
-        };
-
-        var chart = new ApexCharts(document.querySelector("#chart2"), options);
-        chart.render();
-    });
 </script>
 
 @endsection
