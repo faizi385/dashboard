@@ -156,10 +156,10 @@ public function destroy($id)
     {
         // Base validation rules for common fields
         $rules = [
-            'product_name' => 'required|string|max:255|regex:/^[^\d]*$/', // Ensure no integers
+            'product_name' => 'required|string|max:255', // Ensure no integers
             'provincial_sku' => 'required|string|max:255',
              'gtin' => 'required|digits_between:1,13', // Accepts only numeric characters with a length between 1 and 255
-            'province' => 'required|string|max:255|regex:/^[^\d]*$/', // Ensure no integers
+            'province' => 'required', // Ensure no integers
             'general_data_fee' => 'required|numeric|min:0',
             'exclusive_data_fee' => 'nullable|numeric|min:0', // Keep as nullable
             'unit_cost' => 'required|numeric',

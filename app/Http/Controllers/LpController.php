@@ -28,55 +28,59 @@ class LpController extends Controller
 
     public function dashboard()
     {
-        $lp = Lp::where('user_id',Auth::user()->id)->first();
+        $lp = Lp::where('user_id', Auth::user()->id)->first();
+    
         // Fetch all purchase data
-        $purchases = CleanSheet::where('lp_id',$lp->id)->where('dqi_flag',1)->get();
-
+        $purchases = CleanSheet::where('lp_id', $lp->id)->where('dqi_flag', 1)->get();
+    
         // Get total purchases
         $totalPurchases = $purchases->sum('purchase'); // Assuming 'purchase' is the column name
-
+    
         // Group by province and sum the purchases for each province
         $provincePurchases = $purchases->groupBy('province')->map(function ($items) {
             return $items->sum('purchase');
         });
-
+    
         // Get the province names and corresponding purchase totals
         $provinces = $provincePurchases->keys()->toArray(); // Province names
         $purchaseData = $provincePurchases->values()->toArray(); // Total purchases for each province
-
+    
         // Fetch total offers by province
         $provinceOffers = DB::table('offers')
             ->select('province_id', DB::raw('count(*) as total_offers'))
-            ->where('lp_id',$lp->id)
+            ->where('lp_id', $lp->id)
             ->groupBy('province_id')
             ->pluck('total_offers', 'province_id');
-
+    
         // Get province names for offers chart
         $offerProvinces = DB::table('provinces')
             ->whereIn('id', array_keys($provinceOffers->toArray()))
             ->pluck('name', 'id')
             ->toArray();
-
+    
         // Convert province IDs to names and total offers for use in chart
         $offerProvinceLabels = array_values($offerProvinces); // Province names for offers
         $offerData = array_values($provinceOffers->toArray()); // Total offers for each province
-
-
+    
         $topRetailers = CleanSheet::select('retailer_id', DB::raw('COUNT(DISTINCT offer_id) as offer_count'))
-        ->where('lp_id',$lp->id)
-        ->groupBy('retailer_id')
-        ->orderByDesc('offer_count')
-        ->take(5)
-        ->get();
-
+            ->where('lp_id', $lp->id)
+            ->groupBy('retailer_id')
+            ->orderByDesc('offer_count')
+            ->take(5)
+            ->get();
+    
         // Fetch retailer names by retrieving each retailer's first and last name based on the `retailer_id`
         $retailerNames = $topRetailers->map(function ($item) {
-        $retailer = Retailer::select('first_name', 'last_name')->find($item->retailer_id);
-        return $retailer ? $retailer->first_name . ' ' . $retailer->last_name : 'Unknown';
+            $retailer = Retailer::select('first_name', 'last_name')->find($item->retailer_id);
+            return $retailer ? $retailer->first_name . ' ' . $retailer->last_name : 'Unknown';
         })->toArray();
-
+    
         $retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
-
+    
+        // Fetch total number of distributors
+        $totalDistributors = Retailer::where('lp_id', $lp->id)->count(); // Assuming Distributor model and lp_id relationship
+        $totalCarevouts = DB::table('carveouts')->where('lp_id', $lp->id)->count(); 
+        $totalReportsSubmitted = DB::table('reports')->where('lp_id', $lp->id)->count();
         // Return the data to the view
         return view('super_admin.lp.dashboard', compact(
             'purchases',
@@ -86,10 +90,13 @@ class LpController extends Controller
             'offerProvinceLabels',
             'offerData',
             'retailerNames',
-            'retailerOfferCounts'
+            'retailerOfferCounts',
+            'totalDistributors',
+            'totalCarevouts',
+            'totalReportsSubmitted' // Pass this to the view
         ));
     }
-
+    
 
     public function exportLpStatement($lp_id,$date)
     {

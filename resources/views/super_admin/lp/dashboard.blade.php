@@ -21,40 +21,43 @@
         <div class="col-lg-3 col-6">
             <div class="small-box bg-dark">
                 <div class="inner">
-                    <h3 class="text-white text-center"></h3>
+                    <h3 class="text-white text-center">{{ $totalDistributors }}</h3>
                     <p class="text-white text-center">Total Distributors</p>
                 </div>
                 <div class="icon">
-                    <i class=""></i>
+                    <i class=""></i> <!-- Use an appropriate FontAwesome icon -->
                 </div>
             </div>
         </div>
+        
 
         <!-- Availed Deals -->
         <div class="col-lg-3 col-6">
             <div class="small-box bg-primary">
                 <div class="inner">
-                    {{-- <h3 class="text-center">{{ $totalMappedOffers }}</h3> --}}
-                    <p class="text-center">Availed Deals</p>
+                    <h3 class="text-center">{{ $totalCarevouts }}</h3>
+                    <p class="text-center">Total Carevouts</p>
                 </div>
                 <div class="icon">
-                    <i class=""></i>
+                    <i class=""></i> <!-- Use an appropriate FontAwesome icon -->
                 </div>
             </div>
         </div>
+        
 
         <!-- Unavailed Deals -->
         <div class="col-lg-3 col-6">
             <div class="small-box bg-secondary">
                 <div class="inner">
-                    {{-- <h3 class="text-center">{{ $totalUnmappedOffers }}</h3> --}}
-                    <p class="text-center">Unavailed Deals</p>
+                    <h3 class="text-center">{{ $totalReportsSubmitted }}</h3>
+                    <p class="text-center">Total Reports Submitted</p>
                 </div>
                 <div class="icon">
-                    <i class=""></i>
+                    <i class=""></i> <!-- Use an appropriate FontAwesome icon -->
                 </div>
             </div>
         </div>
+        
     </div>
     <div class="row gy-4 gx-5"> <!-- gy-4 adds vertical spacing, gx-5 adds horizontal spacing -->
         <!-- First Chart Container -->
