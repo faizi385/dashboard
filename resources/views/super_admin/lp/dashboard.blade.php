@@ -21,8 +21,8 @@
         <div class="col-lg-3 col-6">
             <div class="small-box bg-dark">
                 <div class="inner">
-                    {{-- <h3 class="text-white text-center">${{ number_format(round($totalIrccDollarAllRetailers), 2) }}</h3> --}}
-                    <p class="text-white text-center">Overall Revenue</p>
+                    <h3 class="text-white text-center"></h3>
+                    <p class="text-white text-center">Total Distributors</p>
                 </div>
                 <div class="icon">
                     <i class=""></i>

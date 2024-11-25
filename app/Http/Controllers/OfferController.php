@@ -7,6 +7,7 @@ use App\Models\Offer;
 use App\Models\Product;
 use App\Models\Province;
 use App\Models\Retailer;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Exports\OffersExport;
 use App\Imports\OffersImport;
@@ -19,7 +20,7 @@ class OfferController extends Controller
     // Get the currently authenticated user
     $user = auth()->user();
     $lps = Lp::all(); // Get all LPs for super admin view
-    $fromLpShow = $request->get('from_lp_show', false); 
+    $fromLpShow = $request->get('from_lp_show', false);
     // Check if the user is an LP
     if ($user->hasRole('LP')) {
         // Get the LP ID associated with the logged-in user
@@ -51,7 +52,7 @@ class OfferController extends Controller
 public function edit($id)
 {
     $offer = Offer::findOrFail($id);
-    
+
     // Fetch all retailers from the database
     $retailers = Retailer::all(); // Replace `Retailer` with the correct model for your retailers
 
@@ -124,15 +125,15 @@ public function destroy($id)
         // Handle Offer Imports
         if ($request->hasFile('offerExcel')) {
             $filePath = $request->file('offerExcel')->store('uploads');
-    
+
             try {
                 // Import Offers and check for errors
                 $import = new OffersImport($selectedMonth, $lpId, $source, $lpName);
                 Excel::import($import, $filePath);
-    
+
                 // Check for any import errors (if the OffersImport tracks errors)
                 $importErrors = $import->getErrors(); // Retrieve any header or data errors
-                
+
                 if (!empty($importErrors)) {
                     // If there are errors, show them in a single message
                     $errorMessage = implode(', ', $importErrors);
@@ -145,7 +146,7 @@ public function destroy($id)
         } else {
             return redirect()->back()->withErrors('The offer file is required.');
         }
-    
+
         // Redirect back with a success message if no errors were found
         return redirect()->back()->with('toast_success', 'Offers imported successfully for the selected LP!');
     }
@@ -176,26 +177,26 @@ public function destroy($id)
             'comment' => 'nullable|string|max:255',
             'source' => 'required|integer', // Add validation for source
         ];
-    
+
         // Add conditional validation for the first checkbox (Add Exclusive Offer)
         if ($request->has('exclusive_offer') && $request->exclusive_offer) {
             $rules['exclusive_data_fee'] = 'required|numeric|min:0'; // Required only when this checkbox is checked
             $rules['retailer_ids'] = 'required|array';
             $rules['retailer_ids.*'] = 'exists:retailers,id';
         }
-    
+
         // Add conditional validation for the second checkbox (Make Exclusive to Specific Retailers)
         if ($request->has('makeExclusiveOfferCheckbox') && $request->makeExclusiveOfferCheckbox) {
             $rules['exclusive_retailer_ids'] = 'required|array';
             $rules['exclusive_retailer_ids.*'] = 'exists:retailers,id';
         }
-    
+
         // Validate the request with conditional rules
         $validatedData = $request->validate($rules);
-    
+
         // Store the product in the products table
         $this->storeProduct($validatedData);
-    
+
         // Handle retailer-specific exclusive offer (Second Checkbox)
         if ($request->has('makeExclusiveOfferCheckbox') && $request->makeExclusiveOfferCheckbox) {
             foreach ($request->exclusive_retailer_ids as $retailerId) {
@@ -203,16 +204,16 @@ public function destroy($id)
                 $exclusiveOfferData['source'] = $request->source; // Include source
                 Offer::create($exclusiveOfferData);
             }
-    
+
             return redirect()->route('offers.create')->with('success', 'Exclusive offers for specific retailers added successfully.');
         }
-    
+
         // Handle general and exclusive offers (First Checkbox)
         if ($request->has('exclusive_offer') && $request->exclusive_offer) {
             $generalOfferData = $this->prepareOfferData($request, null, $request->general_data_fee);
             $generalOfferData['source'] = $request->source; // Include source
             Offer::create($generalOfferData);
-    
+
             // Create exclusive offers for selected retailers
             if (isset($request->retailer_ids)) {
                 foreach ($request->retailer_ids as $retailerId) {
@@ -221,18 +222,18 @@ public function destroy($id)
                     Offer::create($exclusiveOfferData);
                 }
             }
-    
+
             return redirect()->route('offers.create')->with('success', 'General and exclusive offers added successfully.');
         }
-    
+
         // Default case: Create general offer
         $generalOfferData = $this->prepareOfferData($request, null, $request->general_data_fee);
         $generalOfferData['source'] = $request->source; // Include source
         Offer::create($generalOfferData);
-    
+
         return redirect()->route('offers.create')->with('success', 'General offer added successfully.');
     }
-    
+
     /**
      * Prepare offer data for general or exclusive offers
      *
@@ -242,7 +243,7 @@ public function destroy($id)
      * @return array
      */
     private function prepareOfferData($request, $retailerId = null, $dataFee = null)
-    {  $lpName = LP::find($request->lp_id)->name; 
+    {  $lpName = LP::find($request->lp_id)->name;
         return [
             'product_name' => $request->product_name,
             'provincial_sku' => $request->provincial_sku,
@@ -261,17 +262,18 @@ public function destroy($id)
             'product_link' => $request->product_link,
             'lp_id' => $request->lp_id,
             'lp_name' => $lpName,
-            'offer_date' => $request->offer_date,
-            'data_fee' => $dataFee, 
-            'retailer_id' => $retailerId, 
+//            'offer_date' => $request->offer_date,
+            'offer_date' => Carbon::parse($request->offer_date)->startOfMonth()->subMonth(),
+            'data_fee' => $dataFee,
+            'retailer_id' => $retailerId,
         ];
     }
 
-    private function storeProduct($data) 
+    private function storeProduct($data)
     {
         // Check if a product with the same GTIN exists in the product family
         $existingProduct = \App\Models\Product::where('gtin', $data['gtin'])->first();
-    
+
         // If GTIN doesn't match, create a new product in the product family
         if (!$existingProduct) {
             $product = Product::create([
@@ -293,12 +295,12 @@ public function destroy($id)
             // If GTIN matches, set $product to the existing product
             $product = $existingProduct;
         }
-    
+
         // Check if a product variation with the same SKU exists
         $existingVariation = \App\Models\ProductVariation::where('provincial_sku', $data['provincial_sku'])
                                     ->where('gtin', $data['gtin'])
                                     ->first();
-    
+
         // If an existing variation is found
         if ($existingVariation) {
             // If province is different, create a new variation
@@ -322,7 +324,7 @@ public function destroy($id)
             }
             return; // SKU exists, no need to create a new product variation
         }
-    
+
         // If SKU does not exist, create the product variation
         \App\Models\ProductVariation::create([
             'product_name' => $data['product_name'],
@@ -341,7 +343,7 @@ public function destroy($id)
             // Add any additional fields as needed
         ]);
     }
-    
+
 
 
 }
