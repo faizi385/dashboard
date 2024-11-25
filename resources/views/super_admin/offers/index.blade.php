@@ -109,18 +109,39 @@
                     <div>
                         <form action="{{ route('offers.import') }}" method="POST" enctype="multipart/form-data">
                             @csrf
-                            <input type="hidden" name="lp_id" value="{{ $lp->id ?? null}}"> <!-- Hidden LP ID -->
+                            <input type="hidden" name="lp_id" value="{{ $lp->id }}"> <!-- Hidden LP ID -->
                             <input type="hidden" name="source" value="1"> <!-- Source for bulk upload -->
 
                             <!-- Display LP Name instead of Dropdown -->
                             <div class="mb-3">
                                 <label class="form-label">Supplier</label>
-                                <p><strong>{{ $lp->name ?? null  }} ({{ $lp->dba ?? null }})</strong></p>
+                                <p><strong>{{ $lp->name }} ({{ $lp->dba }})</strong></p>
                             </div>
 
+                            <!-- Radio buttons for Current Month and Previous Month -->
+                         
+
+                            <!-- File Upload Section -->
                             <div class="mb-3">
                                 <label for="offerExcel" class="form-label">Upload Bulk Deals (Excel)</label>
-                                <input type="file" class="form-control" id="offerExcel" name="offerExcel" accept=".xlsx, .xls, .csv" >
+                                <input type="file" class="form-control" id="offerExcel" name="offerExcel" accept=".xlsx, .xls, .csv">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Select Month</label>
+                                <div class="d-flex">
+                                    <div class="form-check me-3">
+                                        <input class="form-check-input" type="radio" name="month" id="currentMonth" value="current" checked>
+                                        <label class="form-check-label" for="currentMonth">
+                                            Current Month
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="month" id="nextMonth" value="next">
+                                        <label class="form-check-label" for="nextMonth">
+                                            Next Month
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-upload"></i> Upload Excel
@@ -130,7 +151,7 @@
 
                     <!-- Single Offer Add Option -->
                     <div>
-                        <a href="{{ route('offers.create', ['lp_id' => $lp->id ?? null]) }}" class="btn btn-primary">
+                        <a href="{{ route('offers.create', ['lp_id' => $lp->id]) }}" class="btn btn-primary">
                             <i class="fas fa-plus-circle"></i> Add Single Deal
                         </a>
                     </div>
