@@ -113,22 +113,18 @@ class LpController extends Controller
     }
     
 
-    public function exportLpStatement($lp_id,$date)
+   public function exportLpStatement($lp_id,$date)
     {
         set_time_limit(900);
-        $date = '2024-10-01';
-
+        $date = Carbon::parse($date)->startofMonth()->format('Y-m-d');
         $lp = Lp::where('id', $lp_id)->with('user')->first();
-
         $sortedCollection = $this->generateLpStatement($lp_id, $date);
         $lpName = $lp->name ?? 'LP_Name';
         $formattedDate = Carbon::parse($date)->format('M-Y') ?? 'Date';
-
         return Excel::download(
             new LpStatementExport(true, $sortedCollection),
             str_replace(' ', '_', trim($lpName)) . '-' . $formattedDate . '-Statement.xlsx'
         );
-
     }
 
     public function viewStatement($lp_id)
