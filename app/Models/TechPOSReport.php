@@ -26,7 +26,7 @@ class TechPOSReport extends Model
         'quantitylosttheftunits', 'quantitylosttheftcost', 'quantitylosttheftvalue',
         'returnstodistributorunits', 'returnstodistributorcost', 'returnstodistributorvalue',
         'otherreductionsunits', 'otherreductionscost', 'otherreductionsvalue',
-        'closinginventoryunits', 'closinginventorycost', 'closinginventoryvalue', 'report_id','status',  'retailer_id','lp_id'
+        'closinginventoryunits', 'closinginventorycost', 'closinginventoryvalue', 'report_id','status',  'retailer_id','lp_id',  'date'
     ];
     // Define any relationships if needed
     public function report()

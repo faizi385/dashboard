@@ -23,7 +23,8 @@ class GreenlineReport extends Model
       'status',  
         'report_id', 
         'retailer_id', 
-        'lp_id',// Include report_id in the fillable fields
+        'lp_id',
+        'date'
     ];
     public function report()
     {

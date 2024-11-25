@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use App\Models\Report;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToModel;
 use App\Models\GlobalTillDiagnosticReport;
@@ -80,7 +81,8 @@ class GlobalTillSalesSummaryReportImport implements ToModel, WithHeadingRow
             }
         }
 
-        // Find the corresponding diagnostic report
+        $report = Report::find($this->reportId);
+        $reportDate = $report ? $report->date : null;
         $gobatellDiagnosticReport = GlobalTillDiagnosticReport::where('supplier_sku', $row['supplier_sku'])
             ->where('report_id', $this->reportId)
             ->first();
@@ -118,7 +120,8 @@ class GlobalTillSalesSummaryReportImport implements ToModel, WithHeadingRow
                             'closing_inventory_value' => $this->cleanNumericValue($row['closing_inventory_value']),
                             'report_id' => $this->reportId,
                             'location' => $this->location,
-                            'gb_diagnostic_report_id' =>    $gobatellDiagnosticReport->id// Adding gb_diagnostic_report_id
+                            'gb_diagnostic_report_id' =>    $gobatellDiagnosticReport->id,// Adding gb_diagnostic_report_id
+                            'date' => $reportDate, // Store the date from the report
                         ]);
                     }
                 }

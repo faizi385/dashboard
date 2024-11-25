@@ -1,10 +1,11 @@
 <?php
 namespace App\Imports;
 
+use App\Models\Report;
 use App\Models\TechPOSReport;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Illuminate\Support\Facades\Log;
 
 class TechPOSReportImport implements ToModel, WithHeadingRow
 {
@@ -57,9 +58,13 @@ class TechPOSReportImport implements ToModel, WithHeadingRow
             // Throw an exception with a formatted error message
             throw new \Exception('Missing headers: ' . implode(', ', $formattedHeaders));
         }
+            
+        $report = Report::find($this->reportId);
 
+        // Check if the report exists and retrieve the date
+        $reportDate = $report ? $report->date : null;
         if(!empty($row['sku']) || !empty($row['productname'])) {
-            // If no headers are missing, proceed with creating the model
+
             return new TechPOSReport([
                 // 'branchname' => $row['branchname'],
                 'sku' => $row['sku'],
@@ -111,6 +116,7 @@ class TechPOSReportImport implements ToModel, WithHeadingRow
                 'location' => $this->location,
                 'retailer_id' => $this->retailerId, // Include retailer ID
                 'lp_id' => $this->lpId,
+                'date' => $reportDate,
             ]);
         }
     }

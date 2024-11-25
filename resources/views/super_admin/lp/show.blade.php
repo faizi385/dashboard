@@ -42,7 +42,7 @@
         <div class="card-body">
             <h6 class="card-subtitle mb-2 text-muted">General Information</h6>
             <p><strong>Supplier Name:</strong> {{ $lp->name }}</p>
-            <p><strong>DBA:</strong> {{ $lp->dba }}</p>
+            <p><strong>Organization Name:</strong> {{ $lp->dba }}</p>
             <p><strong>Primary Contact Email:</strong> {{ $lp->primary_contact_email }}</p>
             <p><strong>Primary Contact Phone:</strong> {{ $lp->primary_contact_phone }}</p>
             <p><strong>Primary Contact Position:</strong> {{ $lp->primary_contact_position }}</p>
@@ -90,9 +90,30 @@
                                 <p><strong>{{ $lp->name }} ({{ $lp->dba }})</strong></p>
                             </div>
 
+                            <!-- Radio buttons for Current Month and Previous Month -->
+                         
+
+                            <!-- File Upload Section -->
                             <div class="mb-3">
                                 <label for="offerExcel" class="form-label">Upload Bulk Deals (Excel)</label>
-                                <input type="file" class="form-control" id="offerExcel" name="offerExcel" accept=".xlsx, .xls, .csv" >
+                                <input type="file" class="form-control" id="offerExcel" name="offerExcel" accept=".xlsx, .xls, .csv">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Select Month</label>
+                                <div class="d-flex">
+                                    <div class="form-check me-3">
+                                        <input class="form-check-input" type="radio" name="month" id="currentMonth" value="current" checked>
+                                        <label class="form-check-label" for="currentMonth">
+                                            Current Month
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="month" id="nextMonth" value="next">
+                                        <label class="form-check-label" for="nextMonth">
+                                            Next Month
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-upload"></i> Upload Excel

@@ -11,8 +11,8 @@
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-success">
                     <div class="inner">
-                        <h3> ${{ number_format(round($totalPayoutWithTaxAllRetailers), 2) }}</h3>
-                        <p>Total Payout (With Tax)</p>
+                        <h3 class="text-center"> ${{ number_format(round($totalPayoutWithTaxAllRetailers), 2) }}</h3>
+                        <p class="text-center">Total Payout (With Tax)</p>
                     </div>
                     <div class="icon">
                         <i class=""></i>
@@ -22,10 +22,10 @@
             
             <!-- Overall Revenue -->
             <div class="col-lg-3 col-6">
-                <div class="small-box bg-warning">
+                <div class="small-box bg-dark">
                     <div class="inner">
-                        <h3 class="text-white">${{ number_format(round($totalIrccDollarAllRetailers), 2) }}</h3>
-                        <p class="text-white">Overall Revenue</p>
+                        <h3 class="text-white text-center">${{ number_format(round($totalIrccDollarAllRetailers), 2) }}</h3>
+                        <p class="text-white text-center">Overall Revenue</p>
                     </div>
                     <div class="icon">
                         <i class=""></i>
@@ -37,8 +37,8 @@
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-primary">
                     <div class="inner">
-                        <h3>{{ $totalMappedOffers }}</h3>
-                        <p>Availed Deals</p>
+                        <h3 class="text-center">{{ $totalMappedOffers }}</h3>
+                        <p class="text-center">Availed Deals</p>
                     </div>
                     <div class="icon">
                         <i class=""></i>
@@ -50,8 +50,8 @@
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-secondary">
                     <div class="inner">
-                        <h3>{{ $totalUnmappedOffers }}</h3>
-                        <p>Unavailed Deals</p>
+                        <h3 class="text-center">{{ $totalUnmappedOffers }}</h3>
+                        <p class="text-center">Unavailed Deals</p>
                     </div>
                     <div class="icon">
                         <i class=""></i>
@@ -231,13 +231,17 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     const topProducts = @json($topProducts); // Pass the top products array from PHP to JavaScript
-const productSKUs = topProducts.map(product => product.sku);
+
+// Extract product names and total purchases from the data
+const productNames = topProducts.map(product => product.product_name); // Extract product names
 const productPurchases = topProducts.map(product => Math.round(product.total_purchases));  // Round purchase totals
-console.log(productSKUs);
+
+console.log(productNames); // For debugging, ensure product names are correct
+
 const thirdChartOptions = {
     series: [{
         name: 'Total Purchases',
-        data: productPurchases  // Rounded values
+        data: productPurchases // Rounded values
     }],
     chart: {
         type: 'bar',
@@ -251,40 +255,56 @@ const thirdChartOptions = {
         }
     },
     dataLabels: {
-        enabled: false
+        enabled: true,
+        style: {
+            fontSize: '12px',
+            fontWeight: 'bold',
+            colors: ['#fff']
+        },
+        formatter: function(val) {
+            return val + " units";
+        },
+        dropShadow: {
+            enabled: true,
+            top: 2,
+            left: 2,
+            blur: 3,
+            opacity: 0.5
+        }
     },
     title: {
         text: 'Top 5 Purchased Products October',
-       
-        margin: 10,      // Optional: Adjust margin
+        margin: 10,
         style: {
-            fontSize: '18px',   // Customize font size
-            fontWeight: 'bold', // Customize font weight
-            color: '#333'       // Optional: Set color
+            fontSize: '18px',
+            fontWeight: 'bold',
+            color: '#333'
         }
     },
     xaxis: {
-        categories: productSKUs, // Use SKUs as categories
-        // categories: ['Vape', 'Gum', '11144', '55544', '88888'],
+        categories: productNames, // Use product names instead of SKUs
         labels: {
             style: {
-                fontWeight: 'bold' // Bold the SKUs in the x-axis
+                fontWeight: 'bold'
             }
         }
     },
     yaxis: {
         title: {
-            text: 'SKUs' // Rename the y-axis title if necessary
+            text: 'Products' // Rename Y-axis title if necessary
         }
     },
     tooltip: {
         y: {
-            formatter: val => val + " units"  // Show units in tooltip
+            formatter: val => val + " units"
         }
     }
 };
 
+// Render the chart
 new ApexCharts(document.querySelector("#third-chart"), thirdChartOptions).render();
+
+
 
 });
 

@@ -3,6 +3,59 @@
 @section('content')
 <div class="container p-2">
     <h1 class="text-white text-center mb-4">Distributor Dashboard</h1>
+    <div class="row">
+        <!-- Total Payout (With Tax) -->
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-success">
+                <div class="inner">
+                    {{-- <h3 class="text-center"> ${{ number_format(round($totalPayoutWithTaxAllRetailers), 2) }}</h3> --}}
+                    <p class="text-center">Total Payout (With Tax)</p>
+                </div>
+                <div class="icon">
+                    <i class=""></i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Overall Revenue -->
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-dark">
+                <div class="inner">
+                    {{-- <h3 class="text-white text-center">${{ number_format(round($totalIrccDollarAllRetailers), 2) }}</h3> --}}
+                    <p class="text-white text-center">Overall Revenue</p>
+                </div>
+                <div class="icon">
+                    <i class=""></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Availed Deals -->
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-primary">
+                <div class="inner">
+                    {{-- <h3 class="text-center">{{ $totalMappedOffers }}</h3> --}}
+                    <p class="text-center">Availed Deals</p>
+                </div>
+                <div class="icon">
+                    <i class=""></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Unavailed Deals -->
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-secondary">
+                <div class="inner">
+                    {{-- <h3 class="text-center">{{ $totalUnmappedOffers }}</h3> --}}
+                    <p class="text-center">Unavailed Deals</p>
+                </div>
+                <div class="icon">
+                    <i class=""></i>
+                </div>
+            </div>
+        </div>
+    </div>
     
     <div class="row">
         <div class="col-lg-6">
@@ -30,6 +83,10 @@
         border-radius: 8px;
         box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
         min-height: 350px;
+    }
+    .small-box>.inner {
+        height: 20vh;
+        padding: 10px;
     }
 </style>
 

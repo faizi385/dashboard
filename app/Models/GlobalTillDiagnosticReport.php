@@ -33,6 +33,7 @@ class GlobalTillDiagnosticReport extends Model
         'status',  
         'retailer_id',
         'lp_id',
+          'date'
     ];
 
     public function report()

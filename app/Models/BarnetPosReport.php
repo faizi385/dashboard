@@ -20,7 +20,7 @@ class BarnetPosReport extends Model
         'inventory_adjustment_units', 'inventory_adjustment_value', 
         'destroyed_units', 'destroyed_value', 
         'closing_inventory_units', 'closing_inventory_value', 
-        'min_stock', 'low_inv', 'report_id','status',  'retailer_id','lp_id',
+        'min_stock', 'low_inv', 'report_id','status',  'retailer_id','lp_id',  'date'
     ];
 
     public function report()

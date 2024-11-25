@@ -2,10 +2,11 @@
 
 namespace App\Imports;
 
+use App\Models\Report;
+use Illuminate\Support\Facades\Log;
 use App\Models\TendyDiagnosticReport;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Illuminate\Support\Facades\Log;
 
 class TendyDiagnosticReportImport implements ToModel, WithHeadingRow
 {
@@ -73,9 +74,13 @@ class TendyDiagnosticReportImport implements ToModel, WithHeadingRow
                 throw new \Exception('Missing header: ' . implode(', ', $formattedHeaders));
             }
         }
+        $report = Report::find($this->reportId);
 
+        // Check if the report exists and retrieve the date
+        $reportDate = $report ? $report->date : null;
         if(!empty($row['product_sku'])) {
-            // Proceed with creating the model if headers are valid
+           
+       
             return new TendyDiagnosticReport([
                 'report_id' => $this->reportId,
                 'location' => $this->location,
@@ -108,6 +113,7 @@ class TendyDiagnosticReportImport implements ToModel, WithHeadingRow
                 'closing_inventory_value' => $row['closing_inventory_value'] ?? null,
                 'retailer_id' => $this->retailerId, // Include retailer ID
                 'lp_id' => $this->lpId,
+                'date' => $reportDate, // Add report date to the model
             ]);
         }
     }

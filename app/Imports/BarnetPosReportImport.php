@@ -2,6 +2,7 @@
 namespace App\Imports;
 
 use App\Models\BarnetPosReport;
+use App\Models\Report; // Add this line to access the reports table
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Illuminate\Support\Facades\Log;
@@ -60,6 +61,10 @@ class BarnetPosReportImport implements ToModel, WithHeadingRow
             }
         }
 
+        // Get the date from the reports table
+        $report = Report::find($this->reportId);
+        $reportDate = $report ? $report->date : null; // Get the date from the report or set null if not found
+
         // Proceed with creating the model if headers are valid
         if(!empty($row['product_sku']) || $row['description']) {
             return new BarnetPosReport([
@@ -94,6 +99,7 @@ class BarnetPosReportImport implements ToModel, WithHeadingRow
                 'location' => $this->location,
                 'retailer_id' => $this->retailerId, // Include retailer ID
                 'lp_id' => $this->lpId,
+                'date' => $reportDate, // Store the date from the report
             ]);
         }
     }

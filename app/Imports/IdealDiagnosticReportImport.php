@@ -2,10 +2,11 @@
 
 namespace App\Imports;
 
+use App\Models\Report;
+use Illuminate\Support\Facades\Log;
 use App\Models\IdealDiagnosticReport;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Illuminate\Support\Facades\Log;
 
 class IdealDiagnosticReportImport implements ToModel, WithHeadingRow
 {
@@ -59,7 +60,8 @@ class IdealDiagnosticReportImport implements ToModel, WithHeadingRow
                 return null; // Stop processing this row
             }
         }
-
+        $report = Report::find($this->reportId);
+        $reportDate = $report ? $report->date : null; 
         if(!empty($row['sku']) || !empty($row['description'])) {
             // Create the diagnostic report and save it to the database
             $diagnosticReport = IdealDiagnosticReport::create([
@@ -77,6 +79,7 @@ class IdealDiagnosticReportImport implements ToModel, WithHeadingRow
                 'net_sales_ex' => $row['net_sales_ex'],
                 'retailer_id' => $this->retailerId, // Include retailer ID
                 'lp_id' => $this->lpId,
+                'date' => $reportDate, // Add report date to the model
             ]);
 
             // Store the ID of the last inserted diagnostic report

@@ -16,8 +16,8 @@
         <thead>
             <tr>
                 <th>Full Name</th>
-                <th>DBA</th>
-                <th> LP DBA</th> <!-- New Column for LP DBA -->
+                <th>Organization Name</th>
+                <th> Supplier Organization Name</th> <!-- New Column for LP DBA -->
                 <th>Phone</th>
                 <th>Email</th>
                 <th>Type</th> <!-- New Column -->
@@ -73,6 +73,8 @@
   $(document).ready(function() {
     $("#loader").fadeOut("slow");
     $('#retailersTable').DataTable({
+        scrollX: true,
+        autoWidth: false,
         "initComplete": function() {
         }
     });

@@ -25,6 +25,18 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="dba" class="form-label">
+                            <i class="fas fa-tag"></i> Organization Name <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" name="dba" id="dba" class="form-control @error('dba') is-invalid @enderror" placeholder="Enter Organization Name" value="{{ old('dba', $lp->dba ?? '') }}" >
+                        @error('dba')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                 
+                </div>
+                <div class="form-row">
                     <div class="col-md-6 form-group">
                         <label for="primary_contact"><i class="fas fa-phone"></i> Primary Contact <span class="text-danger">*</span></label>
                         <input type="text" name="primary_contact" id="primary_contact" class="form-control @error('primary_contact') is-invalid @enderror" value="{{ old('primary_contact', $lp->primary_contact_phone) }}">
@@ -32,8 +44,6 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
-                </div>
-                <div class="form-row">
                     <div class="col-md-6 form-group">
                         <label for="primary_contact_email"><i class="fas fa-envelope"></i> Contact Email <span class="text-danger">*</span></label>
                         <input type="email" name="primary_contact_email" id="primary_contact_email" class="form-control @error('primary_contact_email') is-invalid @enderror" value="{{ old('primary_contact_email', $lp->primary_contact_email) }}">
@@ -41,13 +51,14 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
-                    <div class="col-md-6 form-group">
-                        <label for="primary_contact_position"><i class="fas fa-briefcase"></i> Contact Position</label>
-                        <input type="text" name="primary_contact_position" id="primary_contact_position" class="form-control @error('primary_contact_position') is-invalid @enderror" value="{{ old('primary_contact_position', $lp->primary_contact_position) }}">
-                        @error('primary_contact_position')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
+                  
+                </div>
+                <div class="col-md-6 form-group">
+                    <label for="primary_contact_position"><i class="fas fa-briefcase"></i> Contact Position</label>
+                    <input type="text" name="primary_contact_position" id="primary_contact_position" class="form-control @error('primary_contact_position') is-invalid @enderror" value="{{ old('primary_contact_position', $lp->primary_contact_position) }}">
+                    @error('primary_contact_position')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
             </div>
         </div>

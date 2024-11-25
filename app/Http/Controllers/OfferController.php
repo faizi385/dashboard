@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Lp;
 use App\Models\Offer;
 use App\Models\Product;
+use App\Models\Province;
 use App\Models\Retailer;
 use Illuminate\Http\Request;
 use App\Exports\OffersExport;
@@ -90,11 +91,11 @@ public function destroy($id)
 {
     $lps = Lp::all(); // Fetch LPs
     $retailers = Retailer::all(); // Fetch Retailers
-
+    $provinces = Province::all();
     // Check if lp_id is passed through the request, if not set $lp as null
     $lp = $request->lp_id ? Lp::find($request->lp_id) : null;
 
-    return view('super_admin.offers.create', compact('lps', 'retailers', 'lp'));
+    return view('super_admin.offers.create', compact('lps', 'retailers', 'lp','provinces'));
 }
 
 
@@ -107,24 +108,26 @@ public function destroy($id)
     // Handle the bulk import of offers with LP selection
     public function import(Request $request)
     {
-        // Validate the uploaded file and LP selection
+        // Validate the uploaded file, LP selection, and selected month
         $request->validate([
             'offerExcel' => 'required|file|mimes:xlsx,xls,csv',
             'lp_id' => 'required|exists:lps,id', // Ensure the selected LP exists
             'source' => 'required|integer', // Ensure source is included
+            'month' => 'required|in:current,next', // Ensure a valid month is selected
         ]);
     
-   
         $lpId = $request->lp_id;
         $source = $request->source;
+        $selectedMonth = $request->month; // Capture the selected month
         $lpName = Lp::where('id', $lpId)->value('name');
+    
         // Handle Offer Imports
         if ($request->hasFile('offerExcel')) {
             $filePath = $request->file('offerExcel')->store('uploads');
     
             try {
                 // Import Offers and check for errors
-                $import = new OffersImport($lpId, $source,$lpName);
+                $import = new OffersImport($selectedMonth, $lpId, $source, $lpName);
                 Excel::import($import, $filePath);
     
                 // Check for any import errors (if the OffersImport tracks errors)
@@ -135,7 +138,6 @@ public function destroy($id)
                     $errorMessage = implode(', ', $importErrors);
                     return redirect()->back()->with('error', $errorMessage);
                 }
-    
             } catch (\Exception $e) {
                 // Catch exceptions (such as missing headers) and display an error message
                 return redirect()->back()->with('error', $e->getMessage());
@@ -147,6 +149,7 @@ public function destroy($id)
         // Redirect back with a success message if no errors were found
         return redirect()->back()->with('toast_success', 'Offers imported successfully for the selected LP!');
     }
+    
     
     public function store(Request $request)
     {

@@ -3,6 +3,7 @@
 namespace App\Imports;
 
 use App\Models\ProfitTechInventoryLog;
+use App\Models\Report;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Illuminate\Support\Facades\Log;
@@ -62,7 +63,14 @@ class ProfitTechInventoryLogImport implements ToModel, WithHeadingRow
             $this->hasCheckedHeaders = true;
         }
 
-        if(!empty($row['product_sku'])) {
+        $report = Report::find($this->reportId);
+
+        // Check if the report exists and retrieve the date
+        $reportDate = $report ? $report->date : null;
+        if (!empty($row['product_sku'])) {
+            // Fetch the report associated with the given report_id
+         
+
             // Proceed with creating the model if headers are valid
             return new ProfitTechInventoryLog([
                 'location' => $this->location,
@@ -96,6 +104,7 @@ class ProfitTechInventoryLogImport implements ToModel, WithHeadingRow
                 'closing_inventory_value' => $row['closing_inventory_value'] ?? null,
                 'retailer_id' => $this->retailerId, // Include retailer ID
                 'lp_id' => $this->lpId,
+                'date' => $reportDate, // Add the report date to the 'date' column
             ]);
         }
     }

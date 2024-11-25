@@ -14,8 +14,8 @@
                 <thead>
                     <tr>
                         <th>Province</th>
-                        <th>Distributor  DBA</th>
-                        <th>Supplier DBA</th>
+                        <th>Distributor  Organization Name</th>
+                        <th>Supplier Organization Name</th>
                         <th>Payout Without Tax</th>
                         <th>Payout With Tax</th>
                         <th class="text-center">Action</th>

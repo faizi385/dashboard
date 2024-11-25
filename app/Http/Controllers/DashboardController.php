@@ -31,11 +31,12 @@ class DashboardController extends Controller
         ];
     
         // Fetch top 5 products by purchases
-        $topProducts = RetailerStatement::select('sku', DB::raw('SUM(quantity) as total_purchases'))
-            ->groupBy('sku')
-            ->orderByDesc('total_purchases')
-            ->take(5)
-            ->get();
+        $topProducts = RetailerStatement::select('product_name', 'sku', DB::raw('SUM(quantity) as total_purchases'))
+        ->groupBy('product_name', 'sku')
+        ->orderByDesc('total_purchases')
+        ->take(5)
+        ->get();
+    
 
         // Check if the user is a retailer
         if ($user->hasRole('Retailer')) {

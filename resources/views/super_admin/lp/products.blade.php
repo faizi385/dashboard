@@ -27,7 +27,7 @@
             <table id="productsTable" class="table table-striped">
                 <thead>
                     <tr>
-                        <th>Supplier DBA</th>
+                        <th>Supplier Organization Name</th>
                         <th>Province</th>
                         <th>Product</th>
                         <th>Provincial SKU</th>

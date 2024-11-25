@@ -15,7 +15,7 @@
             <table id="lpStatementsTable" class="table table-hover table-bordered text-center align-middle">
                 <thead>
                     <tr>
-                        <th>Supplier DBA</th>
+                        <th>Supplier Organization Name</th>
                         <th>Name</th>
                         <th>Payout Without Tax</th>
                         <th>Payout With Tax</th>

@@ -2,11 +2,12 @@
 
 namespace App\Imports;
 
+use App\Models\Report;
+use Illuminate\Support\Facades\Log;
 use App\Models\TendyDiagnosticReport;
 use App\Models\TendySalesSummaryReport;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Illuminate\Support\Facades\Log;
 
 class TendySalesSummaryReportImport implements ToModel, WithHeadingRow
 {
@@ -62,12 +63,18 @@ class TendySalesSummaryReportImport implements ToModel, WithHeadingRow
                 throw new \Exception('Missing header: ' . implode(', ', $formattedHeaders));
             }
         }
+
+        $report = Report::find($this->reportId);
+
+        // Check if the report exists and retrieve the date
+        $reportDate = $report ? $report->date : null;
         $tendyDaignosticReport = TendyDiagnosticReport::where('product_sku', $row['sku'])->where('report_id', $this->reportId)->first();
         if($tendyDaignosticReport) {
             if (!empty(array_filter($row))) {
                 if ($row['product'] != null || $row['sku'] != null) {
                     if (($row['sku'] != '*')) {
-                        // Proceed with creating the model if headers are valid
+                    
+                      
                         return new TendySalesSummaryReport([
                             'category' => $row['category'] ?? null,
                             'compliance_type' => $row['compliance_type'] ?? null,
@@ -91,6 +98,7 @@ class TendySalesSummaryReportImport implements ToModel, WithHeadingRow
                             'report_id' => $this->reportId,
                             'location' => $this->location,
                             'diagnostic_report_id' => $tendyDaignosticReport->id ?? null,
+                            'date' => $reportDate, // Add report date to the model
                         ]);
                     }
                 }

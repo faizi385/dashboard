@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use App\Models\Report;
 use App\Models\CovaSalesReport;
 use Illuminate\Support\Facades\Log;
 use App\Models\CovaDiagnosticReport;
@@ -73,7 +74,9 @@ class CovaSalesReportImport implements ToModel, WithHeadingRow
             // Set the flag to prevent further header checks
             $this->hasCheckedHeaders = true;
         }
-
+        $report = Report::find($this->reportId);
+        $reportDate = $report ? $report->date : null;
+        
         $product = $row['product_name'] ?? $row['product'] ?? null;
         $covaDiagnosticReport = CovaDiagnosticReport::where('product_name', $product)
             ->where('report_id', $this->reportId)
@@ -114,6 +117,7 @@ class CovaSalesReportImport implements ToModel, WithHeadingRow
                         'supplier_skus' => $row['supplier_skus'] ?? null,
                         'total_tax' => $row['total_tax'] ?? null,
                         'hst_13' => $row['hst_13'] ?? null,
+                        'date' => $reportDate, // Store the date from the report
                     ]);
                 }
             }

@@ -20,6 +20,7 @@ class IdealSalesSummaryReport extends Model
         'amount_return',
         'status',  
         'ideal_diagnostic_report_id',
+          'date'
     ];
 
     public function report()

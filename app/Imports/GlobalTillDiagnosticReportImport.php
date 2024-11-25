@@ -2,11 +2,12 @@
 
 namespace App\Imports;
 
-use App\Models\GlobalTillDiagnosticReport;
-use Maatwebsite\Excel\Concerns\ToModel;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Illuminate\Support\Facades\Log;
 use Exception;
+use App\Models\Report;
+use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Concerns\ToModel;
+use App\Models\GlobalTillDiagnosticReport;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
 class GlobalTillDiagnosticReportImport implements ToModel, WithHeadingRow
 {
@@ -82,6 +83,8 @@ class GlobalTillDiagnosticReportImport implements ToModel, WithHeadingRow
             }
             $this->hasCheckedHeaders = true; // Set the flag to prevent further checks
         }
+        $report = Report::find($this->reportId);
+        $reportDate = $report ? $report->date : null;
 
         if(!empty($row['supplier_sku']) || !empty($row['compliance_code']) || $row['product']){
             // Proceed with creating the model if headers are valid
@@ -108,6 +111,7 @@ class GlobalTillDiagnosticReportImport implements ToModel, WithHeadingRow
                 'inventory_transactions_url' => $row['inventory_transactions_url'] ?? null,
                 'retailer_id' => $this->retailerId, // Include retailer ID
                 'lp_id' => $this->lpId,
+                'date' => $reportDate, // Store the date from the report
             ]);
 
             $diagnosticReport->save();

@@ -8,7 +8,7 @@ class AddDateToGreenlineReportsTable extends Migration
     public function up()
     {
         Schema::table('greenline_reports', function (Blueprint $table) {
-            $table->date('date')->default(now()->startOfMonth()); // Add the date column
+            $table->date('date')->nullable(); 
         });
     }
 

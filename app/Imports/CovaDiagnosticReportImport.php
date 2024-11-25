@@ -75,7 +75,8 @@ class CovaDiagnosticReportImport implements ToModel, WithHeadingRow
             // Set the flag to true to prevent re-checking headers on every row
             $this->hasCheckedHeaders = true;
         }
-
+        $report = Report::find($this->reportId);
+        $reportDate = $report ? $report->date : null;
         $report = Report::where('id',$this->reportId)->first();
         if ($report->province == 'ON' || $report->province == 'Ontario') {
             if ($row['ocs_sku'] != null || $row['product_name'] != null || $row['ontario_barcode_upc'] != null) {
@@ -106,6 +107,7 @@ class CovaDiagnosticReportImport implements ToModel, WithHeadingRow
                         'location' => $this->location,
                         'retailer_id' => $this->retailerId, // Include retailer ID
                         'lp_id' => $this->lpId,
+                        'date' => $reportDate, // Store the date from the report
                     ]);
 
                     $diagnosticReport->save(); // Save to get the ID
@@ -142,6 +144,7 @@ class CovaDiagnosticReportImport implements ToModel, WithHeadingRow
                         'location' => $this->location,
                         'retailer_id' => $this->retailerId, // Include retailer ID
                         'lp_id' => $this->lpId,
+                        'date' => $reportDate, // Store the date from the report
                     ]);
 
                     $diagnosticReport->save(); // Save to get the ID
@@ -178,6 +181,7 @@ class CovaDiagnosticReportImport implements ToModel, WithHeadingRow
                         'location' => $this->location,
                         'retailer_id' => $this->retailerId, // Include retailer ID
                         'lp_id' => $this->lpId,
+                        'date' => $reportDate, // Store the date from the report
                     ]);
 
                     $diagnosticReport->save(); // Save to get the ID
@@ -214,6 +218,7 @@ class CovaDiagnosticReportImport implements ToModel, WithHeadingRow
                         'location' => $this->location,
                         'retailer_id' => $this->retailerId, // Include retailer ID
                         'lp_id' => $this->lpId,
+                        'date' => $reportDate, // Store the date from the report
                     ]);
 
                     $diagnosticReport->save(); // Save to get the ID

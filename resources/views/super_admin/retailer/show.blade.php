@@ -23,7 +23,7 @@
             <h6 class="card-subtitle mb-2 text-muted">General Information</h6>
             <p><strong>Distributor  Name:</strong> {{ $retailer->first_name }} {{ $retailer->last_name }}</p>
             <p><strong>Corporate Name:</strong> {{ $retailer->corporate_name ?? '-' }}</p>
-            <p><strong>DBA:</strong> {{ $retailer->dba ?? '-' }}</p>
+            <p><strong>Organization Name:</strong> {{ $retailer->dba ?? '-' }}</p>
             <p><strong>Phone:</strong> {{ $retailer->phone }}</p>
             <p><strong>Email:</strong> {{ $retailer->email }}</p>
         </div>

@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use App\Models\Report;
 use Illuminate\Support\Facades\Log;
 use App\Models\IdealDiagnosticReport;
 use Maatwebsite\Excel\Concerns\ToModel;
@@ -52,7 +53,10 @@ class IdealSalesSummaryReportImport implements ToModel, WithHeadingRow
             }
         }
 
-        // Retrieve the ideal diagnostic report
+      // Get the date from the reports table
+      $report = Report::find($this->reportId);
+      $reportDate = $report ? $report->date : null; 
+      
         $idealDiagnosticReport = IdealDiagnosticReport::where('sku', $row['sku'])
             ->where('report_id', $this->reportId)
             ->first();
@@ -74,6 +78,7 @@ class IdealSalesSummaryReportImport implements ToModel, WithHeadingRow
                     'purchase_amount' => $row['purchase_amount'],
                     'return_quantity' => $row['return_quantity'],
                     'amount_return' => $row['amount_return'],
+                    'date' => $reportDate, // Add report date to the model
                 ]);
             }
         }

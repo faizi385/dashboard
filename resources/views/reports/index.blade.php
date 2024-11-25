@@ -25,7 +25,7 @@
             <table id="reportsTable" class="table table-hover table-bordered text-center align-middle">
                 <thead>
                     <tr>
-                        <th>Distributor DBA</th>
+                        <th>Distributor Organization Name</th>
                         <th>Location</th>
                         <th>POS</th>
                         <th>File 1</th>

@@ -37,5 +37,6 @@ class CovaSalesReport extends Model
         'hst_13',
         'status',  
         'cova_diagnostic_report_id',
+          'date'
     ];
 }

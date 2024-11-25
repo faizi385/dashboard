@@ -40,7 +40,7 @@
             <table id="carveoutTable" class="table table-striped">
                 <thead>
                     <tr>
-                        <th>DBA</th>
+                        <th>Organization Name</th>
                         {{-- <th>Address</th>
                         <th>Carveout</th> --}}
                         <th>Location</th>

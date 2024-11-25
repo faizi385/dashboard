@@ -13,6 +13,7 @@ use Carbon\Carbon;
 
 class OffersImport implements ToModel, WithHeadingRow
 {
+    private $selectedMonth;
     protected $lpId;
     protected $source;
     protected $lpName;
@@ -20,8 +21,8 @@ class OffersImport implements ToModel, WithHeadingRow
     protected $hasCheckedHeaders = false;
 
   
-    public function __construct($lpId, $source, $lpName)
-    {
+    public function __construct($selectedMonth,$lpId, $source, $lpName)
+    {   $this->selectedMonth = $selectedMonth;
         $this->lpId = $lpId;
         $this->source = $source;
         $this->lpName = $lpName;
@@ -66,6 +67,12 @@ class OffersImport implements ToModel, WithHeadingRow
         $provinceName = $province->name ?? null;
         $provinceId = $province->id ?? null;
 
+        // Determine offer date based on selected month
+        $offerDate = now()->startOfMonth(); // Default to current month start
+        if ($this->selectedMonth === 'next') {
+            $offerDate = now()->addMonth()->startOfMonth(); // Next month start
+        }
+
         // Create the Offer model instance
         $offer = new Offer([
             'product_name' => $productName,
@@ -87,7 +94,7 @@ class OffersImport implements ToModel, WithHeadingRow
             'product_link' => $row['product_link'] ?? null,
             'lp_id' => $this->lpId,
             'lp_name' => $this->lpName, // Ensure lp_name is correctly assigned
-            'offer_date' => now()->startOfMonth(),
+            'offer_date' => $offerDate, // Dynamically assigned offer date
             'retailer_id' => $row['retailer_id'] ?? null,
             'source' => $this->source,
         ]);

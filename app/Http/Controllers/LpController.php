@@ -362,6 +362,7 @@ class LpController extends Controller
         // Validate the incoming request data with custom messages
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
+            'dba' => 'required|string|max:255',
             'primary_contact' => 'required|string|max:20',
             'primary_contact_email' => 'required|email|max:255',
             'primary_contact_position' => 'nullable|string|max:255',
@@ -375,6 +376,7 @@ class LpController extends Controller
         // Update LP record with validated data
         $lp->update([
             'name' => $validatedData['name'],
+            'dba' => $validatedData['dba'],
             'primary_contact' => $validatedData['primary_contact'],
             'primary_contact_email' => $validatedData['primary_contact_email'],
             'primary_contact_position' => $validatedData['primary_contact_position'] ?? null,
