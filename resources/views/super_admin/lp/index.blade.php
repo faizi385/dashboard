@@ -166,6 +166,11 @@
 <script>
     $(document).ready(function() {
         $("#loader").fadeOut("slow");
+
+// Show the loader on form submission
+$('form[action="{{ route('offers.import') }}"]').on('submit', function(e) {
+    $("#loader").fadeIn("slow");
+});
         
         // Initialize DataTable
         $('#lpTable').DataTable({

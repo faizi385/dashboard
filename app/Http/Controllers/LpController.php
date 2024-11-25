@@ -78,9 +78,23 @@ class LpController extends Controller
         $retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
     
         // Fetch total number of distributors
-        $totalDistributors = Retailer::where('lp_id', $lp->id)->count(); // Assuming Distributor model and lp_id relationship
-        $totalCarevouts = DB::table('carveouts')->where('lp_id', $lp->id)->count(); 
+        $totalDistributors = Retailer::where('lp_id', $lp->id)->count();
+    
+        // Fetch total number of carveouts
+        $totalCarevouts = DB::table('carveouts')
+            ->where('lp_id', $lp->id)
+            ->whereNull('deleted_at') // Exclude soft-deleted records
+            ->count();
+    
+        // Fetch total number of reports
         $totalReportsSubmitted = DB::table('reports')->where('lp_id', $lp->id)->count();
+    
+        // Calculate total revenue
+        $retailerStatements = RetailerStatement::where('lp_id', $lp->id)->get();
+        $totalRevenue = $retailerStatements->sum(function ($statement) {
+            return ((float)$statement->fee_per * (float)$statement->quantity * (float)$statement->unit_cost) / 100;
+        });
+    
         // Return the data to the view
         return view('super_admin.lp.dashboard', compact(
             'purchases',
@@ -93,7 +107,8 @@ class LpController extends Controller
             'retailerOfferCounts',
             'totalDistributors',
             'totalCarevouts',
-            'totalReportsSubmitted' // Pass this to the view
+            'totalReportsSubmitted',
+            'totalRevenue' // Pass this to the view
         ));
     }
     

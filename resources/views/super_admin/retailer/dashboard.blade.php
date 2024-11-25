@@ -9,7 +9,7 @@
             <div class="small-box bg-success">
                 <div class="inner">
                     {{-- <h3 class="text-center"> ${{ number_format(round($totalPayoutWithTaxAllRetailers), 2) }}</h3> --}}
-                    <p class="text-center">Total Payout (With Tax)</p>
+                    <p class="text-center">Total Revenue </p>
                 </div>
                 <div class="icon">
                     <i class=""></i>
@@ -22,7 +22,7 @@
             <div class="small-box bg-dark">
                 <div class="inner">
                     {{-- <h3 class="text-white text-center">${{ number_format(round($totalIrccDollarAllRetailers), 2) }}</h3> --}}
-                    <p class="text-white text-center">Overall Revenue</p>
+                    <p class="text-white text-center">Total Locations</p>
                 </div>
                 <div class="icon">
                     <i class=""></i>
@@ -35,7 +35,7 @@
             <div class="small-box bg-primary">
                 <div class="inner">
                     {{-- <h3 class="text-center">{{ $totalMappedOffers }}</h3> --}}
-                    <p class="text-center">Availed Deals</p>
+                    <p class="text-center">Total Reports</p>
                 </div>
                 <div class="icon">
                     <i class=""></i>
@@ -48,7 +48,7 @@
             <div class="small-box bg-secondary">
                 <div class="inner">
                     {{-- <h3 class="text-center">{{ $totalUnmappedOffers }}</h3> --}}
-                    <p class="text-center">Unavailed Deals</p>
+                    <p class="text-center">Total Purchase</p>
                 </div>
                 <div class="icon">
                     <i class=""></i>

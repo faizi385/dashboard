@@ -78,7 +78,7 @@ class CarveoutController extends Controller
         // For LP users, assign their own LP ID automatically
         $lpId = auth()->user()->hasRole('Super Admin') ? $request->lp_id : $userLp->id;
 
-        // Check if a carveout already exists for the retailer in the same month
+
         $carveoutExists = Carveout::where('retailer_id', $request->retailer)
             ->whereYear('date', Carbon::parse($request->carveout_date)->year)
             ->whereMonth('date', Carbon::parse($request->carveout_date)->month)

@@ -116,7 +116,7 @@
                                 title="Full name must contain only alphabets and spaces."
                             />
                             <div class="invalid-feedback">
-                                Full Name is required with only alphabets .
+                                Please provide a valid name with only alphabets.
                             </div>
                         </div>
                     </div>
@@ -126,7 +126,7 @@
                             <label for="dba" class="form-label"><i class="fas fa-building"></i> {{ __('Organization Name') }} <span class="text-danger">*</span></label>
                             <input id="dba" class="form-control" type="text" name="dba" value="{{ old('dba') }}" required placeholder="Enter Organization Name" />
                             <div class="invalid-feedback">
-                                Organization name is required.
+                                Please provide Organization name.
                             </div>
                         
                         </div>
@@ -175,7 +175,7 @@
                             </label>
                             <input id="primary_contact_phone" class="form-control" type="tel" name="primary_contact_phone" value="{{ old('primary_contact_phone') }}" required placeholder="Enter phone number" pattern="(\+1\s?)?\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{4}" />
                                 <div class="invalid-feedback">
-                                    Phone no is required with only digits.
+                                    Please provide a valid Phone no with only digits.
                                 </div>
                         </div>
                     </div>
@@ -185,7 +185,7 @@
                             <label for="primary_contact_position" class="form-label"><i class="fas fa-briefcase"></i> {{ __('Primary Contact Position') }} <span class="text-danger">*</span></label>
                             <input id="primary_contact_position" class="form-control" type="text" name="primary_contact_position" value="{{ old('primary_contact_position') }}" required placeholder="Enter position of contact person" />
                             <div class="invalid-feedback">
-                                 Contact Position is required.
+                                Please provide Contact Position.
                             </div>
                            
                         </div>
@@ -198,7 +198,7 @@
                             <input type="text" name="address[address]" value="{{ old('address.address') }}" required class="form-control" id="address" />
                     
                             <div class="invalid-feedback">
-                                Address is required.
+                                Please provide Address.
                             </div>
                         </div>
                     </div>
@@ -209,7 +209,7 @@
                             <label for="address.postal_code" class="form-label"><i class="fas fa-map-pin"></i> {{ __('Postal Code') }} <span class="text-danger">*</span></label>
                             <input id="address.postal_code" class="form-control" type="text" name="address[postal_code]" value="{{ old('address.postal_code') }}" required pattern="^\d{5}(-\d{4})?$" placeholder="Postal code" />
                             <div class="invalid-feedback">
-                               Postal Code is required.
+                                Please provide a valid postal code only digits.
                              </div>
                        
                          </div>
@@ -219,7 +219,7 @@
                             <label for="address.city" class="form-label"><i class="fas fa-city"></i> {{ __('City') }} <span class="text-danger">*</span></label>
                             <input id="address.city" class="form-control" type="text" name="address[city]" value="{{ old('address.city') }}" required placeholder="City name" />
                             <div class="invalid-feedback">
-                             City is required.
+                                Please provide a city.
                              </div>
                        
                          </div>
@@ -234,7 +234,7 @@
                                 @endforeach
                             </select>
                             <div class="invalid-feedback">
-                            Province is required.
+                                Please select a province.
                              </div>
                        
                          </div>
@@ -249,7 +249,7 @@
                             <label for="password" class="form-label"><i class="fas fa-lock"></i> {{ __('Password') }} <span class="text-danger">*</span></label>
                             <input id="password" class="form-control" type="password" name="password" required autocomplete="new-password" placeholder="Enter your password" />
                             <div class="invalid-feedback">
-                               Password is required.
+                                Please provide a password
                            </div>
                       
                        </div>
@@ -260,7 +260,7 @@
                             <label for="password_confirmation" class="form-label"><i class="fas fa-lock"></i> {{ __('Confirm Password') }} <span class="text-danger">*</span></label>
                             <input id="password_confirmation" class="form-control" type="password" name="password_confirmation" required autocomplete="new-password" placeholder="Confirm your password" />
                             <div class="invalid-feedback">
-                                Confirm Password is required.
+                                Please confirm your password.
                            </div>
                        
                        </div>
@@ -301,7 +301,7 @@
                         var emailValue = emailInput.value;
                         if (!emailValue.endsWith('.com')) {
                             emailInput.setCustomValidity('Email must end with .com');
-                            emailError.textContent = 'Please enter a valid email id ';
+                            emailError.textContent = 'Please provide a valid email address. ';
                         } else {
                             emailInput.setCustomValidity(''); // Clear custom error
                         }

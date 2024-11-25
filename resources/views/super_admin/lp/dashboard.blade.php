@@ -8,7 +8,7 @@
         <div class="col-lg-3 col-6">
             <div class="small-box bg-success">
                 <div class="inner">
-                    <h3 class="text-center"> </h3>
+                    <h3 class="text-center">${{ number_format($totalRevenue, 2) }}</h3>
                     <p class="text-center">Total Revenue</p>
                 </div>
                 <div class="icon">
@@ -16,6 +16,7 @@
                 </div>
             </div>
         </div>
+        
         
         <!-- Overall Revenue -->
         <div class="col-lg-3 col-6">

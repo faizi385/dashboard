@@ -1,6 +1,10 @@
 @extends('layouts.admin')
 
 @section('content')
+<div id="loader" class="loader-overlay">
+    <div class="loader"></div>
+</div>
+
 <div class="container">
     <div class="d-flex justify-content-between mb-4">
         <h3 class="text-white">Supplier Details</h3>
@@ -151,7 +155,13 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const modalForm = document.querySelector('form[action="{{ route('offers.import') }}"]');
+
+        $("#loader").fadeOut("slow");
+
+// Show the loader on form submission
+$('form[action="{{ route('offers.import') }}"]').on('submit', function(e) {
+    $("#loader").fadeIn("slow");
+});   const modalForm = document.querySelector('form[action="{{ route('offers.import') }}"]');
         const offerExcel = modalForm.querySelector('#offerExcel');
 
         modalForm.addEventListener('submit', function (e) {
