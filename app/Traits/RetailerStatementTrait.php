@@ -85,6 +85,7 @@ trait RetailerStatementTrait
         $retailerStatement->sku = $lpVariable->provincial_sku ?? $cleanSheet->sku;
         $retailerStatement->barcode = $lpVariable->GTin ?? $cleanSheet->barcode;
         $retailerStatement->quantity = (int) $cleanSheet->purchase;
+        $retailerStatement->offer_id = (int) $cleanSheet->offer_id;
         $retailerStatement->unit_cost = trim($cleanSheet->report_price_og ?? $lpVariable->unit_cost, '$') ?: '0.00';
 
         if (empty($cleanSheet->report_price_og) || $cleanSheet->report_price_og == '0.00') {

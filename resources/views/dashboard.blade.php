@@ -5,89 +5,84 @@
 <!-- Main content -->
 <section class="content">
     <div class="container-fluid p-2">
-        <!-- Summary Boxes -->
-        <div class="row">
-            <!-- Total Payout (With Tax) -->
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-success">
-                    <div class="inner">
-                        <h3 class="text-center"> ${{ number_format(round($totalPayoutWithTaxAllRetailers), 2) }}</h3>
-                        <p class="text-center">Total Payout (With Tax)</p>
-                    </div>
-                    <div class="icon">
-                        <i class=""></i>
+        <h1 class="text-white text-center mb-4">Super Admin Dashboard</h1>
+
+        <!-- Scrollable Cards -->
+        <div class="scrollable-container mb-4">
+            <div class="scrollable-cards">
+                <!-- Total Payout (With Tax) -->
+                <div class="col-lg-3 col-6 pickable-card">
+                    <div class="small-box bg-success">
+                        <div class="inner">
+                            <h3 class="text-center">${{ number_format(round($totalPayoutWithTaxAllRetailers), 2) }}</h3>
+                            <p class="text-center">Total Payout (With Tax)</p>
+                        </div>
                     </div>
                 </div>
-            </div>
+
+                <!-- Overall Revenue -->
+                <div class="col-lg-3 col-6 pickable-card">
+                    <div class="small-box bg-dark">
+                        <div class="inner">
+                            <h3 class="text-white text-center">${{ number_format(round($totalIrccDollarAllRetailers), 2) }}</h3>
+                            <p class="text-white text-center">Overall Revenue</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Availed Deals -->
+                <div class="col-lg-3 col-6 pickable-card">
+                    <div class="small-box bg-primary">
+                        <div class="inner">
+                            <h3 class="text-center">{{ $totalMappedOffers }}</h3>
+                            <p class="text-center">Availed Deals</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Unavailed Deals -->
+                <div class="col-lg-3 col-6 pickable-card">
+                    <div class="small-box bg-secondary">
+                        <div class="inner">
+                            <h3 class="text-center">{{ $totalUnmappedOffers }}</h3>
+                            <p class="text-center">Unavailed Deals</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Second Slide -->
+               
+                    <div class="col-lg-3 col-6 pickable-card">
+                        <div style="background-color: #1F509A" class="small-box">
+                            <div class="inner">
+                                <h3 class="text-center text-white">{{ $totalDeals }}</h3> <!-- Display total deals -->
+                                <p class="text-center text-white">Total Deals</p>
+                            </div>
+                        </div>
+                    </div>
             
-            <!-- Overall Revenue -->
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-dark">
-                    <div class="inner">
-                        <h3 class="text-white text-center">${{ number_format(round($totalIrccDollarAllRetailers), 2) }}</h3>
-                        <p class="text-white text-center">Overall Revenue</p>
-                    </div>
-                    <div class="icon">
-                        <i class=""></i>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Availed Deals -->
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-primary">
-                    <div class="inner">
-                        <h3 class="text-center">{{ $totalMappedOffers }}</h3>
-                        <p class="text-center">Availed Deals</p>
-                    </div>
-                    <div class="icon">
-                        <i class=""></i>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Unavailed Deals -->
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-secondary">
-                    <div class="inner">
-                        <h3 class="text-center">{{ $totalUnmappedOffers }}</h3>
-                        <p class="text-center">Unavailed Deals</p>
-                    </div>
-                    <div class="icon">
-                        <i class=""></i>
-                    </div>
-                </div>
             </div>
         </div>
         
         <!-- Area Charts -->
         <div class="row">
-      
+            <!-- First Chart -->
             <div class="col-lg-6 mt-4">
                 <div class="chart-container">
                     <div id="chart"></div>
                 </div>
             </div>
-          
 
-            <section class="col-lg-6 connectedSortable mt-4 ">
-                <div class="card">
-                
-                    <div class="card-header">
-                        <h3 style="font-weight: 600;" class="card-title ">
-                            <i  class=" "></i> Province-Wise Purchase Cost
-                        </h3>
-                    </div>
-                
-                    <div class="card-body">
-                        <div class="chart" style="position: relative; height: 300px;">
-                            <canvas id="province-purchase-cost-chart" height="300"></canvas>
-                        </div>
-                    </div>
+            <!-- Second Chart -->
+            <div class="col-lg-6 mt-4">
+                <div class="chart-container">
+                    <div id="province-purchase-cost-chart"></div>
                 </div>
-            </section>
-           
+            </div>
         </div>
+
+        <!-- Additional Charts -->
         <div class="row">
             <!-- Third Graph -->
             <div class="col-lg-6 mt-4">
@@ -96,28 +91,58 @@
                 </div>
             </div>
         </div>
-        
-       
     </div>
 </section>
+
+
+
 <style>
-     .chart-container {
-        background-color: white;
-        padding: 10px;
-        border-radius: 8px;
-        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-        min-height: 350px;       
-    }
-    .small-box>.inner {
-        height: 20vh;
-        padding: 10px;
-    }
+
 </style>
 <!-- Include Chart.js and ApexCharts -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script> 
 
 <script>
+       const scrollableContainer = document.querySelector('.scrollable-cards');
+
+let isDown = false;
+let startX;
+let scrollLeft;
+
+scrollableContainer.addEventListener('mousedown', (e) => {
+    isDown = true;
+    scrollableContainer.classList.add('active');
+    startX = e.pageX - scrollableContainer.offsetLeft;
+    scrollLeft = scrollableContainer.scrollLeft;
+});
+
+scrollableContainer.addEventListener('mouseleave', () => {
+    isDown = false;
+    scrollableContainer.classList.remove('active');
+});
+
+scrollableContainer.addEventListener('mouseup', () => {
+    isDown = false;
+    scrollableContainer.classList.remove('active');
+});
+
+scrollableContainer.addEventListener('mousemove', (e) => {
+    if (!isDown) return; // Stop execution if not dragging
+    e.preventDefault();
+    const x = e.pageX - scrollableContainer.offsetLeft;
+    const walk = (x - startX) * 2; // Adjust the scroll speed
+    scrollableContainer.scrollLeft = scrollLeft - walk;
+});
+document.addEventListener('DOMContentLoaded', () => {
+        const cards = document.querySelectorAll('.pickable-card');
+
+        cards.forEach(card => {
+            card.addEventListener('click', () => {
+                card.classList.toggle('selected');
+            });
+        });
+    });
 document.addEventListener("DOMContentLoaded", function () {
     const currentMonth = new Date().toLocaleString('default', { month: 'short' });
 
@@ -189,59 +214,86 @@ document.addEventListener("DOMContentLoaded", function () {
     // Render Apex Chart
     new ApexCharts(document.querySelector("#chart"), apexOptions).render();
 
-
-
-
-    // Province-Wise Purchase Cost Chart
     const provinceData = {
-        Alberta: {{ $totalPurchaseCostByProvince['Alberta'] ?? 0 }},
-        Ontario: {{ $totalPurchaseCostByProvince['Ontario'] ?? 0 }},
-        "British Columbia": {{ $totalPurchaseCostByProvince['British Columbia'] ?? 0 }},
-        Manitoba: {{ $totalPurchaseCostByProvince['Manitoba'] ?? 0 }},
-        Saskatchewan: {{ $totalPurchaseCostByProvince['Saskatchewan'] ?? 0 }}
-    };
+    Alberta: {{ $totalPurchaseCostByProvince['Alberta'] ?? 0 }},
+    Ontario: {{ $totalPurchaseCostByProvince['Ontario'] ?? 0 }},
+    "British Columbia": {{ $totalPurchaseCostByProvince['British Columbia'] ?? 0 }},
+    Manitoba: {{ $totalPurchaseCostByProvince['Manitoba'] ?? 0 }},
+    Saskatchewan: {{ $totalPurchaseCostByProvince['Saskatchewan'] ?? 0 }}
+};
 
-    // Round the province-wise purchase costs
-    const provincePurchaseCosts = Object.values(provinceData).map(value => Math.round(value));
+// Prepare data for the chart
+const provincePurchaseCosts = Object.entries(provinceData).map(([province, cost]) => ({
+    x: province,
+    y: Math.round(cost) // Round values
+}));
 
-    const provinceLabels = Object.keys(provinceData);
-
-    new Chart(document.getElementById('province-purchase-cost-chart').getContext('2d'), {
+// Chart options
+var options = {
+    series: [{
+        name: "Purchase Cost",
+        data: provincePurchaseCosts
+    }],
+    chart: {
         type: 'bar',
-        data: {
-            labels: provinceLabels,
-            datasets: [{
-                label: '',
-                data: provincePurchaseCosts,  // Rounded values
-                backgroundColor: ['#FF6347', '#3b8bba', '#FFD700', '#32CD32', '#8A2BE2'],
-                borderWidth: 1
-            }]
+        height: 350
+    },
+    xaxis: {
+        type: 'category',
+        labels: {
+            style: {
+                fontSize: '12px',
+                fontWeight: 700,
+                colors: ['#304758']
+            },
+            formatter: function(val) {
+                return val; // Use province names directly
+            }
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins:{
-            legend: {
-                display:false
-            }},
-            scales: {
-                y: { beginAtZero: true }
+        group: {
+            style: {
+                fontSize: '10px',
+                fontWeight: 700
+            },
+            groups: [
+                { title: 'Provinces', cols: 5 } // Group label spanning all provinces
+            ]
+        }
+    },
+    title: {
+        text: 'Province-Wise Purchase Costs',
+        align: 'center',
+        style: {
+            fontSize: '18px',
+            color: '#444'
+        }
+    },
+    tooltip: {
+        x: {
+            formatter: function(val) {
+                return val; // Display province name
             }
         }
-    });
+    }
+};
 
-    const topProducts = @json($topProducts); // Pass the top products array from PHP to JavaScript
+// Render the chart
+var chart = new ApexCharts(document.querySelector("#province-purchase-cost-chart"), options);
+chart.render();
 
-// Extract product names and total purchases from the data
-const productNames = topProducts.map(product => product.product_name); // Extract product names
-const productPurchases = topProducts.map(product => Math.round(product.total_purchases));  // Round purchase totals
 
-console.log(productNames); // For debugging, ensure product names are correct
+    const topProducts = @json($topProducts); 
+
+
+const productNames = topProducts.map(product => product.product_name); 
+const productPurchases = topProducts.map(product => Math.round(product.total_purchases));  
+
+console.log(productNames); 
 
 const thirdChartOptions = {
     series: [{
         name: 'Total Purchases',
-        data: productPurchases // Rounded values
+        data: productPurchases
     }],
     chart: {
         type: 'bar',
@@ -282,7 +334,7 @@ const thirdChartOptions = {
         }
     },
     xaxis: {
-        categories: productNames, // Use product names instead of SKUs
+        categories: productNames, 
         labels: {
             style: {
                 fontWeight: 'bold'
@@ -291,7 +343,7 @@ const thirdChartOptions = {
     },
     yaxis: {
         title: {
-            text: 'Products' // Rename Y-axis title if necessary
+            text: 'Products' 
         }
     },
     tooltip: {
@@ -301,7 +353,6 @@ const thirdChartOptions = {
     }
 };
 
-// Render the chart
 new ApexCharts(document.querySelector("#third-chart"), thirdChartOptions).render();
 
 

@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Report;
 use App\Models\CleanSheet;
+use App\Models\Offer;
 use Illuminate\Http\Request;
 use App\Models\RetailerStatement;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
@@ -98,12 +100,21 @@ class DashboardController extends Controller
                 $totalIrccDollarAllRetailers += $totalIrccDollar;
             }
         }
-    
-        // Calculate mapped and unmapped offers
-        $totalMappedOffers = CleanSheet::whereNotNull('offer_id')->count();
-        $totalUnmappedOffers = CleanSheet::whereNull('offer_id')->count();
-    
-        // Return the view with all the data
+
+    $date = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
+    $dateOffer = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
+
+    $totalMappedOffers = RetailerStatement::select('offer_id')->whereNotNull('offer_id')->where('reconciliation_date',$date)->distinct()->count('offer_id');
+// dump(    $totalMappedOffers );
+    $totalOffers = Offer::where('offer_date',$dateOffer)->count();
+    // dump(  $totalOffers);
+    $totalMappedOffersIds = RetailerStatement::select('offer_id')->whereNotNull('offer_id')->where('reconciliation_date',$date)->distinct()->pluck('offer_id')->toArray();
+    $totalOffersIds = Offer::select('id')->where('offer_date',$dateOffer)->pluck('id')->toArray();
+
+$totalUnmappedOffersIds = array_diff($totalOffersIds,$totalMappedOffersIds);
+// dd($totalUnmappedOffersIds );
+$totalUnmappedOffers = count($totalUnmappedOffersIds);
+$totalDeals = Offer::count();
         return view('dashboard', compact(
             'totalPayoutAllRetailers',
             'totalPayoutWithTaxAllRetailers',
@@ -111,7 +122,8 @@ class DashboardController extends Controller
             'totalPurchaseCostByProvince',
             'totalMappedOffers',
             'totalUnmappedOffers',
-            'topProducts' // Pass top products to the view
+            'topProducts' ,
+            'totalDeals'// Pass top products to the view
         ));
     }
 

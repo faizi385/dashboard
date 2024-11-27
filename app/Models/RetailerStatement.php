@@ -43,6 +43,7 @@ class RetailerStatement extends Model
         'product_variation_id', 
         'clean_sheet_id', 
         'reconciliation_date',
+        'offer_id',
         'created_at',
         'updated_at',
     ];

@@ -67,10 +67,9 @@ class OffersImport implements ToModel, WithHeadingRow
         $provinceName = $province->name ?? null;
         $provinceId = $province->id ?? null;
 
-        // Determine offer date based on selected month
-        $offerDate = now()->startOfMonth(); // Default to current month start
+        $offerDate = now()->startOfMonth(); 
         if ($this->selectedMonth === 'next') {
-            $offerDate = now()->addMonth()->startOfMonth(); // Next month start
+            $offerDate = now()->addMonth()->startOfMonth(); 
         }
 
         // Create the Offer model instance
@@ -94,9 +93,9 @@ class OffersImport implements ToModel, WithHeadingRow
             'product_link' => $row['product_link'] ?? null,
             'lp_id' => $this->lpId,
             'lp_name' => $this->lpName, // Ensure lp_name is correctly assigned
-            // 'offer_date' => $offerDate, // Dynamically assigned offer date
+            'offer_date' => $offerDate, // Dynamically assigned offer date
             // 'offer_date' => now()->startOfMonth()->subMonth(),
-            'offer_date' => now()->startOfMonth(),
+            // 'offer_date' => now()->startOfMonth(),
             'retailer_id' => $row['retailer_id'] ?? null,
             'source' => $this->source,
         ]);

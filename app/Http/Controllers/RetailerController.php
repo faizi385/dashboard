@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use App\Mail\RetailerFormMail;
 use App\Models\RetailerStatement;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Models\RetailerAddress; // Address model
@@ -38,7 +39,11 @@ class RetailerController extends Controller
     
     public function dashboard()
     {
-        $user = auth()->user();
+        $retailer = Retailer::where('user_id', Auth::user()->id)->first();
+    
+        $totalLocations = RetailerAddress::where('retailer_id',$retailer->id)->count(); 
+    
+        $totalReportsSubmitted = DB::table('reports')->where('retailer_id',$retailer->id)->count();
         $totalIrccDollarAllRetailers = 0;
         $retailerIrccDollars = []; // Array to store each retailer's IRCC dollar data
         
@@ -63,7 +68,6 @@ class RetailerController extends Controller
                 'retailer_id' => $retailerId,
                 'total_ircc_dollar' => $totalIrccDollar,
             ];
-            
     
             $totalIrccDollarAllRetailers += $totalIrccDollar;
         }
@@ -76,8 +80,15 @@ class RetailerController extends Controller
             ->groupBy('province')
             ->get();
     
-        // Pass the data to the view
-        return view('super_admin.retailer.dashboard', compact('totalIrccDollarAllRetailers', 'retailerIrccDollars', 'totalPurchaseSum', 'provinceData'));
+        // Pass the data to the view, including the total locations for the logged-in retailer
+        return view('super_admin.retailer.dashboard', compact(
+            'totalIrccDollarAllRetailers',
+            'retailerIrccDollars',
+            'totalPurchaseSum',
+            'provinceData',
+            'totalLocations',
+            'totalReportsSubmitted'
+        ));
     }
     
 
@@ -271,7 +282,7 @@ class RetailerController extends Controller
         }
     
         // Redirect to the login page with a success message
-        return redirect()->route('login')->with('success', 'Retailer information completed successfully. Please log in.');
+        return redirect()->route('login')->with('success', 'Distributor information completed successfully. Please log in.');
     }
     
     public function edit($id)
@@ -317,14 +328,14 @@ class RetailerController extends Controller
             ])
         );
     
-        return redirect()->route('retailer.index')->with('success', 'Retailer updated successfully.');
+        return redirect()->route('retailer.index')->with('success', 'Distributor updated successfully.');
     }
     
     public function destroy($id)
     {
         $retailer = Retailer::findOrFail($id);
         $retailer->delete();
-        return redirect()->route('retailer.index')->with('success', 'Retailer deleted successfully.');
+        return redirect()->route('retailer.index')->with('success', 'Distributor deleted successfully.');
     }
     public function show($id)
     {

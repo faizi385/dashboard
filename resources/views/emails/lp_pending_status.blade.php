@@ -16,7 +16,7 @@
 
     <p>We appreciate your patience and look forward to working with you.</p>
 
-    <p>If you have any questions, feel free to contact us at <a href="mailto:{{ $lpEmail }}">{{ $lpEmail }}</a>.</p>
+    {{-- <p>If you have any questions, feel free to contact us at <a href="mailto:{{ $lpEmail }}">{{ $lpEmail }}</a>.</p> --}}
 
     <p>Best regards,<br>
     The Supplier Registration Team</p>

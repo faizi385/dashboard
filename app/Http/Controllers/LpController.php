@@ -29,73 +29,122 @@ class LpController extends Controller
     public function dashboard()
     {
         $lp = Lp::where('user_id', Auth::user()->id)->first();
-    
+        
         // Fetch all purchase data
         $purchases = CleanSheet::where('lp_id', $lp->id)->where('dqi_flag', 1)->get();
-    
+        
         // Get total purchases
         $totalPurchases = $purchases->sum('purchase'); // Assuming 'purchase' is the column name
-    
+        
         // Group by province and sum the purchases for each province
         $provincePurchases = $purchases->groupBy('province')->map(function ($items) {
             return $items->sum('purchase');
         });
-    
+        
         // Get the province names and corresponding purchase totals
         $provinces = $provincePurchases->keys()->toArray(); // Province names
         $purchaseData = $provincePurchases->values()->toArray(); // Total purchases for each province
-    
-        // Fetch total offers by province
+        
+        $date = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
+        $dateOffer = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
+        
+        // Get the total number of offers for a specific LP (based on $lp->id) and the previous month's offer date
+        $totalOffersIds = Offer::where('lp_id', $lp->id) // Filter by LP ID
+            ->where('offer_date', $dateOffer) // Filter by the date of the previous month
+            ->pluck('id') // Get all offer IDs for the previous month
+            ->toArray();
+        
+        // Get the IDs of offers that have been availed (mapped) by retailers in the previous month
+        $availedOffersIds = RetailerStatement::select('offer_id')
+            ->whereNotNull('offer_id')
+            ->where('reconciliation_date', $date) // Filter by reconciliation date (previous month)
+            ->distinct() // Ensure distinct offer IDs are counted
+            ->pluck('offer_id') // Get all offer IDs that were availed
+            ->toArray();
+        
+        // Use array_diff to get the unavailed offers by finding the difference between the two sets of offer IDs
+        $totalUnmappedOffersIds = array_diff($totalOffersIds, $availedOffersIds);
+        
+        // Count the number of unavailed offers
+        $totalUnmappedOffers = count($totalUnmappedOffersIds);
+        
+        // Prepare data for the retailer offer bar chart
+        $availedOffers = count($availedOffersIds); // Availed offers count
+        $availedOffersData = [$availedOffers, $totalUnmappedOffers]; // Data for chart: Availed vs Unavailed
+        
+        
+
         $provinceOffers = DB::table('offers')
             ->select('province_id', DB::raw('count(*) as total_offers'))
             ->where('lp_id', $lp->id)
             ->groupBy('province_id')
             ->pluck('total_offers', 'province_id');
-    
+        
         // Get province names for offers chart
         $offerProvinces = DB::table('provinces')
             ->whereIn('id', array_keys($provinceOffers->toArray()))
             ->pluck('name', 'id')
             ->toArray();
-    
+        
         // Convert province IDs to names and total offers for use in chart
         $offerProvinceLabels = array_values($offerProvinces); // Province names for offers
         $offerData = array_values($provinceOffers->toArray()); // Total offers for each province
-    
+        
+        // Fetch top retailers based on offer count
         $topRetailers = CleanSheet::select('retailer_id', DB::raw('COUNT(DISTINCT offer_id) as offer_count'))
             ->where('lp_id', $lp->id)
             ->groupBy('retailer_id')
             ->orderByDesc('offer_count')
             ->take(5)
             ->get();
-    
+        
         // Fetch retailer names by retrieving each retailer's first and last name based on the `retailer_id`
         $retailerNames = $topRetailers->map(function ($item) {
             $retailer = Retailer::select('first_name', 'last_name')->find($item->retailer_id);
             return $retailer ? $retailer->first_name . ' ' . $retailer->last_name : 'Unknown';
         })->toArray();
-    
+        
         $retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
-    
+        
         // Fetch total number of distributors
         $totalDistributors = Retailer::where('lp_id', $lp->id)->count();
-    
+        
         // Fetch total number of carveouts
         $totalCarevouts = DB::table('carveouts')
             ->where('lp_id', $lp->id)
             ->whereNull('deleted_at') // Exclude soft-deleted records
             ->count();
-    
+        
         // Fetch total number of reports
         $totalReportsSubmitted = DB::table('reports')->where('lp_id', $lp->id)->count();
-    
+        
         // Calculate total revenue
         $retailerStatements = RetailerStatement::where('lp_id', $lp->id)->get();
         $totalRevenue = $retailerStatements->sum(function ($statement) {
             return ((float)$statement->fee_per * (float)$statement->quantity * (float)$statement->unit_cost) / 100;
         });
+        
+  
+        $availedRetailers =  RetailerStatement::where('lp_id', $lp->id)
+            ->whereNotNull('offer_id')
+            ->distinct('retailer_id')
+            ->count('retailer_id');
+        
+     
+        $nonAvailedRetailers = Retailer::where('lp_id', $lp->id)
+            ->whereNotIn('id',  RetailerStatement::where('lp_id', $lp->id)->whereNotNull('offer_id')->pluck('retailer_id'))
+            ->count();
     
-        // Return the data to the view
+            $totalDeals = Offer::where('lp_id', $lp->id)->count();
+            
+            $date = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
+            $noDealProducts = DB::table('no_deal_products_view')
+            ->where('lp_id', $lp->id)
+            ->where('reconciliation_date', $date)
+            ->orderByDesc('total_purchase')
+            ->limit(5)
+            ->get();
+
         return view('super_admin.lp.dashboard', compact(
             'purchases',
             'totalPurchases',
@@ -108,9 +157,17 @@ class LpController extends Controller
             'totalDistributors',
             'totalCarevouts',
             'totalReportsSubmitted',
-            'totalRevenue' // Pass this to the view
+            'totalRevenue',
+            'totalOffersIds',
+            'availedOffers',
+            'totalUnmappedOffers', 
+            'availedRetailers',
+            'nonAvailedRetailers' ,
+            'totalDeals',
+            'noDealProducts'
         ));
     }
+    
     
 
    public function exportLpStatement($lp_id,$date)
@@ -221,11 +278,11 @@ class LpController extends Controller
         // Send status update email
         Mail::to($lp->primary_contact_email)->send(new LPStatusChangeMail($lp, $status));
     } catch (\Exception $e) {
-        return redirect()->back()->with('error', 'LP status updated but email could not be sent.');
+        return redirect()->back()->with('error', 'Supplier status updated but email could not be sent.');
     }
 
     // Redirect with success message
-    return redirect()->route('lp.index')->with('toast_success', 'LP status updated and email sent successfully');
+    return redirect()->route('lp.index')->with('toast_success', 'Supplier status updated and email sent successfully');
 }
 
 
@@ -280,7 +337,7 @@ class LpController extends Controller
         // Send email notification
         Mail::to($validatedData['primary_contact_email'])->send(new LpFormMail($lp));
 
-        return redirect()->route('lp.create')->with('success', 'LP created and email sent!');
+        return redirect()->route('lp.create')->with('success', 'Supplier created and email sent!');
     }
 
 
@@ -356,7 +413,7 @@ class LpController extends Controller
         );
 
         // Redirect to the login page with a success message
-        return redirect()->route('login')->with('success', 'LP information completed successfully. Please log in.');
+        return redirect()->route('login')->with('success', 'Supplier information completed successfully. Please log in.');
     }
 
 
@@ -413,7 +470,7 @@ class LpController extends Controller
         }
     
         // Redirect to LP index
-        return redirect()->route('lp.index')->with('toast_success', 'LP updated successfully.');
+        return redirect()->route('lp.index')->with('toast_success', 'Supplier updated successfully.');
     }
     
     
@@ -433,7 +490,7 @@ class LpController extends Controller
             User::where('id', $afterDelete->user_id)->delete();
 
             DB::commit();
-            return redirect()->route('lp.index')->with('toast_success', 'LP deleted successfully.');
+            return redirect()->route('lp.index')->with('toast_success', 'Supplier deleted successfully.');
         }
         catch (\Exception $e) {
             DB::rollBack();

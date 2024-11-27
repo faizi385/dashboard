@@ -276,50 +276,61 @@
         </div>
     </div>
 
+    <style>
+        .needs-validation .form-control:valid {
+    background-image: none !important; /* Remove the tick icon */
+    border-color: #ced4da; /* Restore default border color */
+}
+
+/* Show red border for invalid inputs */
+
+/* Optional: Style invalid feedback */
+
+    </style>
     <!-- Bootstrap JS and Popper.js -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
     
     <!-- JavaScript to Enable Form Validation -->
     <script>
-        (function () {
-            'use strict';
-    
-            // Hide the loader initially
-            $("#loader").hide();
-    
-            // Enable validation on forms
-            var forms = document.querySelectorAll('.needs-validation');
-    
-            Array.prototype.slice.call(forms).forEach(function (form) {
-                form.addEventListener('submit', function (event) {
-                    var emailInput = form.querySelector('#email');
-                    var emailError = form.querySelector('#email + .invalid-feedback');
-    
-                    // Custom email validation logic
-                    if (emailInput) {
-                        var emailValue = emailInput.value;
-                        if (!emailValue.endsWith('.com')) {
-                            emailInput.setCustomValidity('Email must end with .com');
-                            emailError.textContent = 'Please provide a valid email address. ';
-                        } else {
-                            emailInput.setCustomValidity(''); // Clear custom error
-                        }
-                    }
-    
-                    // General form validation
-                    if (!form.checkValidity()) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                    } else {
-                        // Show the loader on successful validation
-                        $("#loader").fadeIn();
-                    }
-    
-                    form.classList.add('was-validated');
-                }, false);
-            });
-        })();
+     (function () {
+    'use strict';
+
+    // Hide the loader initially
+    $("#loader").hide();
+
+    // Enable validation on forms
+    var forms = document.querySelectorAll('.needs-validation');
+
+    Array.prototype.slice.call(forms).forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            // Get email input and error feedback elements
+            var emailInput = form.querySelector('#email');
+            var emailError = form.querySelector('#email + .invalid-feedback');
+
+            // Custom email validation logic
+            if (emailInput) {
+                var emailValue = emailInput.value;
+                if (!emailValue.endsWith('.com')) {
+                    emailInput.setCustomValidity('Email must end with .com');
+                    emailError.textContent = 'Please provide a valid email address.';
+                } else {
+                    emailInput.setCustomValidity(''); // Clear custom error
+                }
+            }
+
+            // General form validation
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            // Prevent green ticks by not adding the Bootstrap validation class
+            form.classList.add('was-validated');
+        }, false);
+    });
+})();
+
     </script>
     
     

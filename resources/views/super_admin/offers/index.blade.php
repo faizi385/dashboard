@@ -109,13 +109,13 @@
                     <div>
                         <form action="{{ route('offers.import') }}" method="POST" enctype="multipart/form-data">
                             @csrf
-                            <input type="hidden" name="lp_id" value="{{ $lp->id }}"> <!-- Hidden LP ID -->
+                            <input type="hidden" name="lp_id" value="{{ $lp->id ?? null}}"> <!-- Hidden LP ID -->
                             <input type="hidden" name="source" value="1"> <!-- Source for bulk upload -->
 
                             <!-- Display LP Name instead of Dropdown -->
                             <div class="mb-3">
                                 <label class="form-label">Supplier</label>
-                                <p><strong>{{ $lp->name }} ({{ $lp->dba }})</strong></p>
+                                <p><strong>{{ $lp->name ?? null}} ({{ $lp->dba ?? null }})</strong></p>
                             </div>
 
                             <!-- Radio buttons for Current Month and Previous Month -->
@@ -151,7 +151,7 @@
 
                     <!-- Single Offer Add Option -->
                     <div>
-                        <a href="{{ route('offers.create', ['lp_id' => $lp->id]) }}" class="btn btn-primary">
+                        <a href="{{ route('offers.create', ['lp_id' => $lp->id ?? null]) }}" class="btn btn-primary">
                             <i class="fas fa-plus-circle"></i> Add Single Deal
                         </a>
                     </div>

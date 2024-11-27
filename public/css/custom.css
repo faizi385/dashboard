@@ -464,3 +464,61 @@ table.dataTable tbody td, table.dataTable thead th {
 .mb-4 {
     margin-bottom: 1.5rem;
 }
+
+.chart-container {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+#chart1, #chart2, #chart3, #chart4 {
+    min-height: 350px;
+}
+ .small-box>.inner {
+    height: 20vh;
+    padding: 10px;
+}
+/* .chart-container {
+    background-color: white;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    min-height: 350px;       
+}
+.small-box>.inner {
+    height: 20vh;
+    padding: 10px;
+} */
+/* Scrollable Container Styles */
+.scrollable-container {
+padding: 1rem;
+}
+
+.scrollable-cards {
+display: flex;
+gap: 16px;
+overflow-x: auto;
+scroll-behavior: smooth;
+-ms-overflow-style: none;
+scrollbar-width: none;
+}
+
+.scrollable-cards::-webkit-scrollbar {
+display: none;
+}
+
+/* Pickable Card Styles */
+.pickable-card {
+cursor: pointer; /* Indicate that the card is clickable */
+transition: transform 0.2s;
+user-select: none; /* Prevent text selection */
+}
+
+.pickable-card:hover {
+transform: scale(1.05); /* Slightly enlarge on hover */
+}
+
+/* Selected Card Style */
+.pickable-card.selected {
+/* No color or border changes */
+}

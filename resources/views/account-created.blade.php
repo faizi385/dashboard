@@ -45,7 +45,7 @@
 <body>
     <div class="message-container">
         <h1>Account Created!</h1>
-        <p>Your account has been created. You will be informed via email once the <br> super admin approves or rejects your registration.</p>
+        <p>Your account has been successfully created, and a confirmation email has been sent to you. <br> Further updates will be shared via email.</p>
         <a href="{{ route('login') }}" class="btn btn-primary mt-3">Go to Login</a>
     </div>
 </body>

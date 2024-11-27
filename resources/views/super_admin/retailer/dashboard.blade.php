@@ -1,80 +1,84 @@
 @extends('layouts.admin')
 
 @section('content')
+
 <div class="container p-2">
     <h1 class="text-white text-center mb-4">Distributor Dashboard</h1>
-    <div class="row">
-        <!-- Total Payout (With Tax) -->
-        <div class="col-lg-3 col-6">
-            <div class="small-box bg-success">
-                <div class="inner">
-                    {{-- <h3 class="text-center"> ${{ number_format(round($totalPayoutWithTaxAllRetailers), 2) }}</h3> --}}
-                    <p class="text-center">Total Revenue </p>
-                </div>
-                <div class="icon">
-                    <i class=""></i>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Overall Revenue -->
-        <div class="col-lg-3 col-6">
-            <div class="small-box bg-dark">
-                <div class="inner">
-                    {{-- <h3 class="text-white text-center">${{ number_format(round($totalIrccDollarAllRetailers), 2) }}</h3> --}}
-                    <p class="text-white text-center">Total Locations</p>
-                </div>
-                <div class="icon">
-                    <i class=""></i>
-                </div>
-            </div>
-        </div>
 
-        <!-- Availed Deals -->
-        <div class="col-lg-3 col-6">
-            <div class="small-box bg-primary">
-                <div class="inner">
-                    {{-- <h3 class="text-center">{{ $totalMappedOffers }}</h3> --}}
-                    <p class="text-center">Total Reports</p>
-                </div>
-                <div class="icon">
-                    <i class=""></i>
+    <!-- Scrollable Cards -->
+    <div class="scrollable-container mb-4">
+        <div class="scrollable-cards">
+            <!-- Total Revenue -->
+            <div class="col-lg-3 col-6 pickable-card">
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        {{-- <h3 class="text-center">${{ number_format(round($totalRevenue), 2) }}</h3> <!-- Show total revenue --> --}}
+                        <p class="text-center">Total Revenue</p>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Unavailed Deals -->
-        <div class="col-lg-3 col-6">
-            <div class="small-box bg-secondary">
-                <div class="inner">
-                    {{-- <h3 class="text-center">{{ $totalUnmappedOffers }}</h3> --}}
-                    <p class="text-center">Total Purchase</p>
+            <!-- Total Locations -->
+            <div class="col-lg-3 col-6 pickable-card">
+                <div class="small-box bg-dark">
+                    <div class="inner">
+                        <h3 class="text-white text-center">{{ $totalLocations }}</h3> <!-- Show the total locations -->
+                        <p class="text-white text-center">Total Locations</p>
+                    </div>
+                
                 </div>
-                <div class="icon">
-                    <i class=""></i>
+            </div>
+
+            <!-- Total Reports -->
+            <div class="col-lg-3 col-6 pickable-card">
+                <div class="small-box bg-primary">
+                    <div class="inner">
+                        <h3 class="text-center">{{     $totalReportsSubmitted }}</h3> <!-- Show total reports -->
+                        <p class="text-center">Total Reports</p>
+                    </div>
+               
+                </div>
+            </div>
+
+            <!-- Total Purchase -->
+            <div class="col-lg-3 col-6 pickable-card">
+                <div class="small-box bg-secondary">
+                    <div class="inner">
+                        {{-- <h3 class="text-center">${{ number_format(round($totalPurchase), 2) }}</h3> <!-- Show total purchase --> --}}
+                        <p class="text-center">Total Purchase</p>
+                    </div>
+                 
                 </div>
             </div>
         </div>
     </div>
-    
+
+    <!-- Charts -->
     <div class="row">
-        <div class="col-lg-6">
+        <!-- First Chart -->
+        <div class="col-lg-6 mt-4">
             <div class="chart-container">
                 <div id="chart"></div>
             </div>
         </div>
-        <div class="col-lg-6">
+
+        <!-- Second Chart -->
+        <div class="col-lg-6 mt-4">
             <div class="chart-container">
                 <div id="chart1"></div>
             </div>
         </div>
     </div>
+
+    <!-- Third Chart -->
     <div class="col-lg-6 mt-4">
         <div class="chart-container">
             <div id="chart2"></div>
         </div>
     </div>
 </div>
+
+
 
 <style>
     .chart-container {
@@ -93,6 +97,45 @@
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
 <script>
+     const scrollableContainer = document.querySelector('.scrollable-cards');
+
+let isDown = false;
+let startX;
+let scrollLeft;
+
+scrollableContainer.addEventListener('mousedown', (e) => {
+    isDown = true;
+    scrollableContainer.classList.add('active');
+    startX = e.pageX - scrollableContainer.offsetLeft;
+    scrollLeft = scrollableContainer.scrollLeft;
+});
+
+scrollableContainer.addEventListener('mouseleave', () => {
+    isDown = false;
+    scrollableContainer.classList.remove('active');
+});
+
+scrollableContainer.addEventListener('mouseup', () => {
+    isDown = false;
+    scrollableContainer.classList.remove('active');
+});
+
+scrollableContainer.addEventListener('mousemove', (e) => {
+    if (!isDown) return; // Stop execution if not dragging
+    e.preventDefault();
+    const x = e.pageX - scrollableContainer.offsetLeft;
+    const walk = (x - startX) * 2; // Adjust the scroll speed
+    scrollableContainer.scrollLeft = scrollLeft - walk;
+});
+document.addEventListener('DOMContentLoaded', () => {
+        const cards = document.querySelectorAll('.pickable-card');
+
+        cards.forEach(card => {
+            card.addEventListener('click', () => {
+                card.classList.toggle('selected');
+            });
+        });
+    });
   document.addEventListener('DOMContentLoaded', function () {
     // First chart configuration (Total IRCC Revenue)
     var totalIrccDollarAllRetailers = Math.round(@json($totalIrccDollarAllRetailers) / 1000);
