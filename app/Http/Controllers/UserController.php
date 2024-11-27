@@ -36,7 +36,7 @@ class UserController extends Controller
 }
 
 public function store(Request $request)
-{
+    {
     // Validate the incoming request
     $request->validate([
         'first_name' => [
@@ -52,13 +52,13 @@ public function store(Request $request)
             'regex:/^[a-zA-Z\s]+$/', // Only alphabets and spaces allowed
         ],
        'email' => [
-    'required',
-    'string',
-    'email',
-    'max:255',
-    'unique:users,email,NULL,id,deleted_at,NULL', // Check uniqueness only for active users
-    'regex:/^([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\.)com$/', // Ensure email ends with .com
-],
+            'required',
+            'string',
+            'email',
+            'max:255',
+            'unique:users,email,NULL,id,deleted_at,NULL', // Check uniqueness only for active users
+            'regex:/^([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\.)com$/', // Ensure email ends with .com
+        ],
 
         'password' => [
             !isset($user) ? 'required' : 'nullable', // Password is required for new users, optional for updates
@@ -68,47 +68,47 @@ public function store(Request $request)
         ],
         'phone' => [
             'required',
-            'regex:/^(\+?\d{1,3}[- ]?)?\(?\d{1,4}?\)?[- ]?\d{1,4}[- ]?\d{1,4}$/', // Allow international phone formats
             'max:20', // Ensure the phone number does not exceed 20 characters
         ],
         'address' => 'nullable|string|max:255',
         'roles' => 'required|array', // Ensure at least one role is selected
         'permissions' => 'nullable|array',
-    ], [
-        'first_name.regex' => 'The first name may only contain letters and spaces.',
-        'last_name.regex' => 'The last name may only contain letters and spaces.',
-        'email.unique' => 'This email address is already associated with another account.',
-        'roles.required' => 'Please select at least one role.', // Custom message for roles validation
-        'phone.regex' => 'Please enter a valid phone number format.',
-    ]);
+        ], 
+        [
+            'first_name.regex' => 'The first name may only contain letters and spaces.',
+            'last_name.regex' => 'The last name may only contain letters and spaces.',
+            'email.unique' => 'This email address is already associated with another account.',
+            'roles.required' => 'Please select at least one role.', // Custom message for roles validation
+            'phone.regex' => 'Please enter a valid phone number format.',
+        ]);
     
-    // Create the user
-    $user = User::create([
-        'first_name' => $request->input('first_name'),
-        'last_name' => $request->input('last_name'),
-        'email' => $request->input('email'),
-        'password' => Hash::make($request->input('password')), // Hash the password
-        'phone' => $request->input('phone'),
-        'address' => $request->input('address'),
-        'created_by' => auth()->id(), // Log the user who created the account
-    ]);
+        // Create the user
+        $user = User::create([
+            'first_name' => $request->input('first_name'),
+            'last_name' => $request->input('last_name'),
+            'email' => $request->input('email'),
+            'password' => Hash::make($request->input('password')), // Hash the password
+            'phone' => $request->input('phone'),
+            'address' => $request->input('address'),
+            'created_by' => auth()->id(), // Log the user who created the account
+        ]);
 
-    // Assign roles if provided
-    if ($request->roles) {
-        $roles = Role::whereIn('original_name', $request->roles)->pluck('name')->toArray();
-        $user->assignRole($roles);
+        // Assign roles if provided
+        if ($request->roles) {
+            $roles = Role::whereIn('original_name', $request->roles)->pluck('name')->toArray();
+            $user->assignRole($roles);
+        }
+
+        // Assign permissions if provided
+        if ($request->permissions) {
+            $permissions = Permission::whereIn('id', $request->permissions)->pluck('name')->toArray();
+            $user->givePermissionTo($permissions);
+        }
+
+        // Redirect back with success message
+        return redirect()->route('users.index')
+            ->with('toast_success', 'User created successfully.');
     }
-
-    // Assign permissions if provided
-    if ($request->permissions) {
-        $permissions = Permission::whereIn('id', $request->permissions)->pluck('name')->toArray();
-        $user->givePermissionTo($permissions);
-    }
-
-    // Redirect back with success message
-    return redirect()->route('users.index')
-        ->with('toast_success', 'User created successfully.');
-}
 
 
 
