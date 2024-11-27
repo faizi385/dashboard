@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\Models\Permission;
 
 class RoleController extends Controller
@@ -28,10 +29,16 @@ class RoleController extends Controller
     
     public function create()
     {
-        // Get all permissions
-        $permissions = Permission::all();
+        // Get the logged-in user's ID
+        $userId = Auth::id();
+    
+        // Get only the permissions created by the logged-in user
+        $permissions = Permission::where('created_by', $userId)->get();
+    
+        // Pass the filtered permissions to the view
         return view('super_admin.roles.create', compact('permissions'));
     }
+    
     public function store(Request $request)
     {
         $request->validate([
@@ -73,12 +80,19 @@ class RoleController extends Controller
 
     public function edit(Role $role)
     {
-        $permissions = Permission::all();
+        // Get the logged-in user's ID
+        $userId = Auth::id();
+    
+        // Get only the permissions created by the logged-in user
+        $permissions = Permission::where('created_by', $userId)->get();
+    
+        // Get the IDs of the permissions assigned to the role
         $rolePermissions = $role->permissions->pluck('id')->toArray();
-
+    
+        // Pass the filtered permissions and role data to the view
         return view('super_admin.roles.edit', compact('role', 'permissions', 'rolePermissions'));
     }
-
+    
     public function update(Request $request, Role $role)
     {
         $request->validate([

@@ -45,7 +45,7 @@
                 <div class="small-box bg-secondary">
                     <div class="inner">
                         {{-- <h3 class="text-center">${{ number_format(round($totalPurchase), 2) }}</h3> <!-- Show total purchase --> --}}
-                        <p class="text-center">Total Purchase</p>
+                        <p class="text-center">Total Purchase Products</p>
                     </div>
                  
                 </div>

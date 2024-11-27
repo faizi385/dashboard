@@ -14,17 +14,31 @@ class CreateNoDealProductsView extends Migration
     {
         DB::statement("
             CREATE VIEW no_deal_products_view AS
+            WITH ranked_products AS (
+                SELECT 
+                    lp_id,
+                    product_name,
+                    reconciliation_date,
+                    SUM(purchase) AS total_purchase,
+                    ROW_NUMBER() OVER (PARTITION BY lp_id ORDER BY SUM(purchase) DESC) AS rank
+                FROM 
+                    clean_sheets
+                WHERE 
+                    offer_id IS NULL
+                GROUP BY 
+                    lp_id, 
+                    product_name, 
+                    reconciliation_date
+            )
             SELECT 
                 lp_id,
                 product_name,
                 reconciliation_date,
-                SUM(purchase) as total_purchase
+                total_purchase
             FROM 
-                clean_sheets
+                ranked_products
             WHERE 
-                offer_id IS NULL
-            GROUP BY 
-                lp_id, product_name, reconciliation_date
+                rank <= 5
         ");
     }
 

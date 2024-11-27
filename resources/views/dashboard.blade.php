@@ -49,14 +49,12 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Second Slide -->
-               
+     
                     <div class="col-lg-3 col-6 pickable-card">
                         <div style="background-color: #1F509A" class="small-box">
                             <div class="inner">
                                 <h3 class="text-center text-white">{{ $totalDeals }}</h3> <!-- Display total deals -->
-                                <p class="text-center text-white">Total Deals</p>
+                                <p class="text-center text-white">Overall Deals</p>
                             </div>
                         </div>
                     </div>

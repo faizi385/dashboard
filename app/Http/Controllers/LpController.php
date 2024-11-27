@@ -139,11 +139,12 @@ class LpController extends Controller
             
             $date = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
             $noDealProducts = DB::table('no_deal_products_view')
-            ->where('lp_id', $lp->id)
-            ->where('reconciliation_date', $date)
-            ->orderByDesc('total_purchase')
-            ->limit(5)
+            ->where('lp_id', $lp->id)                       
+            ->where('reconciliation_date', $date)              
+            ->orderByDesc('total_purchase')                    
+            ->limit(5)                                         
             ->get();
+        
 
         return view('super_admin.lp.dashboard', compact(
             'purchases',
