@@ -25,6 +25,7 @@ class CreateNoDealProductsView extends Migration
                     clean_sheets
                 WHERE 
                     offer_id IS NULL
+                    AND purchase > 0  
                 GROUP BY 
                     lp_id, 
                     product_name, 

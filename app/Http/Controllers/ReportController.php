@@ -20,6 +20,7 @@ use App\Models\TendySalesSummaryReport;
 use Illuminate\Support\Facades\Storage;
 use App\Exports\CleanSheetsExport;
 use App\Models\LP;
+use Carbon\Carbon;
 use App\Exports\RetailerStatementExport;
 use Illuminate\Support\Facades\DB;
 use App\Models\RetailerStatement;
@@ -49,7 +50,7 @@ class ReportController extends Controller
     {
         // Get the currently authenticated user
         $user = auth()->user();
-
+        $date = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
         if ($user->hasRole('Retailer')) {
             // Attempt to find the retailer associated with the user
             $retailers = Retailer::where('user_id', $user->id)->first();
@@ -79,9 +80,9 @@ class ReportController extends Controller
                 $statements = collect();
             }
         } else {
-            // For Super Admin: Fetch all reports and statements
+           
             $reports = Report::with('retailer')->get();
-            $statements = RetailerStatement::where('flag',0)->where('reconciliation_date',now()->startOfMonth())->get();
+            $statements = RetailerStatement::where('flag',0)->where('reconciliation_date', $date)->get();
         }
  
         // Initialize arrays for sums

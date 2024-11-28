@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 use App\Models\LP;
+use Carbon\Carbon;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Report;
@@ -39,30 +40,66 @@ class RetailerController extends Controller
     
     public function dashboard()
     {
+        // Get the logged-in retailer's data
         $retailer = Retailer::where('user_id', Auth::user()->id)->first();
     
-        $totalLocations = RetailerAddress::where('retailer_id',$retailer->id)->count(); 
+        $date = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
+        
+        // Get the total number of locations for the retailer
+        $totalLocations = RetailerAddress::where('retailer_id', $retailer->id)->count();
     
-        $totalReportsSubmitted = DB::table('reports')->where('retailer_id',$retailer->id)->count();
+        // Get the total number of reports submitted by the retailer
+        $totalReportsSubmitted = DB::table('reports')->where('retailer_id', $retailer->id)->count();
+    
+        // Get the total number of products the retailer has purchased from the Cleansheet
+        $totalPurchasedProducts = Cleansheet::where('retailer_id', $retailer->id)
+            ->where('purchase', '>', 0)
+            ->count();
+        
+        // Get the total purchase for deals and non-deals
+        $totalData = DB::table('deals_and_non_deals_purchases')
+        ->where('retailer_id', $retailer->id)
+        ->where('reconciliation_date', $date)
+        ->first();
+    
+    $totalDealsPurchaseCount = $totalData->total_deals_purchase ?? 0;
+    $totalNonDealsPurchaseCount = $totalData->total_non_deals_purchase ?? 0;
+    
+    
+       
+$topLocations = DB::table('top_locations_by_retailer')
+->where('retailer_id', $retailer->id) // Filter by retailer ID
+->where('reconciliation_date', $date) // Filter by reconciliation date
+->orderByDesc('total_purchase') // Ensure proper ordering
+->limit(5) // Limit to top 5 results
+->get();
+
+// dd($topLocations);
+    
+        
+        $totalFeeSum = RetailerStatement::where('retailer_id', $retailer->id)
+        ->where('reconciliation_date', $date)
+            ->sum('total_fee');
+    
         $totalIrccDollarAllRetailers = 0;
         $retailerIrccDollars = []; // Array to store each retailer's IRCC dollar data
-        
+    
         // Fetch all reports and loop through them
         $reports = Report::with('retailer')->get();
-        
+    
         foreach ($reports as $report) {
             $retailerId = $report->retailer_id;
-            
+    
             // Fetch statements for each retailer
             $statements = RetailerStatement::where('retailer_id', $retailerId)->get();
-            
+    
             $totalIrccDollar = 0;
-            
+    
             foreach ($statements as $statement) {
                 // Calculate total IRCC dollar sum
                 $totalIrccDollar += $statement->ircc_dollar;
             }
-            
+    
             // Store the calculated data for each retailer
             $retailerIrccDollars[] = [
                 'retailer_id' => $retailerId,
@@ -71,23 +108,29 @@ class RetailerController extends Controller
     
             $totalIrccDollarAllRetailers += $totalIrccDollar;
         }
-        
+    
         // Total purchase sum from Cleansheet
-        $totalPurchaseSum = Cleansheet::sum('purchase');
+        $totalPurchaseSum = Cleansheet::where('retailer_id', $retailer->id)
+            ->where('reconciliation_date', $date)
+            ->sum('purchase');
     
         // Get the total purchases grouped by province
         $provinceData = Cleansheet::select('province', DB::raw('SUM(purchase) as total_purchase'))
             ->groupBy('province')
             ->get();
     
-        // Pass the data to the view, including the total locations for the logged-in retailer
         return view('super_admin.retailer.dashboard', compact(
             'totalIrccDollarAllRetailers',
             'retailerIrccDollars',
             'totalPurchaseSum',
             'provinceData',
             'totalLocations',
-            'totalReportsSubmitted'
+            'totalReportsSubmitted',
+            'totalPurchasedProducts',
+            'totalDealsPurchaseCount',
+            'totalNonDealsPurchaseCount',
+            'topLocations',
+            'totalFeeSum'  // Add totalFeeSum to the view data
         ));
     }
     

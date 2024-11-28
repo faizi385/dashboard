@@ -22,8 +22,8 @@ class PermissionController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:permissions,name',
-            'description' => 'required|string|max:255',
+            'name' => 'required|string|max:255|unique:permissions,name|regex:/^[a-zA-Z]+$/', // Only alphabets allowed
+            'description' => 'required|string|max:255|regex:/^[a-zA-Z]+$/',
         ]);
     
         Permission::create([
@@ -34,6 +34,7 @@ class PermissionController extends Controller
     
         return redirect()->route('permissions.index')->with('success', 'Permission created successfully.');
     }
+    
     
     public function edit(Permission $permission)
     {

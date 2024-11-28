@@ -73,7 +73,7 @@ class LpController extends Controller
         $availedOffersData = [$availedOffers, $totalUnmappedOffers]; // Data for chart: Availed vs Unavailed
         
         
-
+   
         $provinceOffers = DB::table('offers')
             ->select('province_id', DB::raw('count(*) as total_offers'))
             ->where('lp_id', $lp->id)
@@ -90,22 +90,41 @@ class LpController extends Controller
         $offerProvinceLabels = array_values($offerProvinces); // Province names for offers
         $offerData = array_values($provinceOffers->toArray()); // Total offers for each province
         
+        $topRetailersWithoutOffers = DB::table('top_retailers')
+        ->where('lp_id', $lp->id)
+        ->orderByDesc('total_purchase') // Order by total purchases
+        ->limit(5) // Limit to the top 5
+        ->get();
+    
+    // Fetch retailer names for this graph
+    $retailerNamesWithoutOffers = $topRetailersWithoutOffers->map(function ($item) {
+        $retailer = Retailer::select('first_name', 'last_name')->find($item->retailer_id);
+        return $retailer ? $retailer->first_name . ' ' . $retailer->last_name : 'Unknown';
+    })->toArray();
+    
+    $retailerPurchaseTotals = $topRetailersWithoutOffers->pluck('total_purchase')->toArray();
+    
+
         // Fetch top retailers based on offer count
-        $topRetailers = CleanSheet::select('retailer_id', DB::raw('COUNT(DISTINCT offer_id) as offer_count'))
-            ->where('lp_id', $lp->id)
-            ->groupBy('retailer_id')
-            ->orderByDesc('offer_count')
-            ->take(5)
-            ->get();
+      // Fetch top retailers directly from the 'top_retailers_with_deals' view
+$topRetailers = DB::table('top_retailers_with_deals')
+->where('lp_id', $lp->id) // Filter by the current LP's ID
+->orderByDesc('offer_count') // Already ordered in the view, but added for clarity
+->take(5) // Limit to top 5 results
+->get();
+
+// Fetch retailer names by retrieving each retailer's first and last name based on the `retailer_id`
+$retailerNames = $topRetailers->map(function ($item) {
+$retailer = Retailer::select('first_name', 'last_name')->find($item->retailer_id);
+return $retailer ? $retailer->first_name . ' ' . $retailer->last_name : 'Unknown';
+})->toArray();
+
+// Extract offer counts for the top retailers
+$retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
+
         
-        // Fetch retailer names by retrieving each retailer's first and last name based on the `retailer_id`
-        $retailerNames = $topRetailers->map(function ($item) {
-            $retailer = Retailer::select('first_name', 'last_name')->find($item->retailer_id);
-            return $retailer ? $retailer->first_name . ' ' . $retailer->last_name : 'Unknown';
-        })->toArray();
-        
-        $retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
-        
+        // dd(   $retailerOfferCounts);
+
         // Fetch total number of distributors
         $totalDistributors = Retailer::where('lp_id', $lp->id)->count();
         
@@ -142,7 +161,7 @@ class LpController extends Controller
             ->where('lp_id', $lp->id)                       
             ->where('reconciliation_date', $date)              
             ->orderByDesc('total_purchase')                    
-            ->limit(5)                                         
+            ->limit(5)                                          // Limit to the top 5 products
             ->get();
         
 
@@ -165,7 +184,9 @@ class LpController extends Controller
             'availedRetailers',
             'nonAvailedRetailers' ,
             'totalDeals',
-            'noDealProducts'
+            'noDealProducts',
+            'retailerNamesWithoutOffers',
+    'retailerPurchaseTotals'
         ));
     }
     

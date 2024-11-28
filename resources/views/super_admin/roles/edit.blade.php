@@ -17,7 +17,7 @@
 
             <div class="mb-3 col-md-6">
                 <label for="name" class="form-label">
-                    <i class="fas fa-briefcase"></i> Role Name
+                    <i class="fas fa-briefcase"></i> Role Name <span class="text-danger">*</span>
                 </label>
                 <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" 
                     value="{{ old('name', $role->original_name) }}" >

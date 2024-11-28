@@ -44,21 +44,21 @@
             </div>
             <!-- Total Deals -->
             <div class="col-lg-3 col-6 pickable-card">
-                <div class="small-box bg-warning">
+                <div style="background-color: #1F509A"  class="small-box ">
                     <div class="inner">
-                        <h3 class="text-center">{{ $totalDeals }}</h3>
-                        <p class="text-center">Total Deals</p>
+                        <h3 class="text-center text-white">{{ $totalDeals }}</h3>
+                        <p class="text-center text-white">Total Deals</p>
                     </div>
                 </div>
             </div>
             <!-- Additional Cards -->
-            <div class="col-lg-3 col-6 pickable-card">
+            {{-- <div class="col-lg-3 col-6 pickable-card">
                 <div class="small-box bg-info">
                     <div class="inner">
                         <p class="text-center">Additional Data</p>
                     </div>
                 </div>
-            </div>
+            </div> --}}
         </div>
     </div>
 </div>
@@ -116,52 +116,18 @@
                     <div id="chart7"></div>
                 </div>
             </div>
-    
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <div id="chart8"></div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 
 <script>
-    const scrollableContainer = document.querySelector('.scrollable-cards');
-
-let isDown = false;
-let startX;
-let scrollLeft;
-
-scrollableContainer.addEventListener('mousedown', (e) => {
-    isDown = true;
-    scrollableContainer.classList.add('active');
-    startX = e.pageX - scrollableContainer.offsetLeft;
-    scrollLeft = scrollableContainer.scrollLeft;
-});
-
-scrollableContainer.addEventListener('mouseleave', () => {
-    isDown = false;
-    scrollableContainer.classList.remove('active');
-});
-
-scrollableContainer.addEventListener('mouseup', () => {
-    isDown = false;
-    scrollableContainer.classList.remove('active');
-});
-
-scrollableContainer.addEventListener('mousemove', (e) => {
-    if (!isDown) return; // Stop execution if not dragging
-    e.preventDefault();
-    const x = e.pageX - scrollableContainer.offsetLeft;
-    const walk = (x - startX) * 2; // Adjust the scroll speed
-    scrollableContainer.scrollLeft = scrollLeft - walk;
-});
-document.addEventListener('DOMContentLoaded', () => {
-        const cards = document.querySelectorAll('.pickable-card');
-
-        cards.forEach(card => {
-            card.addEventListener('click', () => {
-                card.classList.toggle('selected');
-            });
-        });
-    });
+ 
     var displayDates = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     var rawDates = @json($purchases->pluck('reconciliation_date'));
     var rawDates = @json(['2024-10-01']);
@@ -446,6 +412,77 @@ var options7 = {
 
 var chart7 = new ApexCharts(document.querySelector("#chart7"), options7);
 chart7.render();
+
+var retailerNamesWithoutDeals = @json($retailerNamesWithoutOffers); // Retailer names
+var totalPurchasesWithoutDeals = @json($retailerPurchaseTotals); // Retailer purchase totals
+
+var options = {
+    series: [{
+        name: 'Total Purchases (Without Deals)', 
+        data: totalPurchasesWithoutDeals, // Use total purchases without deals
+    }],
+    chart: {
+        height: 350,
+        type: 'bar',
+    },
+    title: {
+        text: 'Top 5 Distributors with No Deals', // Title of the chart
+        floating: false, 
+        offsetY: 10,    // Adjust vertical position
+        align: 'center', // Align title to the center
+        style: { 
+            color: '#444', // Title color
+            fontSize: '18px', // Title font size
+            fontWeight: 'bold' // Title font weight
+        }
+    },
+    plotOptions: {
+        bar: {
+            borderRadius: 10,
+            columnWidth: '50%',
+        }
+    },
+    dataLabels: {
+        enabled: false
+    },
+    stroke: {
+        width: 0
+    },
+    grid: {
+        row: {
+            colors: ['#fff', '#f2f2f2']
+        }
+    },
+    xaxis: {
+        labels: {
+            rotate: -45
+        },
+        categories: retailerNamesWithoutDeals, // Use retailer names as categories
+        tickPlacement: 'on'
+    },
+    yaxis: {
+        title: {
+            text: 'Total Purchases (Without Deals)', // Label for the y-axis
+        },
+    },
+    fill: {
+        type: 'gradient',
+        gradient: {
+            shade: 'light',
+            type: "horizontal",
+            shadeIntensity: 0.25,
+            gradientToColors: undefined,
+            inverseColors: true,
+            opacityFrom: 0.85,
+            opacityTo: 0.85,
+            stops: [50, 0, 100]
+        },
+    }
+};
+
+var chart = new ApexCharts(document.querySelector("#chart8"), options);
+chart.render();
+
 
 </script>
 @endsection

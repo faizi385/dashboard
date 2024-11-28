@@ -15,7 +15,7 @@ class DashboardController extends Controller
     public function index()
     {
         $user = auth()->user();
-    
+        $date = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
         // Initialize variables for the dashboard totals
         $totalPayoutAllRetailers = 0;
         $totalPayoutWithTaxAllRetailers = 0;
@@ -39,7 +39,7 @@ class DashboardController extends Controller
         ->take(5)
         ->get();
     
-
+        
         // Check if the user is a retailer
         if ($user->hasRole('Retailer')) {
             $statements = RetailerStatement::where('retailer_id', $user->id)
@@ -72,7 +72,7 @@ class DashboardController extends Controller
                 $retailerId = $report->retailer_id;
                 $statements = RetailerStatement::where('retailer_id', $retailerId)
                     ->where('flag', 0)
-                    ->where('reconciliation_date', now()->startOfMonth())
+                    ->where('reconciliation_date', $date)
                     ->get();
     
                 $totalPayout = 0;

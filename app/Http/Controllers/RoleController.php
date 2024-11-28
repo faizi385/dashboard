@@ -43,9 +43,14 @@ class RoleController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'],
-            'permissions' => 'nullable|array|min:1',
-            'permissions.*' => 'exists:permissions,id',
+            'permissions' => 'nullable|array|min:1', // Validate that permissions are an array and must have at least one item
+            'permissions.*' => 'exists:permissions,id', // Ensure all permissions exist in the permissions table
         ]);
+        
+        // Check if permissions are provided before role creation
+        if (empty($request->permissions)) {
+            return redirect()->back()->with('error', 'Please select at least one permission.'); // Return error if no permissions
+        }
         
         // Create a unique role name for the creator
         $roleName = $request->name . '_' . auth()->id();
@@ -62,19 +67,13 @@ class RoleController extends Controller
             'created_by' => auth()->id(),
         ]);
     
-        // Check if permissions are provided
-        if (empty($request->permissions)) {
-            return redirect()->back()->with('error', 'Please select at least one permission.');
-        }
-    
         // Sync permissions if provided
         $validPermissions = Permission::whereIn('id', $request->permissions)->pluck('id')->toArray();
         $role->syncPermissions($validPermissions);
-        // if (!empty($request->permissions)) {
-        //     $role->syncPermissions($request->permissions);
-        // }
+    
         return redirect()->route('roles.index')->with('toast_success', 'Role created successfully.');
     }
+    
     
     
 
@@ -103,24 +102,24 @@ class RoleController extends Controller
                 'regex:/^[a-zA-Z\s]+$/',
                 'unique:roles,name,' . $role->id . ',id,created_by,' . auth()->id(),
             ],
-            'permissions' => 'nullable|array',
-            'permissions.*' => 'exists:permissions,id',
+            'permissions' => 'nullable|array', // Ensure permissions is an array if provided
+            'permissions.*' => 'exists:permissions,id', // Ensure each permission exists in the database
         ]);
     
-        // Update role with validated name
+        // Check if no permissions are selected
+        if (!$request->has('permissions') || empty($request->permissions)) {
+            return redirect()->back()->with('error', 'Please select at least one permission.'); // Show error if no permissions are selected
+        }
+    
+        // Update the role with validated name
         $role->update([
             'original_name' => $request->name,
             'name' => $request->name . '_' . auth()->id(),
         ]);
     
-        // Check if permissions are provided
-        if (!$request->has('permissions') || empty($request->permissions)) {
-            return redirect()->back()->with('error', 'Please select at least one permission.');
-        }
-    
         // Retrieve only existing permissions that match the current guard
         $validPermissions = Permission::whereIn('id', $request->permissions)
-            ->where('guard_name', $role->guard_name)
+            ->where('guard_name', $role->guard_name) // Ensure permissions are valid for this guard
             ->pluck('id')
             ->toArray();
     
@@ -130,6 +129,7 @@ class RoleController extends Controller
         // Redirect with success message
         return redirect()->route('roles.index')->with('toast_success', 'Role updated successfully.');
     }
+    
     
 
     public function destroy(Role $role)

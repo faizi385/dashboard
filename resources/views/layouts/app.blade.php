@@ -111,7 +111,7 @@
                 <nav class="mt-2">
                     <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
         
-                    
+                     @if(auth()->user()->hasRole('Super Admin'))
                         <li class="nav-item has-treeview {{ request()->is('users*') || request()->is('roles*') || request()->is('permissions*') ? 'menu-open' : '' }}">
                             <a href="#" class="nav-link {{ request()->is('users*') || request()->is('roles*') || request()->is('permissions*') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-users"></i>
@@ -145,7 +145,7 @@
                           
                             </ul>
                         </li>
-   
+   @endif
                         <!-- Manage Provinces (Visible only to Super Admin) -->
                         @if(in_array('view provinces', $permission))
                         <li class="nav-item">
@@ -394,7 +394,7 @@
    
  <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+<script src="{{ asset('js/custom.js') }}"></script>
     @stack('scripts')
 </body>
 </html>

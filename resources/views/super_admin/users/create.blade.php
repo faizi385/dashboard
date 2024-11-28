@@ -52,7 +52,7 @@
                     <label for="email" class="form-label">
                         <i class="fas fa-envelope"></i> Email <span class="text-danger">*</span>
                     </label>
-                    <input type="email" name="email" id="email" class="form-control @error('email') is-invalid @enderror" placeholder="Enter Email Address" value="{{ old('email', $user->email ?? '') }}" oninput="removeValidation(this)">
+                    <input type="text" name="email" id="email" class="form-control @error('email') is-invalid @enderror" placeholder="Enter Email Address" value="{{ old('email', $user->email ?? '') }}" oninput="removeValidation(this)">
                     @error('email')
                         <div class="invalid-feedback">
                             {{ $message }}
