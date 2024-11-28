@@ -73,8 +73,7 @@
             <i class="fas fa-user"></i> {{ Auth::user()->first_name }}
         </a>
         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-            <li><a class="dropdown-item" href="{{ route('profile') }}"><i class="fas fa-user-circle mr-2"></i> Profile</a></li>
-            <li><a class="dropdown-item" href="{{ route('settings') }}"><i class="fas fa-cogs mr-2"></i> Settings</a></li>
+            <li><a class="dropdown-item" href="{{ route('settings') }}"><i class="fas fa-cogs mr-2"></i> Profile Settings</a></li>
             <li><hr class="dropdown-divider"></li>
             <li>
                 <a class="dropdown-item" href="{{ route('logout') }}"

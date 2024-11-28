@@ -52,8 +52,7 @@
                         <i class="fas fa-user"></i> {{ Auth::user()->first_name ?? null }}
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                        <li><a class="dropdown-item" href="{{ route('profile') }}"><i class="fas fa-user-circle mr-2"></i> Profile</a></li>
-                        <li><a class="dropdown-item" href="{{ route('settings') }}"><i class="fas fa-cogs mr-2"></i> Settings</a></li>
+                        <li><a class="dropdown-item" href="{{ route('settings') }}"><i class="fas fa-cogs mr-2"></i>Profile Settings</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
                             <a class="dropdown-item" href="{{ route('logout') }}"
@@ -97,7 +96,7 @@
                 <nav class="mt-2">
                     <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
         
-                    
+<!--                     
                         <li class="nav-item has-treeview {{ request()->is('users*') || request()->is('roles*') || request()->is('permissions*') ? 'menu-open' : '' }}">
                             <a href="#" class="nav-link {{ request()->is('users*') || request()->is('roles*') || request()->is('permissions*') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-users"></i>
@@ -120,7 +119,6 @@
                                     </a>
                                 </li>
         
-                                <!-- Permissions (Visible only to Super Admin) -->
                                
                                 <li class="nav-item">
                                     <a href="{{ route('permissions.index') }}" class="nav-link {{ Route::currentRouteName() == 'permissions.index' ? 'active' : '' }}">
@@ -130,7 +128,7 @@
                                 </li>
                            
                             </ul>
-                        </li>
+                        </li> -->
    
                         <!-- Manage Provinces (Visible only to Super Admin) -->
                         @if(in_array('view provinces', $permission))

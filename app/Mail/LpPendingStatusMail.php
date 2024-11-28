@@ -33,7 +33,7 @@ class LpPendingStatusMail extends Mailable
      */
     public function build()
     {
-        return $this->subject('Your LP Status is Pending')
+        return $this->subject('Supplier Registration Received')
                     ->view('emails.lp_pending_status')
                     ->with([
                         'lpName' => $this->lpName,
