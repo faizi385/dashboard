@@ -90,11 +90,11 @@
 </div>
 <div class="row">
     
-    {{-- <div class="col-lg-6 mt-4">
+    <div class="col-lg-6 mt-4">
         <div class="chart-container">
-            <div id="chart4"></div>
+            <div id="chart6"></div>
         </div>
-    </div> --}}
+    </div>
 </div>
 </div>
 
@@ -270,7 +270,7 @@ var options = {
         }
     },
     title: {
-        text: 'Total Purchase by Province - October',
+        text: 'Total Purchase by Province ',
         floating: false,
         offsetY: 15, // Adjust this value to add more space below the title
         style: {
@@ -431,8 +431,91 @@ var options = {
 var chart = new ApexCharts(document.querySelector("#chart5"), options);
 chart.render();
 
+var totalFeeSum = @json($totalFeeSum); // Fetch the PHP value
+var monthName = @json($monthName); // Fetch the PHP value for the month
 
-      
+// Create a Date object using the monthName and extract the abbreviated month (e.g., "Oct")
+var month = new Date(monthName + " 1, 2024"); // Assuming monthName is like "October 2024"
+var shortMonth = month.toLocaleString('en-US', { month: 'short' }); // Get the abbreviated month name
+
+var options = {
+  series: [{
+    name: 'Total Fee', // Updated name to reflect the data
+    data: [totalFeeSum] // Replacing sample data with the total fee sum
+  }],
+  chart: {
+    height: 350,
+    type: 'bar',
+  },
+  plotOptions: {
+    bar: {
+      borderRadius: 10,
+      dataLabels: {
+        position: 'center', // Display data labels inside the bars, centered
+      },
+    }
+  },
+  dataLabels: {
+    enabled: true,
+    formatter: function (val) {
+      return Math.round(val).toLocaleString(); // Round the value and format it as a readable number
+    },
+    style: {
+      fontSize: '12px',
+      colors: ["#fff"], // Use white color for data labels inside the bar
+      fontWeight: 'bold',
+    }
+  },
+  xaxis: {
+    categories: [shortMonth], // Use the abbreviated month name as category
+    position: 'bottom',
+    axisBorder: {
+      show: false
+    },
+    axisTicks: {
+      show: false
+    },
+    crosshairs: {
+      fill: {
+        type: 'gradient',
+        gradient: {
+          colorFrom: '#D8E3F0',
+          colorTo: '#BED1E6',
+          stops: [0, 100],
+          opacityFrom: 0.4,
+          opacityTo: 0.5,
+        }
+      }
+    },
+  },
+  yaxis: {
+    axisBorder: {
+      show: false
+    },
+    axisTicks: {
+      show: false,
+    },
+    labels: {
+      show: true, // Show y-axis labels
+      formatter: function (val) {
+        return Math.round(val).toLocaleString(); // Round and format y-axis labels
+      }
+    }
+  },
+  title: {
+    text: 'Yearly Payouts', // Updated title
+    floating: true,
+    offsetY: 10,
+    align: 'center',
+    style: {
+      color: '#444'
+    }
+  }
+};
+
+var chart = new ApexCharts(document.querySelector("#chart6"), options);
+chart.render();
+
 </script>
 
 @endsection

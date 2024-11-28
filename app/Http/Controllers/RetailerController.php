@@ -44,7 +44,7 @@ class RetailerController extends Controller
         $retailer = Retailer::where('user_id', Auth::user()->id)->first();
     
         $date = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
-        
+        $monthName = Carbon::parse($date)->format('F Y'); 
         // Get the total number of locations for the retailer
         $totalLocations = RetailerAddress::where('retailer_id', $retailer->id)->count();
     
@@ -76,7 +76,7 @@ $topLocations = DB::table('top_locations_by_retailer')
 
 // dd($topLocations);
     
-        
+        // Get the total sum of total_fee from retailer_statement for the logged-in retailer
         $totalFeeSum = RetailerStatement::where('retailer_id', $retailer->id)
         ->where('reconciliation_date', $date)
             ->sum('total_fee');
@@ -130,7 +130,8 @@ $topLocations = DB::table('top_locations_by_retailer')
             'totalDealsPurchaseCount',
             'totalNonDealsPurchaseCount',
             'topLocations',
-            'totalFeeSum'  // Add totalFeeSum to the view data
+            'totalFeeSum'  ,
+             'monthName'// Add totalFeeSum to the view data
         ));
     }
     
