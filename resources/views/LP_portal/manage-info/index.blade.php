@@ -3,7 +3,7 @@
 @section('content')
 <div class="container p-2">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="text-white">Manage Info</h1>
+        <h1 class="text-white">Supplier Info</h1>
         <a href="{{ url()->previous() }}" class="btn btn-primary">
             <i class="fas fa-arrow-left"></i> Back
         </a>
@@ -45,6 +45,7 @@
                         class="form-control @error('email') is-invalid @enderror" 
                         value="{{ old('email', $lp->primary_contact_email) }}" 
                         oninput="removeValidation(this)"
+                        readonly
                     >
                     @error('email')
                         <div class="invalid-feedback">

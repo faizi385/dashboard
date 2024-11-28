@@ -71,7 +71,15 @@
         <?php $permission = auth()->user()->getAllPermissions()->pluck('name')->toArray(); ?>
         <aside style="background-color: #54595F" class="main-sidebar sidebar-dark-primary elevation-4">
             <a style="text-decoration: none" href="{{ auth()->user()->hasRole('Super Admin') ? route('dashboard') : (auth()->user()->hasRole('LP') ? route('lp.dashboard') : route('retailer.dashboard')) }}" class="brand-link">
-                <span class="brand-text font-weight-light">Novatore</span>
+            <span class="brand-text font-weight-light">
+                @if(auth()->user()->hasRole('Super Admin'))
+                    Super Admin Dashboard
+                @elseif(auth()->user()->hasRole('LP'))
+                    Supplier Portal
+                @else
+                    Retailer Dashboard
+                @endif
+            </span>
             </a>
         
             <div class="sidebar">
@@ -214,7 +222,7 @@
                         <li class="nav-item {{ request()->is('manage-info*') ? 'menu-open' : '' }}">
                             <a href="{{ route('manage-info.index') }}" class="nav-link {{ request()->is('manage-info*') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-info-circle"></i>
-                                <p>Manage Info</p>
+                                <p>Supplier Info</p>
                             </a>
                         </li>
                         @endif

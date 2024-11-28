@@ -22,8 +22,8 @@
         <div class="col-lg-3 col-6">
             <div class="small-box bg-dark">
                 <div class="inner">
-                    <h3 class="text-white text-center">{{ $totalDistributors }}</h3>
-                    <p class="text-white text-center">Total Distributors</p>
+                    <h3 class="text-center">{{ $totalDistributors }}</h3>
+                    <p class="text-center">Total Distributors</p>
                 </div>
                 <div class="icon">
                     <i class=""></i> <!-- Use an appropriate FontAwesome icon -->
@@ -99,13 +99,29 @@
         padding: 20px;
         border-radius: 8px;
         box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        margin-top: 20px;
     }
     #chart1, #chart2, #chart3, #chart4 {
         min-height: 350px;
     }
-     .small-box>.inner {
-        height: 20vh;
-        padding: 10px;
+    .small-box {
+        background-color: white !important;
+        color: rgb(38, 160, 252) !important;
+        display: flex;
+        align-items: center; 
+        justify-content: center; 
+        height: 100%;
+        text-align: center; 
+    
+    }
+
+    .small-box .inner {
+        display: flex;
+        flex-direction: column;
+        align-items: center; 
+        justify-content: center; 
+        width: 100%;
+        height: 100%;
     }
 </style>
 

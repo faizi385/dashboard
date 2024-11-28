@@ -24,8 +24,8 @@
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-dark">
                     <div class="inner">
-                        <h3 class="text-white text-center">${{ number_format(round($totalIrccDollarAllRetailers), 2) }}</h3>
-                        <p class="text-white text-center">Overall Revenue</p>
+                        <h3 class="text-center">${{ number_format(round($totalIrccDollarAllRetailers), 2) }}</h3>
+                        <p class="text-center">Overall Revenue</p>
                     </div>
                     <div class="icon">
                         <i class=""></i>
@@ -101,6 +101,27 @@
     </div>
 </section>
 <style>
+    .small-box {
+        background-color: white !important;
+        color: rgb(38, 160, 252) !important;
+        display: flex;
+        align-items: center; 
+        justify-content: center; 
+        height: 100%;
+        text-align: center; 
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+
+    .small-box .inner {
+        display: flex;
+        flex-direction: column;
+        align-items: center; 
+        justify-content: center; 
+        width: 100%;
+        height: 100%;
+    }
+
      .chart-container {
         background-color: white;
         padding: 10px;
@@ -108,10 +129,7 @@
         box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
         min-height: 350px;       
     }
-    .small-box>.inner {
-        height: 20vh;
-        padding: 10px;
-    }
+
 </style>
 <!-- Include Chart.js and ApexCharts -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
