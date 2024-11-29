@@ -85,20 +85,17 @@
                     <div class="invalid-feedback">Please confirm your password.</div>
                 </div>
                 <div class="col-md-4 form-group">
-                    <label for="street_number"><i class="fas fa-home"></i> Street Number  <span class="text-danger">*</label>
-                    <input type="text" class="form-control" name="address[street_number]" id="street_number">
+                    <label for="address"><i class="fas fa-map-marker-alt"></i> Address <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="address[address]" id="address" placeholder="Enter full address">
                 </div>
-                <div class="col-md-4 form-group">
-                    <label for="street_name"><i class="fas fa-road"></i> Street Name  <span class="text-danger">*</label>
-                    <input type="text" class="form-control" name="address[street_name]" id="street_name">
-                </div>
-            </div>
-
-            <div class="row row-form">
                 <div class="col-md-4 form-group">
                     <label for="postal_code"><i class="fas fa-postcode"></i> Postal Code  <span class="text-danger">*</label>
                     <input type="text" class="form-control" name="address[postal_code]" id="postal_code">
                 </div>
+            </div>
+
+            <div class="row row-form">
+               
                 <div class="col-md-4 form-group">
                     <label for="city"><i class="fas fa-city"></i> City  <span class="text-danger">*</label>
                     <select class="form-control" name="address[city]" id="city" required>

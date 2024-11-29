@@ -67,34 +67,47 @@ class DashboardController extends Controller
         } else {
             // Super admin: Fetch all reports and calculate totals
             $reports = Report::with('retailer')->get();
-    
+        
+            // Initialize total sums
+            $totalPayoutAllRetailers = 0;
+            $totalPayoutWithTaxAllRetailers = 0;
+            $totalIrccDollarAllRetailers = 0;
+            $totalPurchaseCostByProvince = [];
+        
             foreach ($reports as $report) {
                 $retailerId = $report->retailer_id;
                 $statements = RetailerStatement::where('retailer_id', $retailerId)
                     ->where('flag', 0)
                     ->where('reconciliation_date', $date)
                     ->get();
-    
+        
                 $totalPayout = 0;
                 $totalPayoutWithTax = 0;
                 $totalIrccDollar = 0;
-    
+        
                 foreach ($statements as $statement) {
-                    $payout = $statement->quantity_sold * $statement->average_price;
+                    $payout = $statement->total_fee; // Total fee for the statement
                     $totalPayout += $payout;
-    
-                    $taxAmount = $payout * 0.13;
+        
+                    // Fetch province and calculate tax amount
+                    $province = $statement->report->province ?? null;
+                    $taxRate = $this->getProvinceTaxRate($province);
+                    $taxAmount = $payout * $taxRate; // Calculate tax
                     $payoutWithTax = $payout + $taxAmount;
                     $totalPayoutWithTax += $payoutWithTax;
-    
+        
                     $totalIrccDollar += $statement->ircc_dollar;
-    
+        
+                    // Add to purchase cost by province
                     $province = $statement->province;
                     if (isset($totalPurchaseCostByProvince[$province])) {
                         $totalPurchaseCostByProvince[$province] += $statement->total_purchase_cost;
+                    } else {
+                        $totalPurchaseCostByProvince[$province] = $statement->total_purchase_cost;
                     }
                 }
-    
+        
+                // Sum up totals for all retailers
                 $totalPayoutAllRetailers += $totalPayout;
                 $totalPayoutWithTaxAllRetailers += $totalPayoutWithTax;
                 $totalIrccDollarAllRetailers += $totalIrccDollar;
@@ -125,6 +138,20 @@ $totalDeals = Offer::count();
             'topProducts' ,
             'totalDeals'// Pass top products to the view
         ));
+    }
+
+
+     private function getProvinceTaxRate($province)
+    {
+        $taxRates = [
+            'Alberta' => 0.05,
+            'Ontario' => 0.03,
+            'Manitoba' => 0.05,
+            'British Columbia' => 0.05,
+            'Saskatchewan' => 0.05,
+        ];
+
+        return $taxRates[$province] ?? 0;
     }
 
 }

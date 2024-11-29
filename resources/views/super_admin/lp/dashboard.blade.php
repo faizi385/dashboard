@@ -4,7 +4,7 @@
 <div class="container p-2">
     <h1 class="text-white text-center mb-4">Supplier Dashboard</h1>
 
-    <div class="scrollable-container mb-4">
+    <div class="scrollable-container ">
         <div class="scrollable-cards">
             <!-- Total Revenue -->
             <div class="col-lg-3 col-6 pickable-card">
@@ -246,9 +246,11 @@ var options4 = {
 var chart4 = new ApexCharts(document.querySelector("#chart4"), options4);
 chart4.render();
 
-var availedOffers = @json($availedOffers); // Replace with actual data for availed deals
+var availedOffers = @json($availedOffers); // Replace with actual data for availed deals 
 var unavailedOffers = @json($totalUnmappedOffers); // Replace with actual data for unavailed deals
-
+var monthName = @json($monthName); // Fetch the dynamic month name (e.g., "October" or "Oct")
+var month = new Date(monthName + " 1, 2024"); // Assuming monthName is like "October 2024"
+var shortMonth = month.toLocaleString('en-US', { month: 'short' });
 var options = {
     series: [{
         name: 'Availed Deals',
@@ -271,15 +273,22 @@ var options = {
     dataLabels: {
         enabled: true,
         formatter: function(val) {
-            return val + " Deals";
+            return val + " Deals"; // Format data label to include 'Deals' text
         },
         style: {
             fontSize: '12px',
             colors: ['#FFFFFF'] // Adjust text color if necessary
         }
     },
+    tooltip: {
+        y: {
+            formatter: function(val) {
+                return val + " Deals"; // Add "Deals" in tooltip as well
+            }
+        }
+    },
     xaxis: {
-        categories: ['Oct'], // Label for the single bar
+        categories: [shortMonth], // Use dynamic month name from PHP
         labels: {
             style: {
                 fontSize: '12px'
@@ -304,8 +313,14 @@ var options = {
 var chart = new ApexCharts(document.querySelector("#chart5"), options);
 chart.render();
 
+
 var retailersAvailed = @json($availedRetailers); // Fetch number of retailers who availed deals
 var retailersNotAvailed = @json($nonAvailedRetailers); // Fetch number of retailers who did not avail deals
+var monthName = @json($monthName); // Fetch the month name dynamically
+
+// Create a Date object using the monthName and extract the abbreviated month (e.g., "Oct")
+var month = new Date(monthName + " 1, 2024"); // Assuming monthName is like "October 2024"
+var shortMonth = month.toLocaleString('en-US', { month: 'short' }); // Get the abbreviated month name
 
 var options6 = {
     series: [{
@@ -332,7 +347,7 @@ var options6 = {
         style: { fontSize: '12px', colors: ['#FFFFFF'] }
     },
     xaxis: {
-        categories: ['Oct'],
+        categories: [shortMonth], // Display the dynamically formatted month
         labels: {
             style: { fontSize: '12px' }
         }
@@ -352,6 +367,7 @@ var options6 = {
 
 var chart6 = new ApexCharts(document.querySelector("#chart6"), options6);
 chart6.render();
+
 var noDealProducts = @json($noDealProducts);
 var productNames = noDealProducts.map(product => product.product_name.length > 15 ? product.product_name.substring(0, 15) + '...' : product.product_name);  // Truncate long names
 var totalPurchases = noDealProducts.map(product => product.total_purchase);
@@ -402,7 +418,7 @@ var options7 = {
         }
     },
     title: {
-        text: 'Top 5 Products with No Deals (Previous Month)',
+        text: 'Top 5 Products with No Deals ',
         floating: false, 
         offsetY: 10,    
         align: 'center',

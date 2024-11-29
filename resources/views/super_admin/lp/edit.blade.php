@@ -79,7 +79,7 @@
                             <div class="form-row">
                                 <div class="col-md-6 form-group">
                                     <label for="address_{{ $index }}"><i class="fas fa-map-marker-alt"></i> Address <span class="text-danger">*</span></label>
-                                    <input type="text" name="address[{{ $index }}][address]" id="address_{{ $index }}" class="form-control @error('address.' . $index . '.address') is-invalid @enderror" value="{{ old('address.' . $index . '.address', $address->full_address) }}">
+                                    <input type="text" name="address[{{ $index }}][address]" id="address_{{ $index }}" class="form-control @error('address.' . $index . '.address') is-invalid @enderror" value="{{ old('address.' . $index . '.address', $address->address) }}">
                                     @error('address.' . $index . '.address')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror

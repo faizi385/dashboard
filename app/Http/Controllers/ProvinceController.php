@@ -21,28 +21,31 @@ class ProvinceController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-                function ($attribute, $value, $fail) {
-                    $existing = Province::withTrashed()->where('name', $value)->first();
-                    if ($existing && !$existing->trashed()) {
-                        $fail('The province name has already been taken.');
-                    }
-                },
-            ],
-            'slug' => [
-                'required',
-                'string',
-                'max:255',
-                function ($attribute, $value, $fail) {
-                    $existing = Province::withTrashed()->where('slug', $value)->first();
-                    if ($existing && !$existing->trashed()) {
-                        $fail('The province slug has already been taken.');
-                    }
-                },
-            ],
+           'name' => [
+    'required',
+    'string',
+    'max:255',
+    'regex:/^[a-zA-Z\s]+$/', // Ensures only alphabets and spaces are allowed
+    function ($attribute, $value, $fail) {
+        $existing = Province::withTrashed()->where('name', $value)->first();
+        if ($existing && !$existing->trashed()) {
+            $fail('The province name has already been taken.');
+        }
+    },
+],
+'slug' => [
+    'required',
+    'string',
+    'max:255',
+    'regex:/^[a-zA-Z\s]+$/',
+    function ($attribute, $value, $fail) {
+        $existing = Province::withTrashed()->where('slug', $value)->first();
+        if ($existing && !$existing->trashed()) {
+            $fail('The province slug has already been taken.');
+        }
+    },
+],
+
             'timezone_1' => 'nullable|string|max:255',
             'timezone_2' => 'nullable|string|max:255',
             'tax_value' => [

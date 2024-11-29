@@ -35,7 +35,7 @@
                     <td>{{ $lp->name }}</td>
                     <td>{{ $lp->dba }}</td>
                     <td>{{ $lp->primary_contact_email }}</td>
-                    <td>{{ $lp->address->first()?->province->name ?? 'N/A' }}</td>
+                    <td>{{ $lp->address->first()?->province->name ?? '-' }}</td>
 
 
                     <td>{{ ucfirst($lp->status) }}</td>
@@ -207,7 +207,7 @@ $('form[action="{{ route('offers.import') }}"]').on('submit', function(e) {
 
             Swal.fire({
                 title: 'Are you sure?',
-                text: "You want to approve this LP?",
+                text: "You want to approve this Supplier?",
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
@@ -228,7 +228,7 @@ $('form[action="{{ route('offers.import') }}"]').on('submit', function(e) {
 
             Swal.fire({
                 title: 'Are you sure?',
-                text: "You want to reject this LP?",
+                text: "You want to reject this Supplier?",
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',

@@ -10,7 +10,7 @@
         <!-- Scrollable Cards -->
         <div class="scrollable-container mb-4">
             <div class="scrollable-cards">
-                <!-- Total Payout (With Tax) -->
+                {{-- <!-- Total Payout (With Tax) -->
                 <div class="col-lg-3 col-6 pickable-card">
                     <div class="small-box bg-success">
                         <div class="inner">
@@ -18,7 +18,7 @@
                             <p class="text-center">Total Payout (With Tax)</p>
                         </div>
                     </div>
-                </div>
+                </div> --}}
 
                 <!-- Overall Revenue -->
                 <div class="col-lg-3 col-6 pickable-card">

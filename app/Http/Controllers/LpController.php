@@ -47,7 +47,7 @@ class LpController extends Controller
         
         $date = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
         $dateOffer = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
-        
+        $monthName = Carbon::parse($date)->format('F Y'); 
         // Get the total number of offers for a specific LP (based on $lp->id) and the previous month's offer date
         $totalOffersIds = Offer::where('lp_id', $lp->id) // Filter by LP ID
             ->where('offer_date', $dateOffer) // Filter by the date of the previous month
@@ -135,7 +135,10 @@ $retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
             ->count();
         
         // Fetch total number of reports
-        $totalReportsSubmitted = DB::table('reports')->where('lp_id', $lp->id)->count();
+        $totalReportsSubmitted = DB::table('reports')
+        ->where('lp_id', $lp->id)
+        ->whereNull('deleted_at')
+        ->count();
         
         // Calculate total revenue
         $retailerStatements = RetailerStatement::where('lp_id', $lp->id)->get();
@@ -186,7 +189,8 @@ $retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
             'totalDeals',
             'noDealProducts',
             'retailerNamesWithoutOffers',
-    'retailerPurchaseTotals'
+    'retailerPurchaseTotals',
+    'monthName'
         ));
     }
     
@@ -195,7 +199,7 @@ $retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
    public function exportLpStatement($lp_id,$date)
     {
         set_time_limit(900);
-        $date = Carbon::parse($date)->startofMonth()->format('Y-m-d');
+        $date = Carbon::parse($date)->startofMonth()->subMonth()->format('Y-m-d');
         $lp = Lp::where('id', $lp_id)->with('user')->first();
         $sortedCollection = $this->generateLpStatement($lp_id, $date);
         $lpName = $lp->name ?? 'LP_Name';
@@ -316,22 +320,26 @@ $retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
     {
         $validatedData = $request->validate([
             'name' => ['required', 'string', 'max:255', 'regex:/^[^\d]+$/'], // Disallow numeric characters
-            'dba' => 'required|string|max:255',
+            'dba' => 'required|string|max:255', // Custom error message for this field
             'primary_contact_email' => [
                 'required',
                 'email',
                 'unique:users,email',
-                'regex:/^[\w\.-]+@[\w\.-]+\.\w{2,4}$/'  // Example regex for standard email formats
+                'regex:/^[\w\.-]+@[\w\.-]+\.\w{2,4}$/', // Example regex for standard email formats
             ],
-         'primary_contact_phone' => [
-    'required',
-    'regex:/^\+?[0-9\s\-\(\)]+$/',
-    'max:20'
-],
-
+            'primary_contact_phone' => [
+                'required',
+                'regex:/^\+?[0-9\s\-\(\)]+$/',
+                'max:20',
+            ],
             'primary_contact_position' => ['required', 'string', 'max:255', 'regex:/^[^\d]+$/'], // Disallow numeric characters
             'password' => 'nullable|string|min:8',
+        ], [
+            // Custom error messages
+            'dba.required' => 'The organization name field is required.',
+     
         ]);
+        
 
         // Split the name into first and last name
         $nameParts = explode(' ', $validatedData['name'], 2);
@@ -382,17 +390,15 @@ $retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
             'primary_contact_phone' => 'nullable|string|max:20',
             'primary_contact_position' => 'nullable|string|max:255',
             'password' => 'required|string|confirmed|min:8',
-            'address.street_number' => 'nullable|string|max:50',
-            'address.street_name' => 'nullable|string|max:255',
+            'address.address' => 'required|string|max:255', // Single address field
             'address.postal_code' => 'nullable|string|max:20',
             'address.city' => 'required|string|max:255',
-            'address.province' => 'nullable|exists:provinces,id',  // Validate that the province exists in the provinces table by its ID
+            'address.province' => 'nullable|exists:provinces,id', // Validate that the province exists in the provinces table by its ID
         ]);
-
+    
         // Find the LP based on the provided ID
         $lp = Lp::findOrFail($request->lp_id);
-
-
+    
         $user = User::updateOrCreate(
             ['email' => $validatedData['primary_contact_email']], // Unique identifier
             [
@@ -401,7 +407,7 @@ $retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
                 'password' => Hash::make($validatedData['password']),
             ]
         );
-
+    
         // Fetch the role by original name (Ensure the role exists)
         $role = Role::where('original_name', 'LP')->first(); // Adjust 'LP' if necessary
         if ($role) {
@@ -410,8 +416,7 @@ $retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
         } else {
             return redirect()->back()->with('error', 'Role not found.');
         }
-
-
+    
         $lp->update([
             'name' => $validatedData['name'],
             'dba' => $validatedData['dba'],
@@ -419,24 +424,24 @@ $retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
             'primary_contact_phone' => $validatedData['primary_contact_phone'],
             'primary_contact_position' => $validatedData['primary_contact_position'],
             'user_id' => $user->id,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
-
+    
         // Create or update the address with province
         $lp->address()->updateOrCreate(
             ['lp_id' => $lp->id],
             [
-                'street_number' => $validatedData['address']['street_number'],
-                'street_name' => $validatedData['address']['street_name'],
+                'address' => $validatedData['address']['address'], // Single address field
                 'postal_code' => $validatedData['address']['postal_code'],
                 'city' => $validatedData['address']['city'],
                 'province_id' => $validatedData['address']['province'], // Store the province ID
             ]
         );
-
+    
         // Redirect to the login page with a success message
         return redirect()->route('login')->with('success', 'Supplier information completed successfully. Please log in.');
     }
+    
 
 
 
