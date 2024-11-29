@@ -43,9 +43,11 @@ class RetailerStatement extends Model
         'product_variation_id', 
         'clean_sheet_id', 
         'reconciliation_date',
+        'carve_out',
         'offer_id',
         'created_at',
         'updated_at',
+        'carveout_id'
     ];
 
     public function retailer()

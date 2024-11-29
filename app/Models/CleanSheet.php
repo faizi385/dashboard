@@ -50,7 +50,8 @@ class CleanSheet extends Model
         'dqi_per',
         'offer_id',
         'pos_report_id',
-        'product_variation_id'
+        'product_variation_id',
+        'carveout_id'
     ];
 
     // Optional: define relationships if needed
