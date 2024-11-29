@@ -219,6 +219,9 @@
                         </li>
                         @endif
         
+
+
+                        
                         @if(in_array('view distributor', $permission))
                         <li class="nav-item">
                             <a href="{{ route('retailer.index') }}" class="nav-link {{ Route::currentRouteName() == 'retailer.index' ? 'active' : '' }}">
