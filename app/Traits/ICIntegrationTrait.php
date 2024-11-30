@@ -428,4 +428,16 @@ trait ICIntegrationTrait
             }
             return $checkCarveout;
     }
+    public function calculateDQI($purchase,$average_cost,$lpOfferDataFee){
+        $TotalQuantityGet = $purchase;
+        $TotalUnitCostGet = $average_cost;
+        $calculations = [];
+        $TotalPurchaseCostMake = (float)$TotalQuantityGet * (float)$TotalUnitCostGet;
+        $FinalDQIFEEMake = (float)trim($lpOfferDataFee, '%') * 100;
+        $FinalFeeInDollar = (float)$TotalPurchaseCostMake * $FinalDQIFEEMake / 100;
+        $calculations['dqi_per'] = $FinalDQIFEEMake;
+        $calculations['dqi_fee'] = $FinalFeeInDollar;
+
+        return $calculations;
+    }
 }

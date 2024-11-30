@@ -10,6 +10,7 @@ use App\Models\Retailer;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Exports\OffersExport;
+use App\Traits\GenerateRSAdd;
 use App\Imports\OffersImport;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -159,7 +160,7 @@ public function destroy($id)
             'product_name' => 'required|string|max:255', // Ensure no integers
             'provincial_sku' => 'required|string|max:255',
              'gtin' => 'required|digits_between:1,13', // Accepts only numeric characters with a length between 1 and 255
-            'province' => 'required', // Ensure no integers
+            'province_id' => 'required', // Ensure no integers
             'general_data_fee' => 'required|numeric|min:0',
             'exclusive_data_fee' => 'nullable|numeric|min:0', // Keep as nullable
             'unit_cost' => 'required|numeric',
@@ -202,7 +203,11 @@ public function destroy($id)
             foreach ($request->exclusive_retailer_ids as $retailerId) {
                 $exclusiveOfferData = $this->prepareOfferData($request, $retailerId, $request->general_data_fee);
                 $exclusiveOfferData['source'] = $request->source; // Include source
-                Offer::create($exclusiveOfferData);
+                $offer = Offer::create($exclusiveOfferData);
+                $retailerStatementImpact = (new class
+                {
+                    use GenerateRSAdd;
+                })->generateRS($offer->id);
             }
 
             return redirect()->route('offers.create')->with('success', 'Exclusive offers for specific retailers added successfully.');
@@ -212,14 +217,22 @@ public function destroy($id)
         if ($request->has('exclusive_offer') && $request->exclusive_offer) {
             $generalOfferData = $this->prepareOfferData($request, null, $request->general_data_fee);
             $generalOfferData['source'] = $request->source; // Include source
-            Offer::create($generalOfferData);
+            $offer  = Offer::create($generalOfferData);
+            $retailerStatementImpact = (new class
+            {
+                use GenerateRSAdd;
+            })->generateRS($offer->id);
 
             // Create exclusive offers for selected retailers
             if (isset($request->retailer_ids)) {
                 foreach ($request->retailer_ids as $retailerId) {
                     $exclusiveOfferData = $this->prepareOfferData($request, $retailerId, $request->exclusive_data_fee);
                     $exclusiveOfferData['source'] = $request->source; // Include source
-                    Offer::create($exclusiveOfferData);
+                    $offer = Offer::create($exclusiveOfferData);
+                    $retailerStatementImpact = (new class
+                    {
+                        use GenerateRSAdd;
+                    })->generateRS($offer->id);
                 }
             }
 
@@ -229,8 +242,11 @@ public function destroy($id)
         // Default case: Create general offer
         $generalOfferData = $this->prepareOfferData($request, null, $request->general_data_fee);
         $generalOfferData['source'] = $request->source; // Include source
-        Offer::create($generalOfferData);
-
+        $offer = Offer::create($generalOfferData);
+        $retailerStatementImpact = (new class
+        {
+            use GenerateRSAdd;
+        })->generateRS($offer->id);
         return redirect()->route('offers.create')->with('success', 'General offer added successfully.');
     }
 
@@ -248,7 +264,7 @@ public function destroy($id)
             'product_name' => $request->product_name,
             'provincial_sku' => $request->provincial_sku,
             'gtin' => $request->gtin,
-            'province' => $request->province,
+            'province_id' => $request->province_id,
             'unit_cost' => $request->unit_cost,
             'category' => $request->category,
             'brand' => $request->brand,
@@ -280,7 +296,7 @@ public function destroy($id)
                 'product_name' => $data['product_name'],
                 'provincial_sku' => $data['provincial_sku'],
                 'gtin' => $data['gtin'],
-                'province' => $data['province'],
+                'province_id' => $data['province_id'],
                 'category' => $data['category'],
                 'brand' => $data['brand'],
                 'lp_id' => $data['lp_id'],
@@ -304,13 +320,13 @@ public function destroy($id)
         // If an existing variation is found
         if ($existingVariation) {
             // If province is different, create a new variation
-            if ($existingVariation->province !== $data['province']) {
+            if ($existingVariation->province_id !== $data['province_id']) {
                 // Create a new product variation
                 \App\Models\ProductVariation::create([
                     'product_name' => $data['product_name'],
                     'provincial_sku' => $data['provincial_sku'],
                     'gtin' => $data['gtin'],
-                    'province' => $data['province'],
+                    'province_id' => $data['province_id'],
                     'category' => $data['category'],
                     'brand' => $data['brand'],
                     'lp_id' => $data['lp_id'],
@@ -330,7 +346,7 @@ public function destroy($id)
             'product_name' => $data['product_name'],
             'provincial_sku' => $data['provincial_sku'],
             'gtin' => $data['gtin'],
-            'province' => $data['province'],
+            'province_id' => $data['province_id'],
             'category' => $data['category'],
             'brand' => $data['brand'],
             'lp_id' => $data['lp_id'],

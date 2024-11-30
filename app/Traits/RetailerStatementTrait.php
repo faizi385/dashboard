@@ -2,6 +2,7 @@
 namespace App\Traits;
 
 use App\Models\LP;
+use App\Models\Province;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Product;
@@ -144,6 +145,14 @@ trait RetailerStatementTrait
             $province_slug = 'SK';
         }
         Log::info('Province details set', ['province_slug' => $province_slug, 'province_name' => $province_name]);
+        return;
+    }
+    public function getProvinces($report, &$province_slug, &$province_name){
+        if($report){
+            $province = Province::where('id', $report->province_id)->first();
+            $province_name = $province->name;
+            $province_slug = $province->slug;
+        }
         return;
     }
 }
