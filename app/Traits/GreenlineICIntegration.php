@@ -89,15 +89,15 @@ trait GreenlineICIntegration
             else{
                 $cleanSheetData['average_price'] = 0.00;
             }
-            $greenlineAverageCost = trim(str_replace('$', '', trim($greenlineReport->average_cost)));
-            if ($greenlineAverageCost != "0.00" && ((float)$greenlineAverageCost > 0.00 || (float)$greenlineAverageCost < 0.00)) {
-                $cleanSheetData['report_price_og'] = $greenlineAverageCost;
+            $greenlineReportCost = trim(str_replace('$', '', trim($greenlineReport->average_cost)));
+            if ($greenlineReportCost != "0.00" && ((float)$greenlineReportCost > 0.00 || (float)$greenlineReportCost < 0.00)) {
+                $cleanSheetData['report_price_og'] = $greenlineReportCost;
             }
             else{
                 $cleanSheetData['report_price_og'] = "0.00";
             }
             if($product->price_per_unit != "0.00" && ((float)$product->price_per_unit > 0.00 || (float)$product->price_per_unit < 0.00)) {
-                $cleanSheetData['product_price'] = $product->price_per_unit;
+                $cleanSheetData['product_price'] = GeneralFunctions::formatAmountValue($product->price_per_unit) ?? '0.00';
             }
             else{
                 $cleanSheetData['product_price'] = "0.00";
@@ -134,6 +134,7 @@ trait GreenlineICIntegration
                 }
                 else{
                     $cleanSheetData['c_flag'] = '';
+                    $cleanSheetData['carveout_id'] = null;
                 }
                 $cleanSheetData['dqi_flag'] = 1;
                 $cleanSheetData['flag'] = '3';
@@ -205,14 +206,14 @@ trait GreenlineICIntegration
                 else{
                     $cleanSheetData['average_price'] = "0.00";
                 }
-                $greenlineAverageCost = trim(str_replace('$', '', trim($greenlineReport->average_cost)));
-                if ($greenlineAverageCost != "0.00" && ((float)$greenlineAverageCost > 0.00 || (float)$greenlineAverageCost < 0.00)) {
-                    $cleanSheetData['report_price_og'] = $greenlineAverageCost;
+                $greenlineReportCost = trim(str_replace('$', '', trim($greenlineReport->average_cost)));
+                if ($greenlineReportCost != "0.00" && ((float)$greenlineReportCost > 0.00 || (float)$greenlineReportCost < 0.00)) {
+                    $cleanSheetData['report_price_og'] = $greenlineReportCost;
                 }
                 else{
                     $cleanSheetData['report_price_og'] = "0.00";
                 }
-                $greenlineOfferCost = trim(str_replace('$', '', trim($offer->unit_cost)));
+                $greenlineOfferCost = GeneralFunctions::formatAmountValue(trim(str_replace('$', '', trim($offer->unit_cost)))) ?? '0.00';
                 if($greenlineOfferCost != "0.00" && ((float)$greenlineOfferCost > 0.00 || (float)$greenlineOfferCost < 0.00)) {
                     $cleanSheetData['average_cost'] = $greenlineOfferCost;
                 }
@@ -271,7 +272,6 @@ trait GreenlineICIntegration
                 $cleanSheetData['barcode'] = $gtin;
                 $cleanSheetData['report_id'] = $report->id;
                 $cleanSheetData['c_flag'] = '';
-                $cleanSheetData['carveout_id'] = null;
                 if($greenlineReport->transfer > 0){
                     $cleanSheetData['transfer_in'] = $greenlineReport->transfer;
                     $cleanSheetData['transfer_out'] = 0;

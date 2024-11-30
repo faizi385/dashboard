@@ -49,15 +49,55 @@ class ReportController extends Controller
     public function index(Request $request, $retailers = '')
     {
         $user = auth()->user();
-        $date = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
+        if(isset($request->date)){
+            $date = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
+            $month = Carbon::now()->startOfMonth()->subMonth()->format('m');
+            $year = Carbon::now()->startOfMonth()->subMonth()->format('Y');
+        }
+        else{
+            $date = Carbon::now()->startOfMonth()->format('Y-m-01');
+            $month = Carbon::now()->startOfMonth()->format('m');
+            $year = Carbon::now()->startOfMonth()->format('Y');
+        }
         if ($user->hasRole('Retailer')) {
             $retailers = Retailer::where('user_id', $user->id)->first();
-
             if ($retailers) {
-                $reports = Report::with('retailer')->where('retailer_id', $retailers->id)->where('date',$date)->get();
-//                $statements = RetailerStatement::where('flag',0)->where('retailer_id', $retailers->id)->where('reconciliation_date', $date)->get();
-//                $reports = Report::with('retailer')->where('retailer_id', $retailers->id)->get();
-//                $statements = RetailerStatement::where('retailer_id', $retailers->id)->where('flag',0)->where('reconciliation_date',now()->startOfMonth())->get();
+                $reports = Report::where('reports.retailer_id',$retailers->id)
+                    ->whereMonth('date', $month)
+                    ->whereYear('date', $year)
+                    ->with(['retailer'])
+                    ->whereHas('retailer', function ($q) {
+                        return $q->where('retailers.status', 'Approved');
+                    })
+                    ->leftJoin('retailer_statements', function ($join) {
+                        $join->on('retailer_statements.report_id', '=', 'reports.id')
+                            ->where('retailer_statements.flag', 0);
+                    })
+                    ->leftJoin('provinces', function ($join) {
+                        $join->on('reports.province_id', '=', 'provinces.id');
+                    })
+                    ->select(
+                        'reports.id',
+                        'reports.retailer_id',
+                        'reports.status',
+                        'reports.province',
+                        'reports.location',
+                        'reports.date',
+                        'reports.submitted_by',
+                        'reports.pos',
+                        'reports.file_1',
+                        'reports.file_2',
+                        'reports.created_at',
+                        'reports.updated_at',
+                        DB::raw('SUM(retailer_statements.total_fee) as total_fee_sum'),
+                        DB::raw('ROUND(SUM(retailer_statements.total_fee + (retailer_statements.total_fee * IFNULL(provinces.tax_value, 5) / 100)), 2) as total_payout_with_tax')
+                    )
+                    ->groupBy('reports.id','reports.retailer_id','reports.status','reports.province',
+                        'reports.location','reports.date','reports.submitted_by','reports.pos','reports.file_1',
+                        'reports.file_2','reports.created_at','reports.updated_at'
+                    )
+                    ->orderBy('updated_at', 'DESC')
+                    ->get();
             } else {
                 $reports = collect();
 //                $statements = collect();
@@ -66,17 +106,50 @@ class ReportController extends Controller
             $lp = LP::where('user_id', $user->id)->first();
 
             if ($lp) {
-                $reports = Report::with('retailer')->where('lp_id', $lp->id)->get();
-//                $statements = RetailerStatement::whereHas('report', function ($query) use ($lp) {
-//                    $query->where('lp_id', $lp->id)->where('flag',0)->where('reconciliation_date',now()->startOfMonth());
-//                })->get();
+                $reports = Report::where('reports.lp_id',$lp->id)
+                    ->whereMonth('date', $month)
+                    ->whereYear('date', $year)
+                    ->with(['retailer'])
+                    ->whereHas('retailer', function ($q) {
+                        return $q->where('retailers.status', 'Approved');
+                    })
+                    ->leftJoin('retailer_statements', function ($join) {
+                        $join->on('retailer_statements.report_id', '=', 'reports.id')
+                            ->where('retailer_statements.flag', 0);
+                    })
+                    ->leftJoin('provinces', function ($join) {
+                        $join->on('reports.province_id', '=', 'provinces.id');
+                    })
+                    ->select(
+                        'reports.id',
+                        'reports.lp_id',
+                        'reports.retailer_id',
+                        'reports.status',
+                        'reports.province',
+                        'reports.location',
+                        'reports.date',
+                        'reports.submitted_by',
+                        'reports.pos',
+                        'reports.file_1',
+                        'reports.file_2',
+                        'reports.created_at',
+                        'reports.updated_at',
+                        DB::raw('SUM(retailer_statements.total_fee) as total_fee_sum'),
+                        DB::raw('ROUND(SUM(retailer_statements.total_fee + (retailer_statements.total_fee * IFNULL(provinces.tax_value, 5) / 100)), 2) as total_payout_with_tax')
+                    )
+                    ->groupBy('reports.id','reports.lp_id','reports.retailer_id','reports.status','reports.province',
+                        'reports.location','reports.date','reports.submitted_by','reports.pos','reports.file_1',
+                        'reports.file_2','reports.created_at','reports.updated_at'
+                    )
+                    ->orderBy('updated_at', 'DESC')
+                    ->get();
             } else {
                 $reports = collect();
             }
         } else {
             $reports = Report::
-                whereMonth('date', now()->startOfMonth()->subMonth()->format('m'))
-                ->whereYear('date', now()->startOfMonth()->subMonth()->format('Y'))
+                whereMonth('date', $month)
+                ->whereYear('date', $year)
                 ->with(['retailer'])
                 ->whereHas('retailer', function ($q) {
                     return $q->where('retailers.status', 'Approved');
@@ -291,7 +364,7 @@ class ReportController extends Controller
             'province_slug' => $province->slug,
             'submitted_by' => auth()->id(),
             'status' => 'Pending',
-            'date' => now()->startOfMonth()->subMonth(),
+            'date' => now()->startOfMonth(),
             'lp_id' => $lpId,
         ]);
 

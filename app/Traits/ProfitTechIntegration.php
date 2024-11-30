@@ -25,8 +25,9 @@ trait ProfitTechIntegration
     public function mapProfitTechCatalouge($profitTechReport, $report)
     {
         Log::info('Processing ProfitTech reports:', ['report' => $report]);
-        $cleanSheetData = [];
-        $cleanSheetData['report_price_og'] = '0.00';
+        $cleanSheetData = []; $cleanSheetData['report_price_og'] = '0.00'; $cleanSheetData['product_price'] = '0.00'; $cleanSheetData['average_cost'] = '0.00';
+        $cleanSheetData['offer_gtin_matched'] = '0'; $cleanSheetData['offer_sku_matched'] = '0';
+        $cleanSheetData['address_id'] = $report->address_id; $cleanSheetData['created_at'] = now(); $cleanSheetData['updated_at'] = now();
         $retailer_id = $profitTechReport->report->retailer_id ?? null;
         $location = $profitTechReport->report->location ?? null;
 
@@ -66,14 +67,19 @@ trait ProfitTechIntegration
             $cleanSheetData['province_slug'] = $provinceSlug;
             $cleanSheetData['province_id'] =  $provinceId ;
             $cleanSheetData['sku'] = $sku;
-            $cleanSheetData['product_name'] =  $product->product_name;
+            $cleanSheetData['product_name'] =  $productName;
             $cleanSheetData['category'] = $product->category;
             $cleanSheetData['brand'] = $product->brand;
             $cleanSheetData['sold'] = $profitTechReport->quantity_sold_instore_units ?? '0';
             $cleanSheetData['purchase'] = $profitTechReport->quantity_purchased_units ?? '0';
             $cleanSheetData['average_price'] = $this->profitech_averge_price($profitTechReport, $provinceName);
-            $cleanSheetData['average_cost'] = $this->profitech_averge_cost($product,$report->date,$provinceName,$provinceSlug,$lpId);
-
+            $cleanSheetData['report_price_og'] = '0.00';
+            if($product->price_per_unit != "0.00" && ((float)$product->price_per_unit > 0.00 || (float)$product->price_per_unit < 0.00)) {
+                $cleanSheetData['product_price'] = GeneralFunctions::formatAmountValue($product->price_per_unit) ?? '0.00';
+            }
+            else{
+                $cleanSheetData['product_price'] = "0.00";
+            }
             $cleanSheetData['barcode'] = $gtin;
             $cleanSheetData['report_id'] = $report->id;
 
@@ -89,7 +95,6 @@ trait ProfitTechIntegration
             else{
                 $cleanSheetData['transfer_out'] = 0;
             }
-
             $cleanSheetData['pos'] = $report->pos;
             $cleanSheetData['reconciliation_date'] = $report->date;
             $cleanSheetData['opening_inventory_unit'] = $profitTechReport->opening_inventory_units ?? '0';
@@ -97,34 +102,32 @@ trait ProfitTechIntegration
             $cleanSheetData['product_variation_id'] = $product->id;
             $cleanSheetData['dqi_per'] = 0.00;
             $cleanSheetData['dqi_fee'] = 0.00;
-
-            $offer = $this->DQISummaryFlag($report, $profitTechReport->product_sku, '', '', $provinceName, $provinceSlug, $provinceId,$lpId );
-
+            list($cleanSheetData, $offer) = $this->DQISummaryFlag($cleanSheetData,$report, $profitTechReport->product_sku, '', '', $provinceName, $provinceSlug, $provinceId,$lpId );
             if (!empty($offer)) {
                 $cleanSheetData['offer_id'] = $offer->id;
+                $cleanSheetData['average_cost'] = GeneralFunctions::formatAmountValue($offer->unit_cost) ?? "0.00";
                 if ((int)$cleanSheetData['purchase'] > 0) {
                     $checkCarveout = $this->checkCarveOuts($report,$provinceId, $provinceSlug, $provinceName,$lpId,$lpName,$offer->provincial_sku);
                     $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
                     $cleanSheetData['carveout_id'] = $checkCarveout->id ?? null;
                 } else {
                     $cleanSheetData['c_flag'] = '';
+                    $cleanSheetData['carveout_id'] = null;
                 }
                 $cleanSheetData['dqi_flag'] = 1;
                 $cleanSheetData['flag'] = '3';
-                $TotalQuantityGet = $cleanSheetData['purchase'];
-                $TotalUnitCostGet = $cleanSheetData['average_cost'];
-                $TotalPurchaseCostMake = (float)$TotalQuantityGet * (float)$TotalUnitCostGet;
-                $FinalDQIFEEMake = (float)trim($offer->data_fee, '%') * 100;
-                $FinalFeeInDollar = (float)$TotalPurchaseCostMake * $FinalDQIFEEMake / 100;
-                $cleanSheetData['dqi_per'] = $FinalDQIFEEMake;
-                $cleanSheetData['dqi_fee'] = number_format($FinalFeeInDollar, 2);
-                $cleanSheetData['comment'] = 'Record found in the Master Catalog and Offer';
+                $calculatedDQI = $this->calculateDQI($cleanSheetData['purchase'],$cleanSheetData['average_cost'],$offer->data_fee);
+                $cleanSheetData['dqi_per'] = $calculatedDQI['dqi_per'];
+                $cleanSheetData['dqi_fee'] = $calculatedDQI['dqi_fee'];
+                $cleanSheetData['comment'] = 'Record found in the Product Catalog and Offer';
             } else {
                 $cleanSheetData['offer_id'] = null;
+                $cleanSheetData['carveout_id'] = null;
                 $cleanSheetData['c_flag'] = '';
                 $cleanSheetData['dqi_flag'] = 0;
+                $cleanSheetData['average_cost'] = 0;
                 $cleanSheetData['flag'] = '1';
-                $cleanSheetData['comment'] = 'Record found in the Master Catalog';
+                $cleanSheetData['comment'] = 'Record found in the Product Catalog';
             }
         } else {
             Log::warning('Product not found for SKU and GTIN:', ['sku' => $sku, 'gtin' => $gtin, 'report_data' => $report]);
@@ -145,7 +148,7 @@ trait ProfitTechIntegration
                 $cleanSheetData['province_slug'] = $offer->province_slug;
                 $cleanSheetData['province_id'] =  $provinceId ;
                 $cleanSheetData['sku'] = $sku;
-                $cleanSheetData['product_name'] = $offer->product_name;
+                $cleanSheetData['product_name'] = $productName;
                 $cleanSheetData['category'] = $offer->category;
                 $cleanSheetData['brand'] = $offer->brand;
                 $cleanSheetData['sold'] = $profitTechReport->quantity_sold_instore_units ?? '0';
@@ -157,12 +160,14 @@ trait ProfitTechIntegration
                 }
                 else{
                     $cleanSheetData['c_flag'] = '';
+                    $cleanSheetData['carveout_id'] = null;
                 }
 
                 $cleanSheetData['average_price'] = $this->profitech_averge_price($profitTechReport, $provinceName);
-                $profitechAverageCost = trim(str_replace('$', '', trim($offer->unit_cost)));
+                $profitechAverageCost = GeneralFunctions::formatAmountValue(trim(str_replace('$', '', trim($offer->unit_cost)))) ?? '0.00';
                 $cleanSheetData['average_cost'] = $profitechAverageCost;
-                $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
+                $cleanSheetData['report_price_og'] = '0.00';
+                $cleanSheetData['product_price'] = '0.00';
                 $cleanSheetData['barcode'] = $gtin;
                 $cleanSheetData['report_id'] = $report->id;
                 if($profitTechReport->quantity_purchased_units_transfer > 0 || $profitTechReport->other_additions_units){
@@ -182,16 +187,12 @@ trait ProfitTechIntegration
                 $cleanSheetData['opening_inventory_unit'] = $profitTechReport->opening_inventory_units ?? '0';
                 $cleanSheetData['closing_inventory_unit'] = $profitTechReport->closing_inventory_units ?? '0';
                 $cleanSheetData['flag'] = '2';
-                $cleanSheetData['comment'] = 'Record found in the Offers';
                 $cleanSheetData['dqi_flag'] = 1;
                 $cleanSheetData['product_variation_id'] = null;
-                $TotalQuantityGet = $cleanSheetData['purchase'];
-                $TotalUnitCostGet = $cleanSheetData['average_cost'];
-                $TotalPurchaseCostMake = (float)$TotalQuantityGet * (float)$TotalUnitCostGet;
-                $FinalDQIFEEMake = (float)trim($offer->data_fee, '%') * 100;
-                $FinalFeeInDollar = (float)$TotalPurchaseCostMake * $FinalDQIFEEMake / 100;
-                $cleanSheetData['dqi_per'] = $FinalDQIFEEMake;
-                $cleanSheetData['dqi_fee'] = number_format($FinalFeeInDollar,2);
+                $calculatedDQI = $this->calculateDQI($cleanSheetData['purchase'],$cleanSheetData['average_cost'],$offer->data_fee);
+                $cleanSheetData['dqi_per'] = $calculatedDQI['dqi_per'];
+                $cleanSheetData['dqi_fee'] = $calculatedDQI['dqi_fee'];
+                $cleanSheetData['comment'] = 'Record found in the Offers';
             } else {
                 Log::info('No product or offer found, saving report data as is:', ['report_data' => $report]);
                 $cleanSheetData['retailer_id'] = $retailer_id;
@@ -212,8 +213,9 @@ trait ProfitTechIntegration
                 $cleanSheetData['sold'] = $profitTechReport->quantity_sold_instore_units ?? '0';
                 $cleanSheetData['purchase'] = $profitTechReport->quantity_purchased_units ?? '0';
                 $cleanSheetData['average_price'] = $profitTechReport->average_price;
-                $cleanSheetData['average_cost'] = $profitTechReport->average_cost;
-                $cleanSheetData['report_price_og'] = $profitTechReport->average_cost;
+                $cleanSheetData['average_cost'] = '0.00';
+                $cleanSheetData['report_price_og'] = '0.00';
+                $cleanSheetData['product_price'] = '0.00';
                 $cleanSheetData['barcode'] = $gtin;
                 $cleanSheetData['report_id'] = $report->id;
                 $cleanSheetData['c_flag'] = '';
@@ -237,6 +239,7 @@ trait ProfitTechIntegration
                 $cleanSheetData['comment'] = 'No matching product or offer found.';
                 $cleanSheetData['dqi_flag'] = 0;
                 $cleanSheetData['product_variation_id'] = null;
+                $cleanSheetData['carveout_id'] = null;
                 $cleanSheetData['dqi_per'] = 0.00;
                 $cleanSheetData['dqi_fee'] = 0.00;
             }
@@ -246,10 +249,6 @@ trait ProfitTechIntegration
         $cleanSheetData['average_price'] = $this->sanitizeNumeric($cleanSheetData['average_price']);
         $cleanSheetData['report_price_og'] = $this->sanitizeNumeric($cleanSheetData['report_price_og']);
         $cleanSheetData['average_cost'] = $this->sanitizeNumeric($cleanSheetData['average_cost']);
-
-        if ($cleanSheetData['average_cost'] === 0.0 || $cleanSheetData['average_cost'] === 0) {
-            $cleanSheetData['average_cost'] = GeneralFunctions::checkAvgCostCleanSheet($cleanSheetData['sku'],$cleanSheetData['province']);
-        }
 
         return $cleanSheetData;
     }

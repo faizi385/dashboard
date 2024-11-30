@@ -85,7 +85,7 @@ trait BarnetIntegration
             $barnetAverageCost = $this->barnetAverageCost($barnetReport->opening_inventory_value,$barnetReport->opening_inventory_units);
             $cleanSheetData['report_price_og'] = $barnetAverageCost;
             if($product->price_per_unit != "0.00" && $product->price_per_unit != "0" && !empty($product->price_per_unit)){
-                $cleanSheetData['product_price'] = $product->price_per_unit;
+                $cleanSheetData['product_price'] = GeneralFunctions::formatAmountValue($product->price_per_unit) ?? '0.00';
             }
             $cleanSheetData['barcode'] = $gtin;
             $cleanSheetData['report_id'] = $report->id;
@@ -109,6 +109,7 @@ trait BarnetIntegration
                 }
                 else{
                     $cleanSheetData['c_flag'] = '';
+                    $cleanSheetData['carveout_id'] = null;
                 }
                 $cleanSheetData['dqi_flag'] = 1;
                 $cleanSheetData['flag'] = '3';
@@ -119,6 +120,7 @@ trait BarnetIntegration
             }
             else{
                 $cleanSheetData['offer_id'] = null;
+                $cleanSheetData['carveout_id'] = null;
                 $cleanSheetData['c_flag'] = '';
                 $cleanSheetData['dqi_flag'] = 0;
                 $cleanSheetData['average_cost'] = '0.00';
@@ -162,6 +164,7 @@ trait BarnetIntegration
                 }
                 else{
                     $cleanSheetData['c_flag'] = '';
+                    $cleanSheetData['carveout_id'] = null;
                 }
                 $barnetAveragePrice = $this->barnetAveragePrice($barnetReport->quantity_sold_value,$barnetReport->quantity_sold_units);
                 $cleanSheetData['average_price'] = $barnetAveragePrice;

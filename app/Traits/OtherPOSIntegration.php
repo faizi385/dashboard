@@ -23,8 +23,10 @@ trait OtherPOSIntegration
      */
     public function mapOtherPosCatalouge($OtherPOSReport,$report)
     {
-        Log::info('Processing Greenline reports:', ['report' => $report]);
-        $cleanSheetData = []; $cleanSheetData['report_price_og'] = '0.00';
+        Log::info('Processing OtherPOS reports:', ['report' => $report]);
+        $cleanSheetData = []; $cleanSheetData['report_price_og'] = '0.00'; $cleanSheetData['product_price'] = '0.00'; $cleanSheetData['average_cost'] = '0.00';
+        $cleanSheetData['offer_gtin_matched'] = '0'; $cleanSheetData['offer_sku_matched'] = '0';
+        $cleanSheetData['address_id'] = $report->address_id; $cleanSheetData['created_at'] = now(); $cleanSheetData['updated_at'] = now();
         $retailer_id = $OtherPOSReport->report->retailer_id ?? null;
         $location = $OtherPOSReport->report->location ?? null;
 
@@ -58,22 +60,22 @@ trait OtherPOSIntegration
         if (!empty($gtin) && empty($product)) {
             $product = $this->matchICBarcode($OtherPOSReport->barcode,$provinceName,$provinceSlug,$provinceId,$lpId);
         }
-        if (!empty($productName) && empty($product)){
-            $product = $this->matchICProductName($OtherPOSReport->name,$provinceName,$provinceSlug,$provinceId,$lpId);
-        }
+//        if (!empty($productName) && empty($product)){
+//            $product = $this->matchICProductName($OtherPOSReport->name,$provinceName,$provinceSlug,$provinceId,$lpId);
+//        }
         if ($product) {
             $cleanSheetData['retailer_id'] = $retailer_id;
             $cleanSheetData['pos_report_id'] = $OtherPOSReport->id;
             $cleanSheetData['retailer_name'] = $retailerName ?? null;
             $cleanSheetData['thc_range'] = $product->thc_range;
             $cleanSheetData['cbd_range'] = $product->cbd_range;
-            $cleanSheetData['size_in_gram'] =  $product->product_size;
+            $cleanSheetData['size_in_gram'] = $product->product_size;
             $cleanSheetData['location'] = $location;
             $cleanSheetData['province'] = $provinceName;
             $cleanSheetData['province_slug'] = $provinceSlug;
-            $cleanSheetData['province_id'] =  $provinceId;
+            $cleanSheetData['province_id'] = $provinceId;
             $cleanSheetData['sku'] = $sku;
-            $cleanSheetData['product_name'] = $product->product_name;
+            $cleanSheetData['product_name'] = $productName;
             $cleanSheetData['category'] = $product->category;
             $cleanSheetData['brand'] = $product->brand;
             $cleanSheetData['sold'] = $OtherPOSReport->sold ?? '0';
@@ -84,18 +86,18 @@ trait OtherPOSIntegration
             else{
                 $cleanSheetData['average_price'] = "0.00";
             }
-            $eposAverageCost = trim(str_replace('$', '', trim($OtherPOSReport->average_cost)));
-            if ($eposAverageCost != "0.00" && ((float)$eposAverageCost > 0.00 || (float)$eposAverageCost < 0.00)) {
-                $cleanSheetData['average_cost'] = $eposAverageCost;
-                $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
+            $eposReportCost = trim(str_replace('$', '', trim($OtherPOSReport->average_cost)));
+            if ($eposReportCost != "0.00" && ((float)$eposReportCost > 0.00 || (float)$eposReportCost < 0.00)) {
+                $cleanSheetData['report_price_og'] = $eposReportCost;
             }
             else{
-                if($product->price_per_unit != "0.00" && ((float)$product->price_per_unit > 0.00 || (float)$product->price_per_unit < 0.00)) {
-                    $cleanSheetData['average_cost'] = $product->price_per_unit;
-                }
-                else{
-                    $cleanSheetData['average_cost'] = "0.00";
-                }
+                $cleanSheetData['report_price_og'] = "0.00";
+            }
+            if($product->price_per_unit != "0.00" && ((float)$product->price_per_unit > 0.00 || (float)$product->price_per_unit < 0.00)) {
+                $cleanSheetData['product_price'] = GeneralFunctions::formatAmountValue($product->price_per_unit) ?? '0.00';
+            }
+            else{
+                $cleanSheetData['product_price'] = "0.00";
             }
             $cleanSheetData['barcode'] = $gtin;
             $cleanSheetData['report_id'] = $report->id;
@@ -118,9 +120,10 @@ trait OtherPOSIntegration
             $cleanSheetData['product_variation_id'] = $product->id;
             $cleanSheetData['dqi_per'] = 0.00;
             $cleanSheetData['dqi_fee'] = 0.00;
-            $offer = $this->DQISummaryFlag($report,$OtherPOSReport->sku,$OtherPOSReport->barcode,$OtherPOSReport->name,$provinceName,$provinceSlug,$provinceId,$lpId );
+            list($cleanSheetData, $offer) = $this->DQISummaryFlag($cleanSheetData,$report,$OtherPOSReport->sku,$OtherPOSReport->barcode,$OtherPOSReport->name,$provinceName,$provinceSlug,$provinceId,$lpId );
             if (!empty($offer)) {
                 $cleanSheetData['offer_id'] = $offer->id;
+                $cleanSheetData['average_cost'] = GeneralFunctions::formatAmountValue($offer->unit_cost) ?? "0.00";
                 if((int) $cleanSheetData['purchase'] > 0){
                     $checkCarveout = $this->checkCarveOuts($report,$provinceId, $provinceSlug, $provinceName,$lpId,$lpName,$offer->provincial_sku);
                     $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
@@ -128,38 +131,41 @@ trait OtherPOSIntegration
                 }
                 else{
                     $cleanSheetData['c_flag'] = '';
+                    $cleanSheetData['carveout_id'] = null;
                 }
                 $cleanSheetData['dqi_flag'] = 1;
                 $cleanSheetData['flag'] = '3';
-                $TotalQuantityGet = $cleanSheetData['purchase'];
-                $TotalUnitCostGet = $cleanSheetData['average_cost'];
-                $TotalPurchaseCostMake = (float)$TotalQuantityGet * (float)$TotalUnitCostGet;
-                $FinalDQIFEEMake = (float)trim($offer->data_fee, '%') * 100;
-                $FinalFeeInDollar = (float)$TotalPurchaseCostMake * $FinalDQIFEEMake / 100;
-                $cleanSheetData['dqi_per'] = $FinalDQIFEEMake;
-                $cleanSheetData['dqi_fee'] = number_format($FinalFeeInDollar,2);
-                $cleanSheetData['comment'] = 'Record found in the Master Catalog and Offer';
-                if( $cleanSheetData['average_cost'] == '0.00' && (int)$cleanSheetData['average_cost'] == 0){
-                    $cleanSheetData['average_cost'] = $offers->unit_cost ?? "0.00";
-                }
+                $calculatedDQI = $this->calculateDQI($cleanSheetData['purchase'],$cleanSheetData['average_cost'],$offer->data_fee);
+                $cleanSheetData['dqi_per'] = $calculatedDQI['dqi_per'];
+                $cleanSheetData['dqi_fee'] = $calculatedDQI['dqi_fee'];
+                $cleanSheetData['comment'] = 'Record found in the Product Catalog and Offer';
             }
             else{
                 $cleanSheetData['offer_id'] = null;
+                $cleanSheetData['carveout_id'] = null;
                 $cleanSheetData['c_flag'] = '';
                 $cleanSheetData['dqi_flag'] = 0;
+                $cleanSheetData['average_cost'] = '0.00';
                 $cleanSheetData['flag'] = '1';
-                $cleanSheetData['comment'] = 'Record found in the Master Catalog';
+                $cleanSheetData['comment'] = 'Record found in the Product Catalog';
             }
         } else {
             Log::warning('Product not found for SKU and GTIN:', ['sku' => $sku, 'gtin' => $gtin, 'report_data' => $report]);
             $offer = null;
             if (!empty($sku)) {
                 $offer = $this->matchOfferSku($report->date,$sku,$provinceName,$provinceSlug,$provinceId,$report->retailer_id,   $lpId );
+                if(!empty($offer)) {
+                    $cleanSheetData['offer_sku_matched'] = '1';
+                }
             } if (!empty($gtin) && empty($offer)) {
                 $offer = $this->matchOfferBarcode($report->date,$gtin,$provinceName,$provinceSlug,$provinceId,$report->retailer_id,   $lpId );
-            } if (!empty($productName) && empty($offer)) {
-                $offer = $this->matchOfferProductName($report->date,$productName,$provinceName,$provinceSlug,$provinceId,$report->retailer_id,   $lpId );
+                if(!empty($offer)){
+                    $cleanSheetData['offer_gtin_matched'] = '1';
+                }
             }
+//            if (!empty($productName) && empty($offer)) {
+//                $offer = $this->matchOfferProductName($report->date,$productName,$provinceName,$provinceSlug,$provinceId,$report->retailer_id,   $lpId );
+//            }
             if ($offer) {
                 $cleanSheetData['retailer_id'] = $retailer_id;
                 $cleanSheetData['offer_id'] = $offer->id;
@@ -173,7 +179,7 @@ trait OtherPOSIntegration
                 $cleanSheetData['province_slug'] = $offer->province_slug;
                 $cleanSheetData['province_id'] =  $provinceId;
                 $cleanSheetData['sku'] = $sku;
-                $cleanSheetData['product_name'] = $offer->product_name;
+                $cleanSheetData['product_name'] = $productName;
                 $cleanSheetData['category'] = $offer->category;
                 $cleanSheetData['brand'] = $offer->brand;
                 $cleanSheetData['sold'] = $OtherPOSReport->sold;
@@ -185,6 +191,7 @@ trait OtherPOSIntegration
                 }
                 else{
                     $cleanSheetData['c_flag'] = '';
+                    $cleanSheetData['carveout_id'] = null;
                 }
 
                 if(trim(str_replace('$', '', trim($OtherPOSReport->average_price))) != "0.00" && ((float)trim(str_replace('$', '', trim($OtherPOSReport->average_price))) > 0.00 || (float)trim(str_replace('$', '', trim($OtherPOSReport->average_price))) < 0.00)) {
@@ -193,21 +200,21 @@ trait OtherPOSIntegration
                 else{
                     $cleanSheetData['average_price'] = "0.00";
                 }
-                $OtherPOSReportAverageCost = trim(str_replace('$', '', trim($OtherPOSReport->average_cost)));
-                if ($OtherPOSReportAverageCost != "0.00" && ((float)$OtherPOSReportAverageCost > 0.00 || (float)$OtherPOSReportAverageCost < 0.00)) {
-                    $cleanSheetData['average_cost'] = $OtherPOSReportAverageCost;
-                    $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
+                $OtherPOSReportCost = trim(str_replace('$', '', trim($OtherPOSReport->average_cost)));
+                if ($OtherPOSReportCost != "0.00" && ((float)$OtherPOSReportCost > 0.00 || (float)$OtherPOSReportCost < 0.00)) {
+                    $cleanSheetData['report_price_og'] = $OtherPOSReportCost;
                 }
                 else{
-                    $OtherPOSReportAverageCost = trim(str_replace('$', '', trim($offer->unit_cost)));
-                    if( $OtherPOSReportAverageCost != "0.00" && ((float)$OtherPOSReportAverageCost > 0.00 || (float) $OtherPOSReportAverageCost  < 0.00)) {
-                        $cleanSheetData['average_cost'] =$OtherPOSReportAverageCost;
-                    }
-                    else{
-                        $OtherPOSReportAverageCost = "0.00";
-                        $cleanSheetData['average_cost'] = "0.00";
-                    }
+                    $cleanSheetData['report_price_og'] = "0.00";
                 }
+                $OtherPOSOfferUnitCost = GeneralFunctions::formatAmountValue(trim(str_replace('$', '', trim($offer->unit_cost)))) ?? '0.00';
+                if( $OtherPOSOfferUnitCost != "0.00" && ((float)$OtherPOSOfferUnitCost > 0.00 || (float) $OtherPOSOfferUnitCost  < 0.00)) {
+                    $cleanSheetData['average_cost'] = $OtherPOSOfferUnitCost;
+                }
+                else{
+                    $cleanSheetData['average_cost'] = "0.00";
+                }
+                $cleanSheetData['product_price'] = '0.00';
                 $cleanSheetData['barcode'] = $gtin;
                 $cleanSheetData['report_id'] = $report->id;
                 if($OtherPOSReport->transfer > 0){
@@ -227,16 +234,12 @@ trait OtherPOSIntegration
                 $cleanSheetData['opening_inventory_unit'] = $OtherPOSReport->opening ?? '0';
                 $cleanSheetData['closing_inventory_unit'] = $OtherPOSReport->closing ?? '0';
                 $cleanSheetData['flag'] = '2';
-                $cleanSheetData['comment'] = 'Record found in the Offers';
                 $cleanSheetData['dqi_flag'] = 1;
                 $cleanSheetData['product_variation_id'] = null;
-                $TotalQuantityGet = $cleanSheetData['purchase'];
-                $TotalUnitCostGet = $cleanSheetData['average_cost'];
-                $TotalPurchaseCostMake = (float)$TotalQuantityGet * (float)$TotalUnitCostGet;
-                $FinalDQIFEEMake = (float)trim($offer->data_fee, '%') * 100;
-                $FinalFeeInDollar = (float)$TotalPurchaseCostMake * $FinalDQIFEEMake / 100;
-                $cleanSheetData['dqi_per'] = $FinalDQIFEEMake;
-                $cleanSheetData['dqi_fee'] = number_format($FinalFeeInDollar,2);
+                $calculatedDQI = $this->calculateDQI($cleanSheetData['purchase'],$cleanSheetData['average_cost'],$offer->data_fee);
+                $cleanSheetData['dqi_per'] = $calculatedDQI['dqi_per'];
+                $cleanSheetData['dqi_fee'] = $calculatedDQI['dqi_fee'];
+                $cleanSheetData['comment'] = 'Record found in the Offers';
             } else {
                 Log::info('No product or offer found, saving report data as is:', ['report_data' => $report]);
                 $cleanSheetData['retailer_id'] = $retailer_id;
@@ -251,14 +254,15 @@ trait OtherPOSIntegration
                 $cleanSheetData['province_slug'] = $provinceSlug;
                 $cleanSheetData['province_id'] =  $provinceId;
                 $cleanSheetData['sku'] = $sku;
-                $cleanSheetData['product_name'] = $OtherPOSReport->name;
+                $cleanSheetData['product_name'] = $productName;
                 $cleanSheetData['category'] = null;
                 $cleanSheetData['brand'] = null;
                 $cleanSheetData['sold'] = $OtherPOSReport->sold;
                 $cleanSheetData['purchase'] = $OtherPOSReport->purchased ?? '0';
                 $cleanSheetData['average_price'] = trim(str_replace('$','',trim($OtherPOSReport->average_price)));
-                $cleanSheetData['average_cost'] = trim(str_replace('$','',trim($OtherPOSReport->average_cost)));
-                $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
+                $cleanSheetData['report_price_og'] = trim(str_replace('$','',trim($OtherPOSReport->average_cost)));
+                $cleanSheetData['average_cost'] = '0.00';
+                $cleanSheetData['product_price'] = '0.00';
                 $cleanSheetData['barcode'] = $gtin;
                 $cleanSheetData['report_id'] = $report->id;
                 $cleanSheetData['c_flag'] = '';
@@ -282,6 +286,7 @@ trait OtherPOSIntegration
                 $cleanSheetData['comment'] = 'No matching product or offer found.';
                 $cleanSheetData['dqi_flag'] = 0;
                 $cleanSheetData['product_variation_id'] = null;
+                $cleanSheetData['carveout_id'] = null;
                 $cleanSheetData['dqi_per'] = 0.00;
                 $cleanSheetData['dqi_fee'] = 0.00;
             }
@@ -291,10 +296,6 @@ trait OtherPOSIntegration
         $cleanSheetData['average_price'] = $this->sanitizeNumeric($cleanSheetData['average_price']);
         $cleanSheetData['report_price_og'] = $this->sanitizeNumeric($cleanSheetData['report_price_og']);
         $cleanSheetData['average_cost'] = $this->sanitizeNumeric($cleanSheetData['average_cost']);
-
-        if ($cleanSheetData['average_cost'] === 0.0 || $cleanSheetData['average_cost'] === 0) {
-            $cleanSheetData['average_cost'] = GeneralFunctions::checkAvgCostCleanSheet($cleanSheetData['sku'],$cleanSheetData['province']);
-        }
 
         return $cleanSheetData;
     }

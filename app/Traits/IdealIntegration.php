@@ -26,7 +26,9 @@ trait IdealIntegration
     {
         $IdealSalesSummaryReport =  IdealSalesSummaryReport::where('ideal_diagnostic_report_id', $idealDaignosticReport->id)->first();
         Log::info('Processing Ideal reports:', ['report' => $report]);
-        $cleanSheetData = []; $cleanSheetData['report_price_og'] = '0.00';
+        $cleanSheetData = []; $cleanSheetData['report_price_og'] = '0.00'; $cleanSheetData['product_price'] = '0.00'; $cleanSheetData['average_cost'] = '0.00';
+        $cleanSheetData['offer_gtin_matched'] = '0'; $cleanSheetData['offer_sku_matched'] = '0';
+        $cleanSheetData['address_id'] = $report->address_id; $cleanSheetData['created_at'] = now(); $cleanSheetData['updated_at'] = now();
         $retailer_id = $idealDaignosticReport->report->retailer_id ?? null;
         $location = $idealDaignosticReport->report->location ?? null;
 
@@ -34,7 +36,7 @@ trait IdealIntegration
             Log::warning('Retailer ID not found for report:', ['report_id' => $report->id]);
         }
         $sku = $idealDaignosticReport->sku;
-        $gtin = '';
+        $gtin = null;
         $productName = $idealDaignosticReport->description;
         $provinceId = $report->province_id;
         $provinceName = $report->province;
@@ -55,9 +57,9 @@ trait IdealIntegration
         if (!empty($sku)) {
         $product = $this->matchICSku($idealDaignosticReport->sku,$provinceName,$provinceSlug,$provinceId,$lpId );
         }
-        if (!empty($productName) && empty($product)){
-            $product = $this->matchICProductName($idealDaignosticReport->description,$provinceName,$provinceSlug,$provinceId,$lpId );
-        }
+//        if (!empty($productName) && empty($product)){
+//            $product = $this->matchICProductName($idealDaignosticReport->description,$provinceName,$provinceSlug,$provinceId,$lpId );
+//        }
         if ($product) {
             $cleanSheetData['retailer_id'] = $retailer_id;
             $cleanSheetData['pos_report_id'] = $idealDaignosticReport->id;
@@ -70,7 +72,7 @@ trait IdealIntegration
             $cleanSheetData['province_slug'] = $provinceSlug;
             $cleanSheetData['province_id'] =  $provinceId ;
             $cleanSheetData['sku'] = $sku;
-            $cleanSheetData['product_name'] = $product->product_name;
+            $cleanSheetData['product_name'] = $productName;
             $cleanSheetData['category'] = $product->category;
             $cleanSheetData['brand'] = $product->brand;
             $cleanSheetData['sold'] = $idealDaignosticReport->unit_sold ?? "0";
@@ -83,16 +85,21 @@ trait IdealIntegration
             if($IdealSalesSummaryReport != null){
                 if (!empty($IdealSalesSummaryReport->purchase_amount) && $IdealSalesSummaryReport->purchase_amount != '0' && $IdealSalesSummaryReport->purchase_amount != '0.00'
                     && !empty($IdealSalesSummaryReport->quantity_purchased) && $IdealSalesSummaryReport->quantity_purchased != '0' && $IdealSalesSummaryReport->quantity_purchased != '0.00') {
-                    $cleanSheetData['average_cost'] = $this->avgCostForIdeal($IdealSalesSummaryReport);
-                    $cleanSheetData['report_price_og'] = $cleanSheetData['average_cost'];
-                } else if ($product->price_per_unit) {
-                    $cleanSheetData['average_cost'] = $product->price_per_unit;
-                } else {
-                    $cleanSheetData['average_cost'] = "0.00";
+                    $cleanSheetData['report_price_og'] = $this->avgCostForIdeal($IdealSalesSummaryReport);
+                }
+                else {
+                    $cleanSheetData['report_price_og'] = "0.00";
+                }
+                if ($product->price_per_unit) {
+                    $cleanSheetData['product_price'] = GeneralFunctions::formatAmountValue($product->price_per_unit);
+                }
+                else {
+                    $cleanSheetData['product_price'] = "0.00";
                 }
             }
             else{
-                $cleanSheetData['average_cost'] = "0.00";
+                $cleanSheetData['report_price_og'] = "0.00";
+                $cleanSheetData['product_price'] = "0.00";
             }
             $cleanSheetData['barcode'] = $gtin;
             $cleanSheetData['report_id'] = $report->id;
@@ -113,9 +120,10 @@ trait IdealIntegration
             $cleanSheetData['product_variation_id'] = $product->id;
             $cleanSheetData['dqi_per'] = 0.00;
             $cleanSheetData['dqi_fee'] = 0.00;
-            $offer = $this->DQISummaryFlag($report,$idealDaignosticReport->sku,'',$idealDaignosticReport->productname,$provinceName,$provinceSlug,$provinceId,$lpId );
+            list($cleanSheetData, $offer) = $this->DQISummaryFlag($cleanSheetData,$report,$idealDaignosticReport->sku,'',$idealDaignosticReport->productname,$provinceName,$provinceSlug,$provinceId,$lpId );
             if (!empty($offer)) {
                 $cleanSheetData['offer_id'] = $offer->id;
+                $cleanSheetData['average_cost'] = GeneralFunctions::formatAmountValue($offer->unit_cost) ?? "0.00";
                 if((int) $cleanSheetData['purchase'] > 0){
                     $checkCarveout = $this->checkCarveOuts($report,$provinceId, $provinceSlug, $provinceName,$lpId,$lpName,$offer->provincial_sku);
                     $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
@@ -123,36 +131,35 @@ trait IdealIntegration
                 }
                 else{
                     $cleanSheetData['c_flag'] = '';
+                    $cleanSheetData['carveout_id'] = null;
                 }
                 $cleanSheetData['dqi_flag'] = 1;
                 $cleanSheetData['flag'] = '3';
-                $TotalQuantityGet = $cleanSheetData['purchase'];
-                $TotalUnitCostGet = $cleanSheetData['average_cost'];
-                $TotalPurchaseCostMake = (float)$TotalQuantityGet * (float)$TotalUnitCostGet;
-                $FinalDQIFEEMake = (float)trim($offer->data_fee, '%') * 100;
-                $FinalFeeInDollar = (float)$TotalPurchaseCostMake * $FinalDQIFEEMake / 100;
-                $cleanSheetData['dqi_per'] = $FinalDQIFEEMake;
-                $cleanSheetData['dqi_fee'] = number_format($FinalFeeInDollar,2);
-                $cleanSheetData['comment'] = 'Record found in the Master Catalog and Offer';
-                if( $cleanSheetData['average_cost'] == '0.00' && (int) $cleanSheetData['average_cost'] == 0){
-                    $cleanSheetData['average_cost'] = \App\Helpers\GeneralFunctions::formatAmountValue($offer->unit_cost) ?? "0.00";
-                }
+                $calculatedDQI = $this->calculateDQI($cleanSheetData['purchase'],$cleanSheetData['average_cost'],$offer->data_fee);
+                $cleanSheetData['dqi_per'] = $calculatedDQI['dqi_per'];
+                $cleanSheetData['dqi_fee'] = $calculatedDQI['dqi_fee'];
+                $cleanSheetData['comment'] = 'Record found in the Product Catalog and Offer';
             }
             else{
                 $cleanSheetData['offer_id'] = null;
+                $cleanSheetData['carveout_id'] = null;
                 $cleanSheetData['c_flag'] = '';
                 $cleanSheetData['dqi_flag'] = 0;
+                $cleanSheetData['average_cost'] = '0.00';
                 $cleanSheetData['flag'] = '1';
-                $cleanSheetData['comment'] = 'Record found in the Master Catalog';
+                $cleanSheetData['comment'] = 'Record found in the Product Catalog';
             }
         } else {
             $offer = null;
             if (!empty($sku)) {
-                $offer = $this->matchOfferSku($report->date,$sku,$provinceName,$provinceSlug,$provinceId,$report->retailer_id,$lpId );
+                $offer = $this->matchOfferSku($report->date,$sku,$provinceName,$provinceSlug,$provinceId,$report->retailer_id,$lpId);
+                if(!empty($offer)) {
+                    $cleanSheetData['offer_sku_matched'] = '1';
+                }
             }
-            if (!empty($productName) && empty($offer)) {
-                $offer = $this->matchOfferProductName($report->date,$idealDaignosticReport->description,$provinceName,$provinceSlug,$provinceId,$report->retailer_id,$lpId);
-            }
+//            if (!empty($productName) && empty($offer)) {
+//                $offer = $this->matchOfferProductName($report->date,$idealDaignosticReport->description,$provinceName,$provinceSlug,$provinceId,$report->retailer_id,$lpId);
+//            }
             if ($offer) {
                 $cleanSheetData['retailer_id'] = $retailer_id;
                 $cleanSheetData['offer_id'] = $offer->id;
@@ -166,14 +173,15 @@ trait IdealIntegration
                 $cleanSheetData['province_slug'] = $offer->province_slug;
                 $cleanSheetData['province_id'] =  $provinceId ;
                 $cleanSheetData['sku'] = $sku;
-                $cleanSheetData['product_name'] = $offer->product_name;
+                $cleanSheetData['product_name'] = $productName;
                 $cleanSheetData['category'] = $offer->category;
                 $cleanSheetData['brand'] = $offer->brand;
                 $cleanSheetData['sold'] = $idealDaignosticReport->unit_sold ?? "0";
                 $cleanSheetData['purchase'] = $idealDaignosticReport->purchases ?? '0';
                 $cleanSheetData['average_price'] = $this->avgPriceForIdeal($idealDaignosticReport);
-                $cleanSheetData['average_cost'] = $this->avgCostForIdeal($IdealSalesSummaryReport) == '0.00' ? trim(str_replace('$', '', trim($offer->unit_cost))) : $this->avgCostForIdeal($IdealSalesSummaryReport);
                 $cleanSheetData['report_price_og'] = $this->avgCostForIdeal($IdealSalesSummaryReport);
+                $cleanSheetData['average_cost'] = GeneralFunctions::formatAmountValue(trim(str_replace('$', '', trim($offer->unit_cost)))) ?? '0.00';
+                $cleanSheetData['product_price'] = '0.00';
                 $cleanSheetData['barcode'] = $gtin;
                 if((int) $cleanSheetData['purchase'] > 0){
                     $checkCarveout = $this->checkCarveOuts($report,$provinceId, $provinceSlug, $provinceName,$lpId,$lpName,$offer->provincial_sku);
@@ -182,6 +190,7 @@ trait IdealIntegration
                 }
                 else{
                     $cleanSheetData['c_flag'] = '';
+                    $cleanSheetData['carveout_id'] = null;
                 }
                 $cleanSheetData['report_id'] = $report->id;
                 if ($idealDaignosticReport->trans_in > 0) {
@@ -199,16 +208,12 @@ trait IdealIntegration
                 $cleanSheetData['opening_inventory_unit'] = $idealDaignosticReport->opening ?? '0';
                 $cleanSheetData['closing_inventory_unit'] = $idealDaignosticReport->closing ?? '0';
                 $cleanSheetData['flag'] = '2';
-                $cleanSheetData['comment'] = 'Record found in the Offers';
                 $cleanSheetData['dqi_flag'] = 1;
                 $cleanSheetData['product_variation_id'] = null;
-                $TotalQuantityGet = $cleanSheetData['purchase'];
-                $TotalUnitCostGet = $cleanSheetData['average_cost'];
-                $TotalPurchaseCostMake = (float)$TotalQuantityGet * (float)$TotalUnitCostGet;
-                $FinalDQIFEEMake = (float)trim($offer->data_fee, '%') * 100;
-                $FinalFeeInDollar = (float)$TotalPurchaseCostMake * $FinalDQIFEEMake / 100;
-                $cleanSheetData['dqi_per'] = $FinalDQIFEEMake;
-                $cleanSheetData['dqi_fee'] = number_format($FinalFeeInDollar,2);
+                $calculatedDQI = $this->calculateDQI($cleanSheetData['purchase'],$cleanSheetData['average_cost'],$offer->data_fee);
+                $cleanSheetData['dqi_per'] = $calculatedDQI['dqi_per'];
+                $cleanSheetData['dqi_fee'] = $calculatedDQI['dqi_fee'];
+                $cleanSheetData['comment'] = 'Record found in the Offers';
             } else {
                 Log::info('No product or offer found, saving report data as is:', ['report_data' => $report]);
                 $cleanSheetData['retailer_id'] = $retailer_id;
@@ -222,16 +227,17 @@ trait IdealIntegration
                 $cleanSheetData['province'] = $provinceName;
                 $cleanSheetData['province_slug'] = $provinceSlug;
                 $cleanSheetData['province_id'] =  $provinceId ;
-                $cleanSheetData['sku'] = $idealDaignosticReport->sku;
-                $cleanSheetData['product_name'] = $idealDaignosticReport->description;
+                $cleanSheetData['sku'] = $sku;
+                $cleanSheetData['product_name'] = $productName;
                 $cleanSheetData['category'] = null;
                 $cleanSheetData['brand'] = null;
                 $cleanSheetData['sold'] = $idealDaignosticReport->unit_sold ?? "0";
                 $cleanSheetData['purchase'] = $idealDaignosticReport->purchases ?? '0';
                 $cleanSheetData['average_price'] = $this->avgPriceForIdeal($idealDaignosticReport);
-                $cleanSheetData['average_cost'] = $this->avgCostForIdeal($IdealSalesSummaryReport);
                 $cleanSheetData['report_price_og'] = $idealDaignosticReport->average_cost;
-                $cleanSheetData['barcode'] = null;
+                $cleanSheetData['average_cost'] = '0.00';
+                $cleanSheetData['product_price'] = '0.00';
+                $cleanSheetData['barcode'] = $gtin;
                 $cleanSheetData['c_flag'] = '';
                 $cleanSheetData['report_id'] = $report->id;
                 if($idealDaignosticReport->quantitytransferinunits > 0 || $idealDaignosticReport->otheradditionsunits){
@@ -255,6 +261,7 @@ trait IdealIntegration
                 $cleanSheetData['comment'] = 'No matching product or offer found.';
                 $cleanSheetData['dqi_flag'] = 0;
                 $cleanSheetData['product_variation_id'] = null;
+                $cleanSheetData['carveout_id'] = null;
                 $cleanSheetData['dqi_per'] = 0.00;
                 $cleanSheetData['dqi_fee'] = 0.00;
             }
@@ -264,10 +271,6 @@ trait IdealIntegration
         $cleanSheetData['average_price'] = $this->sanitizeNumeric($cleanSheetData['average_price']);
         $cleanSheetData['report_price_og'] = $this->sanitizeNumeric($cleanSheetData['report_price_og']);
         $cleanSheetData['average_cost'] = $this->sanitizeNumeric($cleanSheetData['average_cost']);
-
-        if ($cleanSheetData['average_cost'] === 0.0 || $cleanSheetData['average_cost'] === 0) {
-            $cleanSheetData['average_cost'] = GeneralFunctions::checkAvgCostCleanSheet($cleanSheetData['sku'],$cleanSheetData['province']);
-        }
 
         return $cleanSheetData;
     }
