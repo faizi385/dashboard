@@ -51,7 +51,11 @@ class CleanSheet extends Model
         'offer_id',
         'pos_report_id',
         'product_variation_id',
-        'carveout_id'
+        'carveout_id',
+        'offer_sku_matched',
+        'offer_gtin_matched',
+        'product_price',
+        'address_id'
     ];
 
     // Optional: define relationships if needed
@@ -79,5 +83,5 @@ class CleanSheet extends Model
     {
         return $this->belongsTo(ProductVariation::class);
     }
-   
+
 }

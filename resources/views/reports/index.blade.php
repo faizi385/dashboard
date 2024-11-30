@@ -6,7 +6,7 @@
 <div id="loader" class="loader-overlay">
     <div class="loader"></div>
 </div>
- 
+
 <div class="container p-3">
     <div class="row mb-4">
         <div class="col text-end">
@@ -14,12 +14,12 @@
             <a href="{{ route('retailers.reports.create', ['retailer' => $retailers->id]) }}" class="btn btn-primary">
                 <i class="fas fa-plus-circle"></i> Add Report
             </a>
-            
+
             @endif
-            
+
         </div>
     </div>
-    
+
     <div class="row">
         <div class="col">
             <table id="reportsTable" class="table table-hover table-bordered text-center align-middle">
@@ -42,7 +42,7 @@
                     <tr>
                         <td>{{ $report->retailer->dba ?? '-' }}</td>
                         <td>{{ $report->location }}</td>
-                        <td>{{ $report->pos }}</td>
+                        <td>{{ ucfirst($report->pos) }}</td>
                         <td>
                             <a href="{{ route('reports.downloadFile', ['reportId' => $report->id, 'fileNumber' => 1]) }}" download="{{ basename($report->file_1) }}">
                                 Download File 1
@@ -54,8 +54,16 @@
                             </a>
                         </td>
                         <td>{{ \Carbon\Carbon::parse($report->date)->format('Y-m-d') }}</td>
-                        <td>${{ number_format($retailerSumsByLocation[$report->location]['total_fee_sum'] ?? 0, 2) }}</td>
-                        <td>${{ number_format($retailerSumsByLocation[$report->location]['total_payout_with_tax'] ?? 0, 2) }}</td>
+                        @if($report->status == 'Completed')
+                            <td>${{ number_format($report->total_fee_sum,2) }}</td>
+                        @else
+                            <td>$0.00</td>
+                        @endif
+                        @if($report->status == 'Completed')
+                            <td>${{ number_format($report->total_payout_with_tax, 2) }}</td>
+                        @else
+                            <td>$0.00</td>
+                        @endif
                         <td>{{ $report->status }}</td>
                         <td class="text-center">
                             <form action="{{ route('reports.destroy', ['report' => $report->id]) }}" method="POST" style="display:inline;" class="delete-form">
@@ -98,7 +106,7 @@
         // Initialize DataTable with responsive and horizontal scrolling options
         const table = $('#reportsTable').DataTable({
             responsive: true,
-            scrollX: true, 
+            scrollX: true,
             autoWidth: false,
             language: {
                 emptyTable: "No reports found."
@@ -169,7 +177,7 @@
 </script>
 @endpush
 <style>
-    
+
     .dataTables_wrapper .dataTables_paginate .paginate_button.disabled{
         color: white  !important;}
 </style>

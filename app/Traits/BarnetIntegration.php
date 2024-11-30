@@ -24,7 +24,9 @@ trait BarnetIntegration
     public function mapBarnetCatalouge($barnetReport, $report)
     {
         Log::info('Processing Barnet reports:', ['report' => $report]);
-        $cleanSheetData = []; $cleanSheetData['report_price_og'] = '0.00';
+        $cleanSheetData = []; $cleanSheetData['report_price_og'] = '0.00'; $cleanSheetData['product_price'] = '0.00'; $cleanSheetData['average_cost'] = '0.00';
+        $cleanSheetData['offer_gtin_matched'] = '0'; $cleanSheetData['offer_sku_matched'] = '0';
+        $cleanSheetData['address_id'] = $report->address_id; $cleanSheetData['created_at'] = now(); $cleanSheetData['updated_at'] = now();
         $retailer_id = $barnetReport->report->retailer_id ?? null;
         $location = $barnetReport->report->location ?? null;
 
@@ -32,7 +34,7 @@ trait BarnetIntegration
             Log::warning('Retailer ID not found for report:', ['report_id' => $report->id]);
         }
         $sku = $barnetReport->product_sku;
-        $gtin = '';
+        $gtin = null;
         $productName = $barnetReport->description;
         $provinceId = $report->province_id;
         $provinceName = $report->province;
@@ -58,11 +60,10 @@ trait BarnetIntegration
         if (!empty($gtin) && empty($product)) {
             $product = $this->matchICBarcode($barnetReport->barcode,$provinceName,$provinceSlug,$provinceId,$lpId);
         }
-        if (!empty($productName) && empty($product)){
-            $product = $this->matchICProductName($barnetReport->description,$provinceName,$provinceSlug,$provinceId,$lpId);
-        }
+//        if (!empty($productName) && empty($product)){
+//            $product = $this->matchICProductName($barnetReport->description,$provinceName,$provinceSlug,$provinceId,$lpId);
+//        }
         if ($product) {
-
             $cleanSheetData['retailer_id'] = $retailer_id;
             $cleanSheetData['pos_report_id'] = $barnetReport->id;
             $cleanSheetData['retailer_name'] = $retailerName ?? null;
@@ -74,7 +75,7 @@ trait BarnetIntegration
             $cleanSheetData['province'] = $provinceName;
             $cleanSheetData['province_slug'] = $provinceSlug;
             $cleanSheetData['sku'] = $sku;
-            $cleanSheetData['product_name'] = $product->product_name;
+            $cleanSheetData['product_name'] = $productName ?? $product->product_name;
             $cleanSheetData['category'] = $product->category;
             $cleanSheetData['brand'] = $product->brand;
             $cleanSheetData['sold'] = $barnetReport->quantity_sold_units ?? '0';
@@ -83,10 +84,9 @@ trait BarnetIntegration
             $cleanSheetData['average_price'] = $barnetAveragePrice;
             $barnetAverageCost = $this->barnetAverageCost($barnetReport->opening_inventory_value,$barnetReport->opening_inventory_units);
             $cleanSheetData['report_price_og'] = $barnetAverageCost;
-            if($barnetAverageCost == "0.00"){
-                $barnetAverageCost = $product->price_per_unit;
+            if($product->price_per_unit != "0.00" && $product->price_per_unit != "0" && !empty($product->price_per_unit)){
+                $cleanSheetData['product_price'] = $product->price_per_unit;
             }
-            $cleanSheetData['average_cost'] = $barnetAverageCost;
             $cleanSheetData['barcode'] = $gtin;
             $cleanSheetData['report_id'] = $report->id;
             $cleanSheetData['transfer_in'] = $barnetReport->other_additions_units ?? '0';
@@ -98,45 +98,45 @@ trait BarnetIntegration
             $cleanSheetData['product_variation_id'] = $product->id;
             $cleanSheetData['dqi_per'] = 0.00;
             $cleanSheetData['dqi_fee'] = 0.00;
-            $offer = $this->DQISummaryFlag($report,$sku,'',$productName,$provinceName,$provinceSlug,$provinceId,$lpId);
+            list($cleanSheetData, $offer) = $this->DQISummaryFlag($cleanSheetData,$report,$sku,'',$productName,$provinceName,$provinceSlug,$provinceId,$lpId);
             if (!empty($offer)) {
                 $cleanSheetData['offer_id'] = $offer->id;
+                $cleanSheetData['average_cost'] = GeneralFunctions::formatAmountValue($offer->unit_cost) ?? "0.00";
                 if((int) $cleanSheetData['purchase'] > 0){
                     $checkCarveout = $this->checkCarveOuts($report,$provinceId, $provinceSlug, $provinceName,$lpId,$lpName,$offer->provincial_sku);
                     $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
+                    $cleanSheetData['carveout_id'] = $checkCarveout->id ?? null;
                 }
                 else{
                     $cleanSheetData['c_flag'] = '';
                 }
                 $cleanSheetData['dqi_flag'] = 1;
                 $cleanSheetData['flag'] = '3';
-                $TotalQuantityGet = $cleanSheetData['purchase'];
-                $TotalUnitCostGet = $cleanSheetData['average_cost'];
-                $TotalPurchaseCostMake = (float)$TotalQuantityGet * (float)$TotalUnitCostGet;
-                $FinalDQIFEEMake = (float)trim($offer->data_fee, '%') * 100;
-                $FinalFeeInDollar = (float)$TotalPurchaseCostMake * $FinalDQIFEEMake / 100;
-                $cleanSheetData['dqi_per'] = $FinalDQIFEEMake;
-                $cleanSheetData['dqi_fee'] = number_format($FinalFeeInDollar,2);
-                $cleanSheetData['comment'] = 'Record found in the Master Catalog and Offer';
-                if( $cleanSheetData['average_cost'] == '0.00' && (int)$cleanSheetData['average_cost'] == 0){
-                    $cleanSheetData['average_cost'] = $offers->unit_cost ?? "0.00";
-                }
+                $calculatedDQI = $this->calculateDQI($cleanSheetData['purchase'],$cleanSheetData['average_cost'],$offer->data_fee);
+                $cleanSheetData['dqi_per'] = $calculatedDQI['dqi_per'];
+                $cleanSheetData['dqi_fee'] = $calculatedDQI['dqi_fee'];
+                $cleanSheetData['comment'] = 'Record found in the Product Catalog and Offer';
             }
             else{
                 $cleanSheetData['offer_id'] = null;
                 $cleanSheetData['c_flag'] = '';
                 $cleanSheetData['dqi_flag'] = 0;
+                $cleanSheetData['average_cost'] = '0.00';
                 $cleanSheetData['flag'] = '1';
-                $cleanSheetData['comment'] = 'Record found in the Master Catalog';
+                $cleanSheetData['comment'] = 'Record found in the Product Catalog';
             }
         } else {
             Log::warning('Product not found for SKU and GTIN:', ['sku' => $sku, 'gtin' => $gtin, 'report_data' => $report]);
             $offer = null;
             if (!empty($sku)) {
                 $offer = $this->matchOfferSku($report->date,$sku,$provinceName,$provinceSlug,$provinceId,$report->retailer_id,$lpId);
-            } if (!empty($productName) && empty($offer)) {
-                $offer = $this->matchOfferProductName($report->date,$productName,$provinceName,$provinceSlug,$provinceId,$report->retailer_id,$lpId);
+                if(!empty($offer)){
+                    $cleanSheetData['offer_sku_matched'] = '1';
+                }
             }
+//            if (!empty($productName) && empty($offer)) {
+//                $offer = $this->matchOfferProductName($report->date,$productName,$provinceName,$provinceSlug,$provinceId,$report->retailer_id,$lpId);
+//            }
             if ($offer) {
                 $cleanSheetData['retailer_id'] = $retailer_id;
                 $cleanSheetData['offer_id'] = $offer->id;
@@ -150,7 +150,7 @@ trait BarnetIntegration
                 $cleanSheetData['province'] = $offer->province;
                 $cleanSheetData['province_slug'] = $offer->province_slug;
                 $cleanSheetData['sku'] = $sku;
-                $cleanSheetData['product_name'] = $offer->product_name;
+                $cleanSheetData['product_name'] = $productName;
                 $cleanSheetData['category'] = $offer->category;
                 $cleanSheetData['brand'] = $offer->brand;
                 $cleanSheetData['sold'] = $barnetReport->quantity_sold_units ?? '0';
@@ -158,19 +158,17 @@ trait BarnetIntegration
                 if((int) $cleanSheetData['purchase'] > 0){
                     $checkCarveout = $this->checkCarveOuts($report,$provinceId, $provinceSlug, $provinceName,$lpId,$lpName,$offer->provincial_sku);
                     $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
+                    $cleanSheetData['carveout_id'] = $checkCarveout->id ?? null;
                 }
                 else{
                     $cleanSheetData['c_flag'] = '';
                 }
-
                 $barnetAveragePrice = $this->barnetAveragePrice($barnetReport->quantity_sold_value,$barnetReport->quantity_sold_units);
                 $cleanSheetData['average_price'] = $barnetAveragePrice;
                 $barnetAverageCost = $this->barnetAverageCost($barnetReport->opening_inventory_value,$barnetReport->opening_inventory_units);
                 $cleanSheetData['report_price_og'] = $barnetAverageCost;
-                if($barnetAverageCost == "0.00"){
-                    $barnetAverageCost = GeneralFunctions::formatAmountValue($offer->unit_cost);
-                }
-                $cleanSheet['average_cost'] = $barnetAverageCost;
+                $cleanSheetData['average_cost'] = GeneralFunctions::formatAmountValue($offer->unit_cost) ?? "0.00";
+                $cleanSheetData['product_price'] = '0.00';
                 $cleanSheetData['barcode'] = $gtin;
                 $cleanSheetData['report_id'] = $report->id;
                 $cleanSheetData['transfer_in'] = $barnetReport->other_additions_units ?? '0';
@@ -180,16 +178,12 @@ trait BarnetIntegration
                 $cleanSheetData['opening_inventory_unit'] = $barnetReport->opening_inventory_units ?? '0';
                 $cleanSheetData['closing_inventory_unit'] = $barnetReport->closing_inventory_units ?? '0';
                 $cleanSheetData['flag'] = '2';
-                $cleanSheetData['comment'] = 'Record found in the Offers';
                 $cleanSheetData['dqi_flag'] = 1;
                 $cleanSheetData['product_variation_id'] = null;
-                $TotalQuantityGet = $cleanSheetData['purchase'];
-                $TotalUnitCostGet = $cleanSheetData['average_cost'];
-                $TotalPurchaseCostMake = (float)$TotalQuantityGet * (float)$TotalUnitCostGet;
-                $FinalDQIFEEMake = (float)trim($offer->data_fee, '%') * 100;
-                $FinalFeeInDollar = (float)$TotalPurchaseCostMake * $FinalDQIFEEMake / 100;
-                $cleanSheetData['dqi_per'] = $FinalDQIFEEMake;
-                $cleanSheetData['dqi_fee'] = number_format($FinalFeeInDollar,2);
+                $calculatedDQI = $this->calculateDQI($cleanSheetData['purchase'],$cleanSheetData['average_cost'],$offer->data_fee);
+                $cleanSheetData['dqi_per'] = $calculatedDQI['dqi_per'];
+                $cleanSheetData['dqi_fee'] = $calculatedDQI['dqi_fee'];
+                $cleanSheetData['comment'] = 'Record found in the Offers';
             } else {
                 Log::info('No product or offer found, saving report data as is:', ['report_data' => $report]);
                 $cleanSheetData['retailer_id'] = $retailer_id;
@@ -204,18 +198,21 @@ trait BarnetIntegration
                 $cleanSheetData['province'] = $provinceName;
                 $cleanSheetData['province_slug'] = $provinceSlug;
                 $cleanSheetData['sku'] = $sku;
-                $cleanSheetData['product_name'] = $barnetReport->name;
+                $cleanSheetData['product_name'] = $productName;
                 $cleanSheetData['category'] = null;
                 $cleanSheetData['brand'] = null;
                 $cleanSheetData['sold'] = $barnetReport->quantity_sold_units ?? '0';
                 $cleanSheetData['purchase'] = $barnetReport->quantity_purchased_units ?? '0';
-                $cleanSheetData['average_price'] = $barnetReport->average_price;
-                $cleanSheetData['average_cost'] = $barnetReport->average_cost;
-                $cleanSheetData['report_price_og'] = $barnetReport->average_cost;
+                $barnetAveragePrice = $this->barnetAveragePrice($barnetReport->quantity_sold_value,$barnetReport->quantity_sold_units);
+                $cleanSheetData['average_price'] = $barnetAveragePrice;
+                $barnetAverageCost = $this->barnetAverageCost($barnetReport->opening_inventory_value,$barnetReport->opening_inventory_units);
+                $cleanSheetData['report_price_og'] = $barnetAverageCost;
+                $cleanSheetData['average_cost'] = '0.00';
+                $cleanSheetData['product_price'] = '0.00';
                 $cleanSheetData['barcode'] = $gtin;
                 $cleanSheetData['report_id'] = $report->id;
                 $cleanSheetData['c_flag'] = '';
-                  $cleanSheetData['transfer_in'] = $barnetReport->other_additions_units ?? '0';
+                $cleanSheetData['transfer_in'] = $barnetReport->other_additions_units ?? '0';
                 $cleanSheetData['transfer_out'] = $barnetReport->transfer_units ?? '0';
                 $cleanSheetData['pos'] = $report->pos;
                 $cleanSheetData['reconciliation_date'] = $report->date;
@@ -225,6 +222,7 @@ trait BarnetIntegration
                 $cleanSheetData['comment'] = 'No matching product or offer found.';
                 $cleanSheetData['dqi_flag'] = 0;
                 $cleanSheetData['product_variation_id'] = null;
+                $cleanSheetData['carveout_id'] = null;
                 $cleanSheetData['dqi_per'] = 0.00;
                 $cleanSheetData['dqi_fee'] = 0.00;
             }
@@ -234,10 +232,7 @@ trait BarnetIntegration
         $cleanSheetData['average_price'] = $this->sanitizeNumeric($cleanSheetData['average_price']);
         $cleanSheetData['report_price_og'] = $this->sanitizeNumeric($cleanSheetData['report_price_og']);
         $cleanSheetData['average_cost'] = $this->sanitizeNumeric($cleanSheetData['average_cost']);
-
-        if ($cleanSheetData['average_cost'] === 0.0 || $cleanSheetData['average_cost'] === 0) {
-            $cleanSheetData['average_cost'] = GeneralFunctions::checkAvgCostCleanSheet($cleanSheetData['sku'],$cleanSheetData['province']);
-        }
+        $cleanSheetData['product_price'] = $this->sanitizeNumeric($cleanSheetData['product_price']);
 
         return $cleanSheetData;
     }

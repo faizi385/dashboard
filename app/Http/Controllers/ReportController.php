@@ -48,99 +48,73 @@ class ReportController extends Controller
 {
     public function index(Request $request, $retailers = '')
     {
-        // Get the currently authenticated user
         $user = auth()->user();
         $date = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
         if ($user->hasRole('Retailer')) {
-            // Attempt to find the retailer associated with the user
             $retailers = Retailer::where('user_id', $user->id)->first();
 
             if ($retailers) {
-                // Fetch reports and statements for the retailer
-                $reports = Report::with('retailer')->where('retailer_id', $retailers->id)->get();
-                $statements = RetailerStatement::where('retailer_id', $retailers->id)->where('flag',0)->where('reconciliation_date',now()->startOfMonth())->get();
+                $reports = Report::with('retailer')->where('retailer_id', $retailers->id)->where('date',$date)->get();
+//                $statements = RetailerStatement::where('flag',0)->where('retailer_id', $retailers->id)->where('reconciliation_date', $date)->get();
+//                $reports = Report::with('retailer')->where('retailer_id', $retailers->id)->get();
+//                $statements = RetailerStatement::where('retailer_id', $retailers->id)->where('flag',0)->where('reconciliation_date',now()->startOfMonth())->get();
             } else {
-                // Empty collections if no retailer found
                 $reports = collect();
-                $statements = collect();
+//                $statements = collect();
             }
         } elseif ($user->hasRole('LP')) {
-            // Get LP details based on the user ID
             $lp = LP::where('user_id', $user->id)->first();
 
             if ($lp) {
-                // Fetch reports uploaded by the LP
                 $reports = Report::with('retailer')->where('lp_id', $lp->id)->get();
-                $statements = RetailerStatement::whereHas('report', function ($query) use ($lp) {
-                    $query->where('lp_id', $lp->id)->where('flag',0)->where('reconciliation_date',now()->startOfMonth());
-                })->get();
+//                $statements = RetailerStatement::whereHas('report', function ($query) use ($lp) {
+//                    $query->where('lp_id', $lp->id)->where('flag',0)->where('reconciliation_date',now()->startOfMonth());
+//                })->get();
             } else {
-                // Empty collections if no LP found
                 $reports = collect();
-                $statements = collect();
             }
         } else {
-           
-            $reports = Report::with('retailer')->get();
-            $statements = RetailerStatement::where('flag',0)->where('reconciliation_date', $date)->get();
+            $reports = Report::
+                whereMonth('date', now()->startOfMonth()->subMonth()->format('m'))
+                ->whereYear('date', now()->startOfMonth()->subMonth()->format('Y'))
+                ->with(['retailer'])
+                ->whereHas('retailer', function ($q) {
+                    return $q->where('retailers.status', 'Approved');
+                })
+                ->leftJoin('retailer_statements', function ($join) {
+                    $join->on('retailer_statements.report_id', '=', 'reports.id')
+                        ->where('retailer_statements.flag', 0);
+                })
+                ->leftJoin('provinces', function ($join) {
+                    $join->on('reports.province_id', '=', 'provinces.id');
+                })
+                ->select(
+                    'reports.id',
+                    'reports.retailer_id',
+                    'reports.status',
+                    'reports.province',
+                    'reports.location',
+                    'reports.date',
+                    'reports.submitted_by',
+                    'reports.pos',
+                    'reports.file_1',
+                    'reports.file_2',
+                    'reports.created_at',
+                    'reports.updated_at',
+                    DB::raw('SUM(retailer_statements.total_fee) as total_fee_sum'),
+                    DB::raw('ROUND(SUM(retailer_statements.total_fee + (retailer_statements.total_fee * IFNULL(provinces.tax_value, 5) / 100)), 2) as total_payout_with_tax')
+                )
+                ->groupBy('reports.id','reports.retailer_id','reports.status','reports.province',
+                    'reports.location','reports.date','reports.submitted_by','reports.pos','reports.file_1',
+                    'reports.file_2','reports.created_at','reports.updated_at'
+                )
+                ->orderBy('updated_at', 'DESC')
+                ->get();
         }
- 
-        // Initialize arrays for sums
-        $retailerSumsByLocation = [];
-        $totalPayoutWithoutTax = 0;
-        $totalPayoutWithTax = 0;
 
-        // Loop through each statement to calculate total fees and taxes by location
-        foreach ($statements as $statement) {
-            // Get the location of the statement (from the Report model)
-            $location = $statement->report->location ?? null;
+        return view('reports.index', compact('reports', 'retailers'));
 
-            // Calculate the tax rate for the location (based on province)
-            $province = $statement->report->province ?? null;
-            $taxRate = $this->getProvinceTaxRate($province);
-
-            // Calculate the payout with tax
-            $payoutWithTax = $statement->total_fee * (1 + $taxRate);
-
-            // Add to total payout without tax and with tax
-            $totalPayoutWithoutTax += $statement->total_fee;
-            $totalPayoutWithTax += $payoutWithTax;
-
-            // Sum total fees and payout with tax by location
-            if (!isset($retailerSumsByLocation[$location])) {
-                $retailerSumsByLocation[$location] = [
-                    'total_fee_sum' => 0,
-                    'total_payout_with_tax' => 0,
-                ];
-            }
-
-            // Update sums for the specific location
-            $retailerSumsByLocation[$location]['total_fee_sum'] += $statement->total_fee;
-            $retailerSumsByLocation[$location]['total_payout_with_tax'] += $payoutWithTax;
-        }
-
-        // Pass data to the view
-        return view('reports.index', compact('reports', 'retailers', 'retailerSumsByLocation', 'totalPayoutWithoutTax', 'totalPayoutWithTax'));
     }
-
-
-
-
-    // Helper function to get the tax rate based on the province
-    private function getProvinceTaxRate($province)
-    {
-        $taxRates = [
-            'Alberta' => 0.05,
-            'Ontario' => 0.03,
-            'Manitoba' => 0.05,
-            'British Columbia' => 0.05,
-            'Saskatchewan' => 0.05,
-        ];
-
-        return $taxRates[$province] ?? 0;
-    }
-
-
 
     public function create($retailerId)
     {
@@ -261,6 +235,7 @@ class ReportController extends Controller
         $request->validate([
             'location' => 'required|string|max:255',
             'pos' => 'required|string',
+            'inventory_log_summary' => 'required'
         ]);
 
         $retailer = Retailer::find($retailerId);

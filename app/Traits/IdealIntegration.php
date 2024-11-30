@@ -119,6 +119,7 @@ trait IdealIntegration
                 if((int) $cleanSheetData['purchase'] > 0){
                     $checkCarveout = $this->checkCarveOuts($report,$provinceId, $provinceSlug, $provinceName,$lpId,$lpName,$offer->provincial_sku);
                     $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
+                    $cleanSheetData['carveout_id'] = $checkCarveout->id ?? null;
                 }
                 else{
                     $cleanSheetData['c_flag'] = '';
@@ -177,6 +178,7 @@ trait IdealIntegration
                 if((int) $cleanSheetData['purchase'] > 0){
                     $checkCarveout = $this->checkCarveOuts($report,$provinceId, $provinceSlug, $provinceName,$lpId,$lpName,$offer->provincial_sku);
                     $cleanSheetData['c_flag'] = $checkCarveout ? 'yes' : 'no';
+                    $cleanSheetData['carveout_id'] = $checkCarveout->id ?? null;
                 }
                 else{
                     $cleanSheetData['c_flag'] = '';

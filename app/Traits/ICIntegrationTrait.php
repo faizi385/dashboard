@@ -157,7 +157,7 @@ trait ICIntegrationTrait
 
         // First attempt: Match based on offer date, barcode, province, retailer and lp_id
         $offer = Offer::where('offer_date', $date)
-            ->where('GTin', $barcode)
+            ->where('gtin', $barcode)
             ->where('province_id', $provinceId)
             ->where('retailer_id', $retailerId)
             ->where('lp_id', $lpId) // Filter by LP
@@ -166,7 +166,7 @@ trait ICIntegrationTrait
         // If no offer is found, attempt without matching the lp_id
         if (empty($offer)) {
             $offer = Offer::where('offer_date', $date)
-                ->where('GTin', $barcode)
+                ->where('gtin', $barcode)
                 ->where('province_id', $provinceId)
                 ->where('lp_id', $lpId)
                 ->first();
@@ -185,6 +185,8 @@ trait ICIntegrationTrait
         $GeneralFunction = new GeneralFunctions;
         $barcode = $GeneralFunction->CleanGTIN($barcode);
 
+
+
         // Attempt to match with lp_id
         $offer = Offer::where('offer_date', $date)
             ->where('gtin', $barcode)
@@ -195,11 +197,15 @@ trait ICIntegrationTrait
 
         // If no offer found, attempt without the lp_id
         if (empty($offer)) {
+            dump($date,$barcode,$provinceId,$lpId);
             $offer = Offer::where('offer_date', $date)
                 ->where('gtin', $barcode)
                 ->where('province_id', $provinceId)
                 ->where('lp_id', $lpId)
                 ->first();
+            if(!empty($offer)){
+                dump($offer);
+            }
         }
 
         return $offer;
@@ -209,14 +215,12 @@ trait ICIntegrationTrait
     {
         $sku = trim($sku);
 
-
         $offer = Offer::where('offer_date', $date)
             ->where('provincial_sku', $sku)
             ->where('province_id', $provinceId)
             ->where('retailer_id', $retailerId)
             ->where('lp_id', $lpId)
             ->first();
-
 
         if (empty($offer)) {
             $offer = Offer::where('offer_date', $date)
@@ -265,26 +269,32 @@ trait ICIntegrationTrait
         return $product;
     }
 
-    public function DQISummaryFlag($report, $sku, $gtin, $productName, $provinceName, $provinceSlug, $provinceId ,$lpId)
+    public function DQISummaryFlag($cleanSheetData,$report, $sku, $gtin, $productName, $provinceName, $provinceSlug, $provinceId ,$lpId)
     {
         $offer = null;
         if (!empty($sku)) {
             $offer = $this->matchOfferSku($report->date, $sku, $provinceName, $provinceSlug, $provinceId, $report->retailer_id,$lpId);
+            if(!empty($offer)){
+                $cleanSheetData['offer_sku_matched'] = '1';
+            }
         }
-        if (empty($offer) && !empty($barcode)) {
-            $offer = $this->matchOfferBarcode($report->date, $barcode, $provinceName, $provinceSlug,$provinceId, $report->retailer_id,$lpId);
+        if (empty($offer) && !empty($gtin)) {
+            dump('ss',$gtin,$offer);
+            $offer = $this->matchOfferBarcode($report->date, $gtin, $provinceName, $provinceSlug,$provinceId, $report->retailer_id,$lpId);
+            dump('aa',$gtin,$offer);
+            if(!empty($offer)){
+                $cleanSheetData['offer_gtin_matched'] = '1';
+            }
         }
-        if (empty($offer) && !empty($productName)) {
-            $offer = $this->matchOfferProductName($report->date, $productName, $provinceName, $provinceSlug, $provinceId, $report->retailer_id,$lpId);
-        }
+//        if (empty($offer) && !empty($productName)) {
+//            $offer = $this->matchOfferProductName($report->date, $productName, $provinceName, $provinceSlug, $provinceId, $report->retailer_id,$lpId);
+//        }
         if (!empty($offer)) {
-            return $offer;
+            return [$cleanSheetData, $offer];
         }
         if (empty($offer)) {
-            return null;
+            return [$cleanSheetData, null];
         }
-
-        return $offer;
     }
 
     function sanitizeNumeric($value) {
