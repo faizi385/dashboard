@@ -95,6 +95,16 @@
                             </div>
 
                             <!-- Radio buttons for Current Month and Previous Month -->
+
+                             <div class="mb-3">
+                                <label for="lpSelect" class="form-label">Select Province</label>
+                                <select class="form-select" id="lpSelect" name="province">
+                                    <option value="" selected disabled>Select Province</option>
+                                    @foreach($provinces as $province)
+                                        <option value="{{ $province->id }}">{{ $province->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                          
                             <!-- File Upload Section -->
                             <div class="mb-3">

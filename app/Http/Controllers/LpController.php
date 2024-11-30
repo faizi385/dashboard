@@ -264,11 +264,13 @@ $retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
         $lp = Lp::with('address')->findOrFail($id);
 
         $lps = Lp::all();
+
+        $provinces = Province::where('status',1)->get();
         
         // Set a session variable to indicate that the user is viewing offers from LP show
         session(['viewing_offers_from_lp_show' => true]);
 
-        return view('super_admin.lp.show', compact('lps','lp'));
+        return view('super_admin.lp.show', compact('lps','lp','provinces'));
     }
 
     public function create()
