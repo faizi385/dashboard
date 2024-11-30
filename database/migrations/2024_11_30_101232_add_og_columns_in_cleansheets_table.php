@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::table('clean_sheets', function (Blueprint $table) {
             $table->enum('offer_sku_matched',['0','1'])->nullable();
             $table->enum('offer_gtin_matched',['0','1'])->nullable();
-            $table->int('address_id')->nullable()->index();
+            $table->integer('address_id')->nullable()->index();
             $table->double('product_price')->nullable()->index();
         });
     }
