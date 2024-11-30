@@ -35,13 +35,12 @@ class ManageInfoController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',    
             'email' => 'required|email|max:255',
-            'phone' => 'required|string|max:15',
-            'address.*.street_number' => 'nullable|string|max:255',
+            'phone' => 'required|string',
             'address.*.street_name' => 'nullable|string|max:255',
-            'address.*.postal_code' => 'nullable|string|max:10',
+            'address.*.postal_code' => 'nullable|numeric',
             'address.*.city' => 'nullable|string|max:255',
         ]);
-    
+        
         // Update LP information
         $lp->update([
             'name' => $request->name,
@@ -55,7 +54,6 @@ class ManageInfoController extends Controller
                 $addressData = $request->input('address.' . $address->id);
                 if ($addressData) {
                     $address->update([
-                        'street_number' => $addressData['street_number'],
                         'street_name' => $addressData['street_name'],
                         'postal_code' => $addressData['postal_code'],
                         'city' => $addressData['city'],

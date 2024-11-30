@@ -18,22 +18,15 @@
                 </div>
                 <div class="card-body">
                     <div class="form-row">
+                        
                         <div class="col-md-6 form-group">
-                            <label for="street_no"><i class="fas fa-home"></i> Street No <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('addresses.0.street_no') is-invalid @enderror" name="addresses[0][street_no]">
-                            @error('addresses.0.street_no')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-md-6 form-group">
-                            <label for="street_name"><i class="fas fa-road"></i> Street Name <span class="text-danger">*</span></label>
+                            <label for="street_name"><i class="fas fa-road"></i>Full Address <span class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('addresses.0.street_name') is-invalid @enderror" name="addresses[0][street_name]">
                             @error('addresses.0.street_name')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                    </div>
-                    <div class="form-row">
+                    
                         <div class="col-md-6 form-group">
                             <label for="province"><i class="fas fa-map-marker-alt"></i> Province <span class="text-danger">*</span></label>
                             <select class="form-control @error('addresses.0.province') is-invalid @enderror" name="addresses[0][province]">
@@ -46,6 +39,8 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+                        </div>
+                    <div class="form-row">
                         <div class="col-md-6 form-group">
                             <label for="city-dropdown"><i class="fas fa-city"></i> City <span class="text-danger">*</span></label>
                             <select class="form-control @error('addresses.0.city') is-invalid @enderror city-dropdown" name="addresses[0][city]">
@@ -62,8 +57,6 @@
                             @enderror
                         </div>
                         
-                    </div>
-                    <div class="form-row">
                         <div class="col-md-6 form-group custom-city-input" style="display:none;">
                             <label for="custom_city"><i class="fas fa-city"></i> Enter City Name </label>
                             <input type="text" class="form-control" name="addresses[0][custom_city]" placeholder="Enter your city name">

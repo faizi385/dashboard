@@ -54,10 +54,16 @@
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
-            </div>
-
-            <!-- Email and Phone Fields -->
-            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="dba" class="form-label">
+                        <i class="fas fa-tag"></i> Organization Name <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" name="dba" id="dba" class="form-control @error('dba') is-invalid @enderror" placeholder="Enter Organization Name" value="{{ old('last_name', $retailer->dba ?? '') }}" >
+                    @error('dba')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+           
                 <div class="col-md-6 mb-3">
                     <label for="email" class="form-label">
                         <i class="fas fa-envelope"></i> Email <span class="text-danger">*</span>
@@ -67,6 +73,10 @@
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
+                 </div>
+
+            <!-- Email and Phone Fields -->
+            <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="phone" class="form-label">
                         <i class="fas fa-phone"></i> Phone Number <span class="text-danger">*</span>

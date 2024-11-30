@@ -74,7 +74,7 @@ Route::patch('provinces/status/{province}', [ProvinceController::class, 'updateS
 // Retailers
 Route::resource('retailers', RetailerController::class);
 Route::get('/retailer/create', [RetailerController::class, 'create'])->name('retailer.create');
-Route::post('/retailer/store', [RetailerController::class, 'store'])->name('retailer.store');
+Route::post('/retailer/store', [RetailerController::class, 'store'])->name('retailers.store');
 Route::get('/retailer-form/{token}', [RetailerController::class, 'showForm'])->name('retailer.fillForm');
 Route::post('/retailer/submit-form', [RetailerController::class, 'submitForm'])->name('retailer.submitForm');
 
