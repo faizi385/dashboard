@@ -66,7 +66,7 @@ class User extends Authenticatable
   // In User.php model
 public function lp()
 {
-    return $this->belongsTo(Lp::class, 'lp_id'); // Make sure 'lp_id' is the correct foreign key
+    return $this->hasOne(Lp::class, 'user_id', 'id'); // 'lp_id' in lps references 'id' in users
 }
 public function delete()
 {

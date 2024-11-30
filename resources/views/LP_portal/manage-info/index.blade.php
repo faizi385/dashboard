@@ -35,6 +35,17 @@
                 </div>
 
                 <div class="col-md-6 mb-3">
+                    <label for="dba" class="form-label">
+                        <i class="fas fa-tag"></i> Organization Name <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" name="dba" id="dba" class="form-control @error('dba') is-invalid @enderror" placeholder="Enter Organization Name" readonly value="{{ old('dba', $lp->dba ?? '') }}" >
+                    @error('dba')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+            </div>
+             <div class="row">
+                <div class="col-md-6 mb-3">
                     <label for="email" class="form-label">
                         <i class="fas fa-envelope"></i> Email <span class="text-danger">*</span>
                     </label>
@@ -53,9 +64,6 @@
                         </div>
                     @enderror
                 </div>
-            </div>
-
-            <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="phone" class="form-label">
                         <i class="fas fa-phone"></i> Phone
@@ -80,24 +88,9 @@
 
             @forelse($lp->address as $address)
                 <div class="row mb-3">
-                    <div class="col-md-4">
-                        <label for="street_number_{{ $address->id }}" class="form-label">Street Number</label>
-                        <input 
-                            type="text" 
-                            name="address[{{ $address->id }}][street_number]" 
-                            class="form-control @error('address.'.$address->id.'.street_number') is-invalid @enderror" 
-                            value="{{ old('address.'.$address->id.'.street_number', $address->street_number) }}" 
-                            oninput="removeValidation(this)"
-                        >
-                        @error('address.'.$address->id.'.street_number')
-                            <div class="invalid-feedback">
-                                {{ $message }}
-                            </div>
-                        @enderror
-                    </div>
 
                     <div class="col-md-4">
-                        <label for="street_name_{{ $address->id }}" class="form-label">Street Name</label>
+                        <label for="street_name_{{ $address->id }}" class="form-label">Full Address</label>
                         <input 
                             type="text" 
                             name="address[{{ $address->id }}][street_name]" 
@@ -115,7 +108,7 @@
                     <div class="col-md-4">
                         <label for="postal_code_{{ $address->id }}" class="form-label">Postal Code</label>
                         <input 
-                            type="text" 
+                            type="number" 
                             name="address[{{ $address->id }}][postal_code]" 
                             class="form-control @error('address.'.$address->id.'.postal_code') is-invalid @enderror" 
                             value="{{ old('address.'.$address->id.'.postal_code', $address->postal_code) }}" 
@@ -127,10 +120,7 @@
                             </div>
                         @enderror
                     </div>
-                </div>
-
-                <div class="row mb-3">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <label for="city_{{ $address->id }}" class="form-label">City</label>
                         <input 
                             type="text" 

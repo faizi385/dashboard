@@ -13,4 +13,8 @@ class Province extends Model
     protected $fillable = [
         'name', 'slug', 'timezone_1', 'timezone_2', 'tax_value', 'status'
     ];
+     public function retailerAddress()
+    {
+        return $this->hasOne(RetailerAddress::class, 'province', 'id'); 
+    }
 }
