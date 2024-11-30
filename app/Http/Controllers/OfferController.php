@@ -6,7 +6,9 @@ use App\Models\Lp;
 use App\Models\Offer;
 use App\Models\Product;
 use App\Models\Province;
-use App\Models\Retailer;
+use App\Models\Retailer;   
+use App\Models\CleanSheet;
+use App\Models\RetailerStatement;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Exports\OffersExport;
@@ -26,17 +28,18 @@ class OfferController extends Controller
     if ($user->hasRole('LP')) {
         // Get the LP ID associated with the logged-in user
         $lp = Lp::where('user_id', $user->id)->first();
-
+        $provinces = Province::where('status',1)->get();
         if ($lp) {
             // Fetch offers created by this LP
             $offers = Offer::where('lp_id', $lp->id)->get();
+            
         } else {
             $offers = collect(); // Empty collection if no LP found
         }
     } else {
         // Super admin: Fetch all offers or filter by specific LP if lp_id is provided
         $lpId = $request->get('lp_id');
-
+        $provinces = Province::where('status',1)->get();
         if ($lpId) {
             $lp = Lp::findOrFail($lpId); // Fetch the LP details
             $offers = Offer::where('lp_id', $lpId)->get(); // Fetch offers for the LP
@@ -46,7 +49,7 @@ class OfferController extends Controller
         }
     }
 
-    return view('super_admin.offers.index', compact('offers', 'lp', 'lps'));
+    return view('super_admin.offers.index', compact('offers', 'lp', 'lps','provinces'));
 }
 
 
@@ -83,17 +86,40 @@ public function update(Request $request, $id)
 public function destroy($id)
 {
     $offer = Offer::findOrFail($id);
-    $offer->delete();
+   
+    $this->deleteRetailerStatement($offer);
+    $this->update_clean_sheet($offer);
 
+    $offer->delete();
     return redirect()->route('offers.index')->with('success', 'Offer deleted successfully.');
 }
+    public function deleteRetailerStatement($offer)
+    {
+        RetailerStatement::where('offer_id', $offer->id)->delete();
+    }
+
+    public function update_clean_sheet($offer)
+    {
+        $clean_sheets = CleanSheet::where('offer_id', $offer->id)->get();
+        foreach ($clean_sheets as $clean_sheet) {
+            $statementModel = CleanSheet::find($clean_sheet->id);
+            if ($statementModel) {
+                if($statementModel->flag == 2){
+                    $statementModel->update(['flag' => '0','comments'=>'Record not found in the Master Catalog and Offer', 'dqi_flag'=>'0','dqi_per'=>null,'dqi_fee'=>null,'offer_id'=>null,'c_flag'=>'na','carveout_id'=>null]);
+                }
+                if($statementModel->flag == 3){
+                    $statementModel->update(['flag' => '1' ,'comments'=>'Record found in the Master Catalog', 'dqi_flag'=>'0','dqi_per'=>null,'dqi_fee'=>null,'offer_id'=>null,'c_flag'=>'na','carveout_id'=>null]);
+                }
+            }
+        }
+    }
 
     // Show the offer creation form with LPs and Retailers data
     public function create(Request $request)
 {
     $lps = Lp::all(); // Fetch LPs
     $retailers = Retailer::all(); // Fetch Retailers
-    $provinces = Province::all();
+    $provinces = Province::where('status',1)->get();
     // Check if lp_id is passed through the request, if not set $lp as null
     $lp = $request->lp_id ? Lp::find($request->lp_id) : null;
 
@@ -119,6 +145,7 @@ public function destroy($id)
         ]);
     
         $lpId = $request->lp_id;
+        $province = $request->province;
         $source = $request->source;
         $selectedMonth = $request->month; // Capture the selected month
         $lpName = Lp::where('id', $lpId)->value('name');
@@ -129,11 +156,17 @@ public function destroy($id)
 
             try {
                 // Import Offers and check for errors
-                $import = new OffersImport($selectedMonth, $lpId, $source, $lpName);
+                $import = new OffersImport($selectedMonth, $lpId, $source, $lpName,$province);
                 Excel::import($import, $filePath);
 
                 // Check for any import errors (if the OffersImport tracks errors)
                 $importErrors = $import->getErrors(); // Retrieve any header or data errors
+
+                // dd($importErrors['count']);
+
+                if(isset($importErrors['count']) && $importErrors['count'] > 0){
+                    return redirect()->back()->with('toast_success', 'Offers imported successfully for the selected LP! But '.$importErrors['count'].' Offers Already existed.');
+                }
 
                 if (!empty($importErrors)) {
                     // If there are errors, show them in a single message
