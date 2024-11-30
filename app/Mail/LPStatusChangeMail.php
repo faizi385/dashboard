@@ -34,7 +34,7 @@ class LPStatusChangeMail extends Mailable
      */
     public function build()
     {
-        return $this->subject('LP Status Update')
+        return $this->subject('Supplier Registration Update')
                     ->view('emails.lp_status_change')
                     ->with([
                         'lp' => $this->lp,

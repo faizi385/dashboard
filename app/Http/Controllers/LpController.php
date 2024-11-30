@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Mail\LPStatusChangeMail;
+use App\Models\LpAddress;
 
 class LpController extends Controller
 {
@@ -448,9 +449,11 @@ $retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
 
     public function edit(Lp $lp)
     {
-        $provinces = Province::all(); 
-        return view('super_admin.lp.edit', compact('lp', 'provinces'));
+        $provinces = Province::all();
+        $lpAddresses = LpAddress::where('lp_id', $lp->id)->get();
+        return view('super_admin.lp.edit', compact('lp', 'provinces', 'lpAddresses'));
     }
+    
 
     public function update(Request $request, Lp $lp)
     {

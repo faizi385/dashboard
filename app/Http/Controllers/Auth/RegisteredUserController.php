@@ -57,7 +57,14 @@ class RegisteredUserController extends Controller
             ],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'dba' => ['required', 'string', 'max:255'],
-            'primary_contact_phone' => ['required', 'string', 'max:20'],
+            'primary_contact_phone' => [
+                    'required',
+                    'string',
+                    'max:20',
+                    'min:7',
+                    'regex:/^\d{7,}$/',
+                ],
+
             'primary_contact_position' => ['required', 'string', 'max:255'],
     
           'address.address' => ['required', 'string', 'max:255'], // Ensure `address` is a single string

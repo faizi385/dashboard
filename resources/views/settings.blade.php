@@ -3,7 +3,7 @@
 @section('content')
 <div class="container p-2">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="text-white">Settings</h1>
+        <h1 class="text-white">Profile Settings</h1>
     </div>
 
     <!-- Display validation errors -->
@@ -32,10 +32,21 @@
             <div class="row">
                 <!-- Email Field -->
                 <div class="col-md-6 mb-3">
+                    <label for="name" class="form-label">
+                        <i class="fas fa-envelope"></i> Name: <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name', $user->first_name . ' ' . $user->last_name) }}" oninput="removeValidation(this)" required>                    
+                    @error('email')
+                        <div class="invalid-feedback">
+                            {{ $message }}
+                        </div>
+                    @enderror
+                </div>
+                <div class="col-md-6 mb-3">
                     <label for="email" class="form-label">
                         <i class="fas fa-envelope"></i> Email <span class="text-danger">*</span>
                     </label>
-                    <input type="email" name="email" id="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email', $user->email) }}" oninput="removeValidation(this)" required>
+                    <input type="email" name="email" id="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email', $user->email) }}" oninput="removeValidation(this)" required >
                     @error('email')
                         <div class="invalid-feedback">
                             {{ $message }}
