@@ -253,7 +253,9 @@ $retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
         // Fetch LPs ordered by creation date, most recent first
         $lps = Lp::orderBy('created_at', 'desc')->get();
 
-        return view('super_admin.lp.index', compact('lps'));
+        $provinces = Province::where('status',1)->get();
+
+        return view('super_admin.lp.index', compact('lps','provinces'));
     }
 
 
@@ -262,6 +264,7 @@ $retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
         $lp = Lp::with('address')->findOrFail($id);
 
         $lps = Lp::all();
+        
         // Set a session variable to indicate that the user is viewing offers from LP show
         session(['viewing_offers_from_lp_show' => true]);
 

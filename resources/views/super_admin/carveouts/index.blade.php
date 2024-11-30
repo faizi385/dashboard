@@ -109,7 +109,7 @@
                         <select class="form-control" id="province" name="province">
                             <option value="" disabled selected>Select Province</option>
                             @foreach($provinces as $province)
-                                <option value="{{ $province->name }}">{{ $province->name }}</option>
+                                <option value="{{ $province->id }}">{{ $province->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -138,7 +138,7 @@
 
                     <div class="mb-3">
                         <label for="carveout_date" class="form-label">Carveout Date <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control" id="carveout_date" name="carveout_date" >
+                        <input type="month" class="form-control" id="carveout_date" name="carveout_date" >
                     </div>
                 </div>
                 <div class="modal-footer">
