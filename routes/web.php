@@ -209,5 +209,6 @@ Route::get('/account-created', function () {
 
 
 
+
 // Authentication routes
 require __DIR__.'/auth.php';

@@ -84,12 +84,6 @@
                 @enderror
             </div>
 
-            <!-- Remember Me -->
-            <div class="form-check mb-3">
-                <input id="remember_me" type="checkbox" name="remember" class="form-check-input">
-                <label for="remember_me" class="form-check-label">Remember me</label>
-            </div>
-
             <!-- Forgot Password and Submit Button -->
             <div class="d-flex justify-content-between align-items-center">
                 @if (Route::has('password.request'))

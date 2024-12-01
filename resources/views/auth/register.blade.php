@@ -115,25 +115,48 @@
                     <div class="col-md-4">
                         <div class="form-group">
                             <label for="name" class="form-label">
-                                <i class="fas fa-user"></i> {{ __('Full Name') }} <span class="text-danger">*</span>
+                                <i class="fas fa-user"></i> {{ __('First Name') }} <span class="text-danger">*</span>
                             </label>
                             <input 
-                                id="name" 
+                                id="first_name" 
                                 class="form-control" 
                                 type="text" 
-                                name="name" 
-                                value="{{ old('name') }}" 
+                                name="first_name" 
+                                value="{{ old('first_name') }}" 
                                 required 
                                 autofocus 
                                 autocomplete="name" 
-                                placeholder="Enter your full name"
+                                placeholder="Enter your first name"
                                 pattern="[A-Za-z\s]+" 
-                                title="Full name must contain only alphabets and spaces."
+                                title="First name must contain only alphabets and spaces."
                             />
                             <div class="invalid-feedback">
-                                Enter your valid full name with only alphabets
+                                Enter your valid First name with only alphabets
                             </div>
                         </div>
+                    </div>
+                    <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="name" class="form-label">
+                            <i class="fas fa-user"></i> {{ __('Last Name') }} <span class="text-danger">*</span>
+                        </label>
+                        <input 
+                            id="last_name" 
+                            class="form-control" 
+                            type="text" 
+                            name="last_name" 
+                            value="{{ old('last_name') }}" 
+                            required 
+                            autofocus 
+                            autocomplete="name" 
+                            placeholder="Enter your first name"
+                            pattern="[A-Za-z\s]+" 
+                            title="Last name must contain only alphabets and spaces."
+                        />
+                        <div class="invalid-feedback">
+                            Enter your valid Last name with only alphabets
+                        </div>
+                    </div>
                     </div>
                     
                     <div class="col-md-4">
@@ -146,7 +169,8 @@
                         
                         </div>
                     </div>
-
+                </div>
+                <div class="row">
                     <div class="col-md-4">
                         <div class="form-group">
                             <label for="email" class="form-label">
@@ -179,10 +203,9 @@
                         }
                     </script>
                     
-                </div>
 
                 <!-- Primary Contact Phone and Position -->
-                <div class="row">
+                <!-- <div class="row"> -->
                     <div class="col-md-4">
                         <div class="form-group">
                             <label for="primary_contact_phone" class="form-label">
@@ -267,6 +290,8 @@
                        
                          </div>
                     </div>
+                    </div>
+                    <div class="row">
                     <div class="col-md-4">
                         <div class="form-group">
                             <label for="address.province" class="form-label"><i class="fas fa-map"></i> {{ __('Province') }} <span class="text-danger">*</span></label>
@@ -282,10 +307,10 @@
                        
                          </div>
                     </div>
-                </div>
+                
     
                 <!-- City and Province -->
-                <div class="row">
+                
                 <!-- Password must be at least 8 characters long. -->
                 <div class="col-md-4">
                     <div class="form-group">
