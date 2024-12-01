@@ -224,7 +224,7 @@ class ReportController extends Controller
 
     public function exportStatement($report_id)
     {
-        return Excel::download(new RetailerStatementExport($report_id), 'retailer_statement.xlsx');
+        return Excel::download(new RetailerStatementExport($report_id), 'Distributor Statement.xlsx');
     }
 
     public function destroy($id)

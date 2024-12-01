@@ -3,7 +3,7 @@
 @section('content')
 <div class="container p-3">
     <!-- Back Button -->
-   
+
     <div class="d-flex justify-content-between mb-4">
     <h1 class="text-white" id="text">Supplier Statement</h1>
     <a href="{{ url()->previous() }}" class="btn btn-primary mb-3">
@@ -24,18 +24,23 @@
                     </tr>
                 </thead>
                 <tbody>
+                @foreach ($lpStatement as $report)
+                    @php
+                        $date = $report->year .'-'.$report->month;
+                    @endphp
                     <tr>
                         <td>{{ $lp->dba ?? 'N/A' }}</td>
                         <td>{{ $lp->name ?? 'N/A' }}</td>
-                        <td>${{ number_format($totalFeeSum ?? 0, 2) }}</td>
-                        <td>${{ number_format($totalFeeWithTaxSum ?? 0, 2) }}</td>
-                        <td>{{ \Carbon\Carbon::parse($lp->report_date)->format('Y-m-d') ?? 'N/A' }}</td>
+                        <td style="text-align: center;">$ {{ number_format($report->total,2) }}</td>
+                        <td style="text-align: center">$ {{ number_format($report->total_with_tax,2) }}</td>
+                        <td>{{ \Carbon\carbon::parse($date)->format('M-Y') ?? 'NULL' }}</td>
                         <td class="text-center">
-                            <a href="{{ route('lp.statement.export', ['lp_id' => $lp->id, 'date' => $lp->report_date ?? now()->format('Y-m-d')]) }}" class="icon-action" data-bs-toggle="tooltip" data-bs-placement="top" title="Export Distributor Statement">
+                            <a href="{{ route('lp.statement.export', ['lp_id' => $lp->id, 'date' => $lp->report_date ?? now()->format('Y-m-d')]) }}" class="icon-action" data-bs-toggle="tooltip" data-bs-placement="top" title="Export Supplier Statement">
                                 <i style="color: black" class="fas fa-file-download"></i>
                             </a>
                         </td>
                     </tr>
+                @endforeach
                 </tbody>
             </table>
 

@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\CleanSheet;
+use App\Models\Province;
 use Illuminate\Support\Facades\Session;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -36,11 +37,12 @@ class CleanSheetsExport implements FromCollection, WithMapping, WithHeadings, Wi
     $purchases =  (float)$this->clearValue($row->purchase) * $average_cost;
     $sales_at_cost =  (float)$this->clearValue($row->sold) * $average_cost;
     $sales_at_retail =  (float)$this->clearValue($row->sold) * $average_price;
+    $province = Province::where('id',$row->province_id)->first();
 
     return [
         $this->clearValue($row->report->retailer->dba) ?? '',
         $this->clearValue($row->report->location) ?? '',
-        $row->product_variations ? $this->clearValue($row->product_variations->province) : $this->clearValue($this->get_province($row->report->province)),
+        $province->name ? $province->name : $row->report->province,
         $row->product_variations ? $this->clearValue($row->product_variations->sku) : $this->clearValue($row->sku),
         $row->barcode ? $this->clearValue($row->barcode) : ($row->product_variations ? $this->clearValue($row->product_variations->gtin) : ''),
         $row->product_variations ? $this->clearValue($row->product_variations->product_name) : $this->clearValue($row->product_name),
@@ -64,17 +66,15 @@ class CleanSheetsExport implements FromCollection, WithMapping, WithHeadings, Wi
         ($sales_at_retail != 0) ? $this->clearValue(number_format((($sales_at_retail - $sales_at_cost) / $sales_at_retail) * 100, 2)) : 1,
         ($sales_at_retail != 0) ? $this->clearValue((($sales_at_retail - $sales_at_cost) * $sold)) : 1,
         isset($row->dqi_flag) ? ($row->dqi_flag ? 'Yes' : 'No') : 'No',
-        $row->c_flag,
+        ucfirst($row->c_flag),
         $this->clearValue($row->dqi_per) ?? 0,
         $this->clearValue($row->dqi_fee) ?? 0,
     ];
 }
-
-
     public function headings(): array
     {
         return [
-            "DBA",
+            "Organization Name",
             "Location",
             "Province",
             'SKU',
@@ -83,11 +83,11 @@ class CleanSheetsExport implements FromCollection, WithMapping, WithHeadings, Wi
             "Size in Grams (g)",
             "THC Range",
             "CBD Range",
-            "LP",
+            "Supplier",
             "Brand",
             "Category",
             "Sold",
-            "purchase",
+            "Purchase",
             "Average Price ($)",
             "Average Cost ($)",
             "Opening Inventory Unit",
@@ -103,7 +103,6 @@ class CleanSheetsExport implements FromCollection, WithMapping, WithHeadings, Wi
             "Carveout Flag",
             "DQI Per (%)",
             "DQI Fee ($)",
-
         ];
     }
 
@@ -141,12 +140,6 @@ class CleanSheetsExport implements FromCollection, WithMapping, WithHeadings, Wi
                 'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT,
             ],
         ];
-//        $sheet->getStyle('J')->applyFromArray($signstyle);
-//        $sheet->getStyle('E')->applyFromArray($signstyleLeft);
-
-//        foreach(range('A', $sheet->getHighestDataColumn()) as $column) {
-//            $sheet->getColumnDimension($column)->setAutoSize(true);
-//        }
         foreach(range('Z', $lastColumn) as $column) {
             $sheet->getColumnDimension($column)->setAutoSize(true);
         }
@@ -157,22 +150,5 @@ class CleanSheetsExport implements FromCollection, WithMapping, WithHeadings, Wi
     private function clearValue($value)
     {
         return preg_replace('/\s+/', ' ', trim(str_replace(['$', ','], '', $value)));
-    }
-
-    private function get_province($province)
-    {
-        $province_name = '';
-        if ($province == 'ON' || $province == 'Ontario') {
-            $province_name = 'Ontario';
-        } elseif ($province == 'MB' || $province == 'Manitoba') {
-            $province_name = 'Manitoba';
-        } elseif ($province == 'BC' || $province == 'British Columbia') {
-            $province_name = 'British Columbia';
-        } elseif ($province == 'AB' || $province == 'Alberta') {
-            $province_name = 'Alberta';
-        } elseif ($province == 'SK' || $province == 'Saskatchewan') {
-            $province_name = 'Saskatchewan';
-        }
-        return $province_name;
     }
 }
