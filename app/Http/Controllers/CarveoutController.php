@@ -6,6 +6,7 @@ use App\Models\Lp;
 use Carbon\Carbon;
 use App\Models\Carveout;
 use App\Models\RetailerStatement;
+use App\Models\RetailerAddress;
 use App\Models\CleanSheet;
 use App\Models\Province;
 use App\Models\Retailer;
@@ -18,6 +19,8 @@ class CarveoutController extends Controller
     // Get the authenticated user's LP
     $userLp = Lp::where('user_id', auth()->user()->id)->first();
 
+    $date = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
+
     // Initialize carveouts and lp variables
     $carveouts = collect();
     $lp = null;
@@ -25,7 +28,7 @@ class CarveoutController extends Controller
     // Check if the user is a Super Admin or an LP user
     if (auth()->user()->hasRole('Super Admin')) {
         // Super Admin can see carveouts for the specified LP ID or all carveouts if lp_id is 0
-        $carveouts = Carveout::with(['retailer', 'lp'])
+        $carveouts = Carveout::with(['retailer', 'lp','retailerAddress'])->where('date',$date)
             ->when($lp_id > 0, function ($query) use ($lp_id) {
                 return $query->where('lp_id', $lp_id);
             })
@@ -35,25 +38,18 @@ class CarveoutController extends Controller
         $lp = Lp::find($lp_id);
     } elseif ($userLp) {
         // For LP users: Fetch carveouts related to their own LP ID
-        $carveouts = Carveout::with(['retailer', 'lp'])
+        $carveouts = Carveout::with(['retailer', 'lp','retailerAddress'])->where('date',$date)
             ->where('lp_id', $userLp->id)
             ->get();
-
-        // Set the authenticated LP for the LP user
         $lp = $userLp;
     }
+    // dd($carveouts);
+    $retailers = Retailer::where('lp_id',$userLp->id)->get();
 
-    // Fetch all retailers (optional based on view requirements)
-    $retailers = Retailer::all();
-
-    // Fetch all LPs (optional based on view requirements)
-    $lps = Lp::all();
-
-    // Fetch all provinces from the database
-    $provinces = Province::all(); // Assumes you have a Province model
+    $provinces = Province::where('status',1)->get();
 
     // Return the view with the required data
-    return view('super_admin.carveouts.index', compact('carveouts', 'retailers', 'lp_id', 'lps', 'lp', 'provinces'));
+    return view('super_admin.carveouts.index', compact('carveouts', 'retailers', 'lp_id','lp', 'provinces'));
 }
 
 
@@ -97,10 +93,19 @@ class CarveoutController extends Controller
             return redirect()->back()->withErrors(['retailer' => 'This retailer can only have one carveout per month.']);
         }
 
-        $province = Province::where('id',$request->province)->first();
-
-        // dd($request->province);
-
+        if(!empty($request->location)){
+            // dump('1');
+            $location = RetailerAddress::where('id',$request->location)->first();
+            // dump($location);
+            $province = Province::where('id',$location->province)->first();
+            if(!$province){
+                $province = Province::where('id',$request->province)->first();
+            }
+        }else{
+            // dump('2');
+            $province = Province::where('id',$request->province)->first();
+        }
+// dd($province);
         // Create the carveout
         $carveout = Carveout::create([
             'province_id' => $province->id,

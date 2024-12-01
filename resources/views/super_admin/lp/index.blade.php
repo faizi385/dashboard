@@ -45,9 +45,13 @@
                             @csrf
                             @method('PATCH')
                             <input type="hidden" name="status" value="approved">
-                            <button type="submit" class="btn btn-success btn-sm">
-                                Approve
-                            </button>
+                             <button type="submit" class="d-none" id="approveButton{{ $lp->id }}"></button>
+                                <img 
+                                    src="{{ asset('check-mark.png') }}" 
+                                    alt="Approve" 
+                                    style="cursor: pointer; width: 24px; height: 24px;" 
+                                    onclick="document.getElementById('approveButton{{ $lp->id }}').click();"
+                                >
                         </form>
                         @endif
 
@@ -56,9 +60,13 @@
                             @csrf
                             @method('PATCH')
                             <input type="hidden" name="status" value="rejected">
-                            <button type="submit" class="btn btn-danger btn-sm">
-                                Reject
-                            </button>
+                             <button type="submit" class="d-none" id="approveButtonreject{{ $lp->id }}"></button>
+                                <img 
+                                    src="{{ asset('cross.png') }}" 
+                                    alt="Reject" 
+                                    style="cursor: pointer; width: 24px; height: 24px;" 
+                                    onclick="document.getElementById('approveButtonreject{{ $lp->id }}').click();"
+                                >
                         </form>
                         @endif
                     </td>

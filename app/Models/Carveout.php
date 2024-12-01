@@ -34,6 +34,10 @@ class Carveout extends Model
     {
         return $this->belongsTo(Lp::class);
     }
+    public function retailerAddress()
+    {
+        return $this->belongsTo(RetailerAddress::class,'location','id');
+    }
 
     public function province()
     {
