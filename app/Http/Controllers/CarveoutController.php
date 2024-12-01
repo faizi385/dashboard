@@ -15,42 +15,44 @@ use Illuminate\Http\Request;
 class CarveoutController extends Controller
 {
     public function index($lp_id)
-{
-    // Get the authenticated user's LP
-    $userLp = Lp::where('user_id', auth()->user()->id)->first();
+    {
+        // Get the authenticated user's LP
+        $userLp = Lp::where('user_id', auth()->user()->id)->first();
 
-    $date = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
+        $date = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
 
-    // Initialize carveouts and lp variables
-    $carveouts = collect();
-    $lp = null;
+        // Initialize carveouts and lp variables
+        $carveouts = collect();
+        $lp = null;
 
-    // Check if the user is a Super Admin or an LP user
-    if (auth()->user()->hasRole('Super Admin')) {
-        // Super Admin can see carveouts for the specified LP ID or all carveouts if lp_id is 0
-        $carveouts = Carveout::with(['retailer', 'lp','retailerAddress'])->where('date',$date)
-            ->when($lp_id > 0, function ($query) use ($lp_id) {
-                return $query->where('lp_id', $lp_id);
-            })
-            ->get();
+        // Check if the user is a Super Admin or an LP user
+        if (auth()->user()->hasRole('Super Admin')) {
+            // Super Admin can see carveouts for the specified LP ID or all carveouts if lp_id is 0
+            $carveouts = Carveout::with(['retailer', 'lp','retailerAddress'])->where('date',$date)
+                ->when($lp_id > 0, function ($query) use ($lp_id) {
+                    return $query->where('lp_id', $lp_id);
+                })
+                ->get();
 
-        // Fetch the LP details based on lp_id
-        $lp = Lp::find($lp_id);
-    } elseif ($userLp) {
-        // For LP users: Fetch carveouts related to their own LP ID
-        $carveouts = Carveout::with(['retailer', 'lp','retailerAddress'])->where('date',$date)
-            ->where('lp_id', $userLp->id)
-            ->get();
-        $lp = $userLp;
+            // Fetch the LP details based on lp_id
+            $lp = Lp::find($lp_id);
+            $retailers = Retailer::get();
+        } elseif ($userLp) {
+            // For LP users: Fetch carveouts related to their own LP ID
+            $carveouts = Carveout::with(['retailer', 'lp','retailerAddress'])->where('date',$date)
+                ->where('lp_id', $userLp->id)
+                ->get();
+            $lp = $userLp;
+            $retailers = Retailer::where('lp_id',$userLp->id)->get();
+        }
+        // dd($carveouts);
+
+
+        $provinces = Province::where('status',1)->get();
+
+        // Return the view with the required data
+        return view('super_admin.carveouts.index', compact('carveouts', 'retailers', 'lp_id','lp', 'provinces'));
     }
-    // dd($carveouts);
-    $retailers = Retailer::where('lp_id',$userLp->id)->get();
-
-    $provinces = Province::where('status',1)->get();
-
-    // Return the view with the required data
-    return view('super_admin.carveouts.index', compact('carveouts', 'retailers', 'lp_id','lp', 'provinces'));
-}
 
 
     public function create()

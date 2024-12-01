@@ -51,7 +51,7 @@
                                                     style="width:18px;display: inline-block;vertical-align: middle;margin:-4px 10px 0 0;"><img
                                                         src="people.svg" alt=""
                                                         style="width: 100%; display: block"></span>
-                                                Reconciliation Engin Portal
+                                                ReconEngine Portal
                                             </p>
                                             <p style="margin: 0 0 10px;">
                                                 <span
@@ -59,14 +59,14 @@
                                                         src="mail.svg" alt=""
                                                         style="width: 100%; display: block"></span>
                                                 <a href=""
-                                                    style="color: #fff; text-decoration: none">sport@reconengin.com</a>
+                                                    style="color: #fff; text-decoration: none">sport@reconengine.com</a>
                                             </p>
                                             <p style="margin: 0 0 10px;">
                                                 <span
                                                     style="width:8px;display: inline-block;vertical-align: middle;margin:-4px 22px 0 0;"><img
                                                         src="phone.svg" alt=""
                                                         style="width: 100%; display: block"></span>
-                                                780-686-0037
+                                                780-326-0037
                                             </p>
                                         </td>
                                     </tr>
@@ -77,7 +77,7 @@
                     <tr>
                         <td style="background-color: #3b5574; color: #fff; padding: 0 30px 10px; font-size: 40px; font-family: sans-serif;"
                             align="right" valign="middle">
-                            Reconciliation Engin Portal
+                            ReconEngine Portal
                         </td>
                     </tr>
                     <tr>
@@ -101,7 +101,7 @@
                                         <td style=" padding: 0px 30px 25px; font-size: 16px; font-family: sans-serif;"
                                             align="left" valign="middle">
                                             <p style="margin: 0; line-height: 25px">A request has been received to
-                                                change the password for your Reconciliation Engin portal account
+                                                change the password for your ReconEngine portal account.
                                             </p>
                                         </td>
                                     </tr>
@@ -118,7 +118,7 @@
                                         <td style=" padding: 0px 30px 20px; font-size: 16px; font-family: sans-serif;"
                                             align="left" valign="middle">
                                             <p style="margin: 0; font-size: 14px; line-height: 25px;">
-                                                If you did not initiate this request Please contact us immediately.
+                                                If you did not initiate this request please contact us immediately.
                                             </p>
                                         </td>
                                     </tr>
@@ -127,8 +127,8 @@
                                             align="left" valign="middle">
                                             <!-- <p style="margin: 0; line-height: 25px;"></p> -->
                                             <p style="margin: 0; line-height: 25px;"><a href=""
-                                                    style="color: #000">sport@reconengin.com</a></p>
-                                            <p style="margin: 0; line-height: 25px;">780-686-0037</p>
+                                                    style="color: #000">sport@reconengine.com</a></p>
+                                            <p style="margin: 0; line-height: 25px;">780-326-0037</p>
                                         </td>
                                     </tr>
                                 </tbody>

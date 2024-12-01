@@ -59,8 +59,8 @@
 <body>
 
     <div class="form-container">
-        <h2 class="form-header text-center">Reset Your Account</h2>
-        <p class="form-description text-center">Enter your email </p>
+        <h2 class="form-header text-center">Reset Your Password</h2>
+        <p class="form-description text-center">Please enter your email</p>
 
         <form id="loginForm" method="POST" action="{{ route('password.email') }}">
             @csrf
@@ -68,7 +68,7 @@
             <!-- Email Address -->
             <div class="mb-3">
                 <label for="email" class="form-label required">Email <span class="text-danger">*</span></label>
-                <input id="email" type="email" name="email" value="{{ old('email') }}" autofocus 
+                <input id="email" type="email" name="email" value="{{ old('email') }}" autofocus
                        class="form-control @error('email') is-invalid @enderror">
                 @error('email')
                     <div class="invalid-feedback">{{ $message }}</div>

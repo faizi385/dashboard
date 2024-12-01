@@ -6,7 +6,7 @@ use App\Models\Lp;
 use App\Models\Offer;
 use App\Models\Product;
 use App\Models\Province;
-use App\Models\Retailer;   
+use App\Models\Retailer;
 use App\Models\CleanSheet;
 use App\Models\RetailerStatement;
 use Carbon\Carbon;
@@ -19,39 +19,37 @@ use Maatwebsite\Excel\Facades\Excel;
 class OfferController extends Controller
 {
     public function index(Request $request)
-{
-    // Get the currently authenticated user
-    $user = auth()->user();
-    $offerDate = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
-    $lps = Lp::all(); // Get all LPs for super admin view
-    $fromLpShow = $request->get('from_lp_show', false);
-    // Check if the user is an LP
-    if ($user->hasRole('LP')) {
-        // Get the LP ID associated with the logged-in user
-        $lp = Lp::where('user_id', $user->id)->first();
-        $provinces = Province::where('status',1)->get();
-        if ($lp) {
-            // Fetch offers created by this LP
-            $offers = Offer::where('lp_id', $lp->id)->where('offer_date',$offerDate)->get();
-            
-        } else {
-            $offers = collect(); // Empty collection if no LP found
-        }
-    } else {
-        // Super admin: Fetch all offers or filter by specific LP if lp_id is provided
-        $lpId = $request->get('lp_id');
-        $provinces = Province::where('status',1)->get();
-        if ($lpId) {
-            $lp = Lp::findOrFail($lpId); // Fetch the LP details
-            $offers = Offer::where('lp_id', $lpId)->where('offer_date',$offerDate)->get(); // Fetch offers for the LP
-        } else {
-            $lp = null;
-            $offers = Offer::where('offer_date',$offerDate)->get(); // Fetch all offers for super admin
-        }
-    }
+    {
+        $user = auth()->user();
+        $offerDate = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
+        $lps = Lp::all();
+        $fromLpShow = $request->get('from_lp_show', false);
+        if ($user->hasRole('LP')) {
+            // Get the LP ID associated with the logged-in user
+            $lp = Lp::where('user_id', $user->id)->first();
+            $provinces = Province::where('status',1)->get();
+            if ($lp) {
+                // Fetch offers created by this LP
+                $offers = Offer::where('lp_id', $lp->id)->where('offer_date',$offerDate)->get();
 
-    return view('super_admin.offers.index', compact('offers', 'lp', 'lps','provinces'));
-}
+            } else {
+                $offers = collect(); // Empty collection if no LP found
+            }
+        } else {
+            // Super admin: Fetch all offers or filter by specific LP if lp_id is provided
+            $lpId = $request->get('lp_id');
+            $provinces = Province::where('status',1)->get();
+            if ($lpId) {
+                $lp = Lp::findOrFail($lpId); // Fetch the LP details
+                $offers = Offer::where('lp_id', $lpId)->where('offer_date',$offerDate)->get(); // Fetch offers for the LP
+            } else {
+                $lp = null;
+                $offers = Offer::where('offer_date',$offerDate)->get(); // Fetch all offers for super admin
+            }
+        }
+
+        return view('super_admin.offers.index', compact('offers', 'lp', 'lps','provinces'));
+    }
 
 
 public function edit($id)
@@ -87,7 +85,7 @@ public function update(Request $request, $id)
 public function destroy($id)
 {
     $offer = Offer::findOrFail($id);
-   
+
     $this->deleteRetailerStatement($offer);
     $this->update_clean_sheet($offer);
 
@@ -144,13 +142,13 @@ public function destroy($id)
             'source' => 'required|integer', // Ensure source is included
             'month' => 'required|in:current,next', // Ensure a valid month is selected
         ]);
-    
+
         $lpId = $request->lp_id;
         $province = $request->province;
         $source = $request->source;
         $selectedMonth = $request->month; // Capture the selected month
         $lpName = Lp::where('id', $lpId)->value('name');
-    
+
         // Handle Offer Imports
         if ($request->hasFile('offerExcel')) {
             $filePath = $request->file('offerExcel')->store('uploads');
@@ -185,8 +183,8 @@ public function destroy($id)
         // Redirect back with a success message if no errors were found
         return redirect()->back()->with('toast_success', 'Offers imported successfully for the selected LP!');
     }
-    
-    
+
+
     public function store(Request $request)
     {
         // Base validation rules for common fields
