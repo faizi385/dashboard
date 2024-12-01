@@ -87,32 +87,6 @@
                     @enderror
                 </div>
             </div>
-
-            <!-- Role Selection Radio Button Group -->
-          <!-- Role Selection Radio Button Group -->
-<div class="mb-3">
-    <label class="form-label">Select Type <span class="text-danger">*</span></label>
-    <div class="form-check">
-        <input class="form-check-input @error('type') is-invalid @enderror" type="radio" name="type" id="distributor" value="Distributor" {{ old('type', $retailer->type ?? '') == 'Distributor' ? 'checked' : '' }}>
-        <label class="form-check-label" for="distributor">
-            Distributor
-        </label>
-    </div>
-    <div class="form-check">
-        <input class="form-check-input @error('type') is-invalid @enderror" type="radio" name="type" id="shop" value="Shop" {{ old('type', $retailer->type ?? '') == 'Shop' ? 'checked' : '' }}>
-        <label class="form-check-label" for="shop">
-            Shop
-        </label>
-    </div>
-
-    <!-- Show error message only if 'type' has an error -->
-    @error('type')
-        <div class="invalid-feedback d-block">{{ $message }}</div>
-    @enderror
-</div>
-
-            
-            
             <button type="submit" class="btn btn-primary mt-3">
                 <i class="fas fa-paper-plane"></i> {{ isset($retailer) ? 'Update Distributor' : 'Create Distributor' }}
             </button>
