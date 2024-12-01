@@ -57,15 +57,15 @@
                             <td>{{ $carveout->retailer->dba ?? 'N/A' }}</td> <!-- Display retailer's DBA -->
                             {{-- <td>{{ $carveout->address ?? '-'}}</td>
                             <td>{{ $carveout->carveout ?? '-' }}</td> --}}
-                            <td>{{ $carveout->location  }}</td>
+                            <td>{{ $carveout->retailerAddress->location  }}</td>
                             <td>{{ $carveout->sku ?? '-' }}</td>
                             <td>{{ \Carbon\Carbon::parse($carveout->date)->format('Y-m-d') }}</td>
                             <td>{{ $carveout->lp->dba ?? 'N/A' }}</td> <!-- Display LP's DBA -->
                             <td class="text-center">
                                 <!-- Edit Carveout Icon -->
-                                <a href="{{ route('carveouts.edit', $carveout->id) }}" class="icon-action" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Carveout">
+                                {{-- <a href="{{ route('carveouts.edit', $carveout->id) }}" class="icon-action" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Carveout">
                                     <i style="color: black" class="fas fa-edit "></i> <!-- Edit Icon -->
-                                </a>
+                                </a> --}}
                                 
                                 <!-- Delete Carveout Icon -->
                                 <form action="{{ route('carveouts.destroy', $carveout->id) }}" method="POST" style="display:inline;" class="delete-form">

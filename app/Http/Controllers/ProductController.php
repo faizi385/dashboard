@@ -27,6 +27,7 @@ class ProductController extends Controller
     public function destroy($id)
     {
         $product = Product::findOrFail($id);
+        $productVariation = ProductVariation::where('product_id',$product->id)->delete();
         $product->delete(); // Soft delete or delete the product
         return redirect()->route('lp.products')->with('success', 'Product deleted successfully.');
     }
@@ -46,6 +47,12 @@ class ProductController extends Controller
     
         // Find the product by ID
         $product = Product::findOrFail($id);
+
+        if ($request->has('is_validate')) {
+           $isValidate = 1;
+        } else {
+            $isValidate = 0;
+        }
     
         // Update the product with the validated data
         $product->update([
@@ -55,6 +62,11 @@ class ProductController extends Controller
             'gtin' => $request->input('gtin'),
             'category' => $request->input('category'),
             'brand' => $request->input('brand'),
+            'case_quantity' => $request->input('case_quantity'),
+            'product_size' => $request->input('product_size'),
+            'thc_range' => $request->input('thc_range'),
+            'cbd_range' => $request->input('cbd_range'),
+            'is_validate' => $isValidate,
         ]);
     
         // Redirect back with success message
