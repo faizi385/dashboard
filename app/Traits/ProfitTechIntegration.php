@@ -102,7 +102,7 @@ trait ProfitTechIntegration
             $cleanSheetData['product_variation_id'] = $product->id;
             $cleanSheetData['dqi_per'] = 0.00;
             $cleanSheetData['dqi_fee'] = 0.00;
-            list($cleanSheetData, $offer) = $this->DQISummaryFlag($cleanSheetData,$report, $profitTechReport->product_sku, '', '', $provinceName, $provinceSlug, $provinceId,$lpId );
+            list($cleanSheetData, $offer) = $this->DQISummaryFlag($cleanSheetData,$report, $sku, $gtin, $productName, $provinceName, $provinceSlug, $provinceId,$lpId );
             if (!empty($offer)) {
                 $cleanSheetData['offer_id'] = $offer->id;
                 $cleanSheetData['average_cost'] = GeneralFunctions::formatAmountValue($offer->unit_cost) ?? "0.00";
@@ -134,6 +134,9 @@ trait ProfitTechIntegration
             $offer = null;
             if (!empty($sku)) {
                 $offer = $this->matchOfferSku($report->date,$sku,$provinceName,$provinceSlug,$provinceId,$report->retailer_id,$lpId);
+                if(!empty($offer)) {
+                    $cleanSheetData['offer_sku_matched'] = '1';
+                }
             }
             if ($offer) {
                 $cleanSheetData['retailer_id'] = $retailer_id;
@@ -288,30 +291,5 @@ trait ProfitTechIntegration
         }
 
         return (double)$average_price;
-    }
-    public function profitech_averge_cost($product,$createdAt,$provinceName,$provinceSlug,$lpId){
-        $average_cost = 0.00;
-        $createdAtMonth = Carbon::parse($createdAt)->addMonth()->format('m');
-        $createdAtYear = Carbon::parse($createdAt)->addMonth()->format('Y');
-        $lpOffer = ProductVariation::whereMonth('created_at', $createdAtMonth)->whereYear('created_at', $createdAtYear)
-            ->where('provincial_sku', $product->sku)
-            ->where('province', $provinceName)
-            ->where('lp_id',$lpId)
-            ->first();
-        if(empty($lpOffer)){
-            $lpOffer = ProductVariation::whereMonth('created_at', $createdAtMonth)->whereYear('created_at', $createdAtYear)
-                ->where('provincial_sku', $product->sku)
-                ->where('province', $provinceSlug)
-                ->where('lp_id',$lpId)
-                ->first();
-        }
-        if(!empty($lpOffer)){
-            $average_cost =  \App\Helpers\GeneralFunctions::formatAmountValue($lpOffer->unit_cost);
-        }
-        if($average_cost == '0.00' || $average_cost == '0') {
-            $average_cost =  trim(str_replace('$', '', trim($product->price_per_unit)));
-        }
-
-        return $average_cost;
     }
 }

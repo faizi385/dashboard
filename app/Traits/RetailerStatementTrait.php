@@ -25,20 +25,17 @@ trait RetailerStatementTrait
         $province_name = '';
         $province_slug = '';
         $province_id = $report->province_id;
-        dump('1',$province_id);
         $this->getProvinces($report, $province_slug, $province_name);
         $cleanSheets = CleanSheet::where('report_id', $report->id)
             ->where('dqi_flag', 1)
             ->where('purchase', '>', 0)
             ->get();
         Log::info('Fetched clean sheets', ['cleanSheetCount' => $cleanSheets->count()]);
-
         $retailer = Retailer::find($retailer_id);
         if (!$retailer) {
             Log::error('Retailer not found', ['retailer_id' => $retailer_id]);
             return;
         }
-        $data = [];
         foreach ($cleanSheets as $cleanSheet) {
             if (!empty($cleanSheet->offer_id)) {
                 $lpVariable = Offer::with('lp.user')->find($cleanSheet->offer_id);
@@ -60,7 +57,6 @@ trait RetailerStatementTrait
 
     public function lpVariableFeeAssign($report, $lpVariable, $cleanSheet, $retailer, $province_slug, $province_name, $retailer_id,$province_id)
     {
-        dump('2',$province_id);
         Log::info('Starting lpVariableFeeAssign function', ['lpVariable_id' => $lpVariable->id, 'cleanSheet_id' => $cleanSheet->id]);
         if (!$lpVariable->lps) {
             Log::error('lpVariable lps is null', ['lpVariable' => $lpVariable]);
@@ -100,7 +96,6 @@ trait RetailerStatementTrait
         $retailerStatement->flag = $cleanSheet->c_flag == 'yes' ? '1' : '0';
         $retailerStatement->carve_out = $cleanSheet->c_flag == 'yes' ? 'yes' : 'no';
         $retailerStatement->retailer_id = $retailer_id;
-        dump('3',$province_id, $report->province_id);
         $retailerStatement->province_id = $report->province_id;
         $retailerStatement->province_slug = $province_slug;
         $retailerStatement->province = $province_name;
@@ -112,7 +107,6 @@ trait RetailerStatementTrait
 
     public function getProvinces($report, &$province_slug, &$province_name){
         if($report){
-            dump('4', $report->province_id);
             $province = Province::where('id', $report->province_id)->first();
             $province_name = $province->name;
             $province_slug = $province->slug;

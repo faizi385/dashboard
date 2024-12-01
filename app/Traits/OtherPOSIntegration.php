@@ -120,7 +120,7 @@ trait OtherPOSIntegration
             $cleanSheetData['product_variation_id'] = $product->id;
             $cleanSheetData['dqi_per'] = 0.00;
             $cleanSheetData['dqi_fee'] = 0.00;
-            list($cleanSheetData, $offer) = $this->DQISummaryFlag($cleanSheetData,$report,$OtherPOSReport->sku,$OtherPOSReport->barcode,$OtherPOSReport->name,$provinceName,$provinceSlug,$provinceId,$lpId );
+            list($cleanSheetData, $offer) = $this->DQISummaryFlag($cleanSheetData,$report,$sku,$gtin,$productName,$provinceName,$provinceSlug,$provinceId,$lpId );
             if (!empty($offer)) {
                 $cleanSheetData['offer_id'] = $offer->id;
                 $cleanSheetData['average_cost'] = GeneralFunctions::formatAmountValue($offer->unit_cost) ?? "0.00";
@@ -153,12 +153,12 @@ trait OtherPOSIntegration
             Log::warning('Product not found for SKU and GTIN:', ['sku' => $sku, 'gtin' => $gtin, 'report_data' => $report]);
             $offer = null;
             if (!empty($sku)) {
-                $offer = $this->matchOfferSku($report->date,$sku,$provinceName,$provinceSlug,$provinceId,$report->retailer_id,   $lpId );
+                $offer = $this->matchOfferSku($report->date,$sku,$provinceName,$provinceSlug,$provinceId,$report->retailer_id,$lpId );
                 if(!empty($offer)) {
                     $cleanSheetData['offer_sku_matched'] = '1';
                 }
             } if (!empty($gtin) && empty($offer)) {
-                $offer = $this->matchOfferBarcode($report->date,$gtin,$provinceName,$provinceSlug,$provinceId,$report->retailer_id,   $lpId );
+                $offer = $this->matchOfferBarcode($report->date,$gtin,$provinceName,$provinceSlug,$provinceId,$report->retailer_id,$lpId );
                 if(!empty($offer)){
                     $cleanSheetData['offer_gtin_matched'] = '1';
                 }

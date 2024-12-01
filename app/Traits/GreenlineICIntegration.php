@@ -123,7 +123,7 @@ trait GreenlineICIntegration
             $cleanSheetData['product_variation_id'] = $product->id;
             $cleanSheetData['dqi_per'] = 0.00;
             $cleanSheetData['dqi_fee'] = 0.00;
-            list($cleanSheetData, $offer) = $this->DQISummaryFlag($cleanSheetData,$report,$greenlineReport->sku,$greenlineReport->barcode,$greenlineReport->name,$provinceName,$provinceSlug,$provinceId,$lpId );
+            list($cleanSheetData, $offer) = $this->DQISummaryFlag($cleanSheetData,$report,$sku,$gtin,$productName,$provinceName,$provinceSlug,$provinceId,$lpId );
             if (!empty($offer)) {
                 $cleanSheetData['offer_id'] = $offer->id;
                 $cleanSheetData['average_cost'] = GeneralFunctions::formatAmountValue($offer->unit_cost) ?? "0.00";

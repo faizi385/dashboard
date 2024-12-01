@@ -60,10 +60,8 @@ trait ICIntegrationTrait
 
     public function matchICBarcode($barcode, $provinceName, $provinceSlug, $provinceId, $lpId)
     {
-        // Match the barcode based on the lpId
-        $product = $this->matchBarcode($barcode, $lpId); // Ensure the matchBarcode method is updated to handle lpId
+        $product = $this->matchBarcode($barcode, $lpId);
 
-        // If a product is found, filter by province-related conditions
         if (!empty($product)) {
             $product = $this->matchProvince($product, $provinceName, $provinceSlug, $provinceId);
         }
@@ -76,15 +74,13 @@ trait ICIntegrationTrait
         $GeneralFunction = new GeneralFunctions;
         $Filterbarcode = $GeneralFunction->CleanGTIN($barcode);
 
-        // Match by GTIN and lpId
         $product = ProductVariation::where('gtin', $Filterbarcode)
-            ->where('lp_id', $lpId) // Filter by lpId
+            ->where('lp_id', $lpId)
             ->get();
 
-        // If no product is found, try matching with a '00' prefix
         if ($product->isEmpty()) {
             $product = ProductVariation::where('gtin', '00' . $Filterbarcode)
-                ->where('lp_id', $lpId) // Filter by lpId
+                ->where('lp_id', $lpId)
                 ->get();
         }
 
@@ -93,12 +89,10 @@ trait ICIntegrationTrait
 
     public function matchICSku($sku, $provinceName, $provinceSlug, $provinceId, $lpId)
     {
-        // Attempt to match based on SKU and lpId
         $product = ProductVariation::where('provincial_sku', trim($sku))
-            ->where('lp_id', $lpId) // Filter by lpId
+            ->where('lp_id', $lpId)
             ->get();
 
-        // If products are found, filter by province-related conditions
         if (!empty($product)) {
             $product = $this->matchProvince($product, $provinceName, $provinceSlug, $provinceId);
         }
@@ -116,33 +110,29 @@ trait ICIntegrationTrait
         $GeneralFunction = new GeneralFunctions;
         $Filterbarcode = $GeneralFunction->CleanGTIN($barcode);
 
-        // First attempt: Match based on SKU, GTIN, and lpId
         $product = ProductVariation::where('provincial_sku', trim($sku))
             ->where('gtin', $barcode)
-            ->where('lp_id', $lpId) // Filter by lpId
+            ->where('lp_id', $lpId)
             ->first();
 
-        // If no product is found, attempt with cleaned barcode
         if (empty($product)) {
             $product = ProductVariation::where('gtin', $Filterbarcode)
                 ->where('provincial_sku', trim($sku))
                 ->where('lp_id', $lpId) // Filter by lpId
                 ->first();
 
-            // If still no product is found, attempt with barcode prefixed with '00'
             if (empty($product)) {
                 $product = ProductVariation::where('gtin', '00' . $Filterbarcode)
                     ->where('provincial_sku', trim($sku))
-                    ->where('lp_id', $lpId) // Filter by lpId
+                    ->where('lp_id', $lpId)
                     ->first();
             }
         }
 
-        // If no product is found, attempt based on SKU and province name
         if (empty($product)) {
             $product = ProductVariation::where('provincial_sku', trim($sku))
                 ->where('province', $provinceName)
-                ->where('lp_id', $lpId) // Filter by lpId
+                ->where('lp_id', $lpId)
                 ->first();
         }
 
@@ -185,27 +175,19 @@ trait ICIntegrationTrait
         $GeneralFunction = new GeneralFunctions;
         $barcode = $GeneralFunction->CleanGTIN($barcode);
 
-
-
-        // Attempt to match with lp_id
         $offer = Offer::where('offer_date', $date)
             ->where('gtin', $barcode)
             ->where('province_id', $provinceId)
             ->where('retailer_id', $retailerId)
-            ->where('lp_id', $lpId) // Filter by LP
+            ->where('lp_id', $lpId)
             ->first();
 
-        // If no offer found, attempt without the lp_id
         if (empty($offer)) {
-            dump($date,$barcode,$provinceId,$lpId);
             $offer = Offer::where('offer_date', $date)
                 ->where('gtin', $barcode)
                 ->where('province_id', $provinceId)
                 ->where('lp_id', $lpId)
                 ->first();
-            if(!empty($offer)){
-                dump($offer);
-            }
         }
 
         return $offer;
@@ -235,15 +217,13 @@ trait ICIntegrationTrait
 
     public function matchOfferProductName($date, $productName, $provinceName, $provinceSlug, $provinceId, $retailerId, $lpId)
     {
-        // Attempt to match by product name and lp_id
         $offer = Offer::where('offer_date', $date)
             ->where('product_name', $productName)
             ->where('province_id', $provinceId)
             ->where('retailer_id', $retailerId)
-            ->where('lp_id', $lpId) // Filter by LP
+            ->where('lp_id', $lpId)
             ->first();
 
-        // If no offer is found, attempt without the lp_id
         if (empty($offer)) {
             $offer = Offer::where('offer_date', $date)
                 ->where('product_name', $productName)
@@ -251,15 +231,13 @@ trait ICIntegrationTrait
                 ->where('lp_id', $lpId)
                 ->first();
         }
-
         return $offer;
     }
 
     public function matchICProductName($productName, $provinceName, $provinceSlug, $provinceId, $lpId)
     {
-        // Match by product name and lpId
         $product = ProductVariation::where('product_name', $productName)
-            ->where('lp_id', $lpId) // Filter by lpId
+            ->where('lp_id', $lpId)
             ->get();
 
         if (!empty($product)) {
@@ -279,9 +257,7 @@ trait ICIntegrationTrait
             }
         }
         if (empty($offer) && !empty($gtin)) {
-            dump('ss',$gtin,$offer);
             $offer = $this->matchOfferBarcode($report->date, $gtin, $provinceName, $provinceSlug,$provinceId, $report->retailer_id,$lpId);
-            dump('aa',$gtin,$offer);
             if(!empty($offer)){
                 $cleanSheetData['offer_gtin_matched'] = '1';
             }
