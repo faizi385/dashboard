@@ -17,18 +17,21 @@ class RolesTableSeeder extends Seeder
         Role::create([
             'name' => 'retailer_1', // Example of concatenated name
             'original_name' => 'Retailer', // Store the original name
+            'origin_name' => 'Retailer', // Store the original name
             'guard_name' => 'web',
         ]);
 
         Role::create([
             'name' => 'lp_1', // Example of concatenated name
             'original_name' => 'LP', // Store the original name
+            'origin_name' => 'LP', // Store the original name
             'guard_name' => 'web',
         ]);
 
         Role::create([
             'name' => 'super_admin_1', // Example of concatenated name
             'original_name' => 'Super Admin', // Store the original name
+            'origin_name' => 'Super Admin', // Store the original name
             'guard_name' => 'web',
         ]);
     }

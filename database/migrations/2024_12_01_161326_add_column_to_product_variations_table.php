@@ -26,7 +26,7 @@ return new class extends Migration
     public function down()
     {
         Schema::table('product_variations', function (Blueprint $table) {
-            //
+            $table->dropColumn('is_validate');
         });
     }
 };

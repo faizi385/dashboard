@@ -51,7 +51,7 @@ public function store(Request $request)
             'max:255',
             'regex:/^[a-zA-Z\s]+$/', // Only alphabets and spaces allowed
         ],
-       'email' => [
+        'email' => [
             'required',
             'string',
             'email',
@@ -70,10 +70,10 @@ public function store(Request $request)
             'required',
             'max:20', // Ensure the phone number does not exceed 20 characters
         ],
-        'address' => 'nullable|string|max:255',
-        'roles' => 'required|array', // Ensure at least one role is selected
-        'permissions' => 'nullable|array',
-        ], 
+            'address' => 'nullable|string|max:255',
+            'roles' => 'required|array', // Ensure at least one role is selected
+            'permissions' => 'nullable|array',
+        ],
         [
             'first_name.regex' => 'The first name may only contain letters and spaces.',
             'last_name.regex' => 'The last name may only contain letters and spaces.',
@@ -81,16 +81,16 @@ public function store(Request $request)
             'roles.required' => 'Please select at least one role.', // Custom message for roles validation
             'phone.regex' => 'Please enter a valid phone number format.',
         ]);
-    
+
         // Create the user
         $user = User::create([
             'first_name' => $request->input('first_name'),
             'last_name' => $request->input('last_name'),
             'email' => $request->input('email'),
-            'password' => Hash::make($request->input('password')), // Hash the password
+            'password' => Hash::make($request->input('password')),
             'phone' => $request->input('phone'),
             'address' => $request->input('address'),
-            'created_by' => auth()->id(), // Log the user who created the account
+            'created_by' => auth()->id(),
         ]);
 
         // Assign roles if provided
@@ -115,12 +115,12 @@ public function store(Request $request)
     public function edit(User $user)
     {
         // Roles are based on who created them
-        $roles = auth()->user()->hasRole('Super Admin') 
-            ? Role::where('created_by', auth()->id())->get() 
+        $roles = auth()->user()->hasRole('Super Admin')
+            ? Role::where('created_by', auth()->id())->get()
             : Role::where('created_by', auth()->id())->get();
 
         $permissions = Permission::all();
-        
+
         return view('super_admin.users.edit', compact('user', 'roles', 'permissions'));
     }
 
@@ -139,8 +139,8 @@ public function store(Request $request)
             'address' => 'nullable|string|max:255',
             'roles' => 'array',
             'permissions' => 'array',
-            'userable_id' => 'nullable|integer', 
-            'userable_type' => 'nullable|string', 
+            'userable_id' => 'nullable|integer',
+            'userable_type' => 'nullable|string',
         ]);
 
         $user->update([
@@ -150,8 +150,8 @@ public function store(Request $request)
             'password' => $request->password ? Hash::make($request->password) : $user->password,
             'phone' => $request->phone,
             'address' => $request->address,
-            'userable_id' => $request->input('userable_id'), 
-            'userable_type' => $request->input('userable_type'), 
+            'userable_id' => $request->input('userable_id'),
+            'userable_type' => $request->input('userable_type'),
         ]);
 
         // Sync roles
@@ -193,9 +193,9 @@ public function store(Request $request)
     {
         $request->validate([
             'first_name' => 'nullable|string|max:20',
-            'last_name' => 'required|string|max:255', 
+            'last_name' => 'required|string|max:255',
             'phone' => 'nullable|string|max:20',
-            'dba' => 'required|string|max:255', 
+            'dba' => 'required|string|max:255',
         ]);
 
         $user = auth()->user(); // Fetch the authenticated user
@@ -204,7 +204,7 @@ public function store(Request $request)
                 'password' => Hash::make($request->password)
             ]);
         }
-       
+
         // Update the user details
         $user->update([
             'first_name' => $request->input('first_name'),

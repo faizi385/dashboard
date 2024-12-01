@@ -19,7 +19,6 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        
         'first_name',
         'last_name',
         'email',
@@ -28,15 +27,28 @@ class User extends Authenticatable
         'address',
         'userable_id',
         'userable_type',
-        'created_by', 
+        'created_by'
     ];
+//    public function hasRole($role)
+//    {
+//        return $this->roles()->where('original_name', $role)->exists();
+//    }
+
     public function hasRole($role)
     {
-        // Check based on the 'original_name' field instead of 'name'
-        return $this->roles()->where('original_name', $role)->exists();
+        return $this->roles()->where('origin_name', $role)->exists();
     }
 
-    
+    public function userRole()
+    {
+        return $this->belongsToMany(
+            Role::class,
+            'model_has_roles',
+            'model_id',
+            'role_id'
+        )->wherePivot('model_type', User::class);
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -63,19 +75,17 @@ class User extends Authenticatable
     {
         return $this->hasOne(Retailer::class);
     }
-  // In User.php model
-public function lp()
-{
-    return $this->hasOne(Lp::class, 'user_id', 'id'); // 'lp_id' in lps references 'id' in users
-}
-public function delete()
-{
-    // Append something to the email (e.g., '-deleted' or timestamp)
-    $this->email = $this->email . '-deleted-' . time();
-    $this->save();
 
-    // Now perform the soft delete
-    parent::delete();
-}
-    
+    public function lp()
+    {
+        return $this->hasOne(Lp::class, 'user_id', 'id');
+    }
+    public function delete()
+    {
+        $this->email = $this->email . '-deleted-' . time();
+        $this->save();
+
+        parent::delete();
+    }
+
 }
