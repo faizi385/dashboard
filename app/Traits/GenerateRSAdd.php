@@ -25,7 +25,7 @@ trait GenerateRSAdd {
         if ($offer->lp == null) {
             dd($offer);
         }
-        
+
 
         if ($offer->lp->user == null) {
             dd($offer);
@@ -67,9 +67,9 @@ trait GenerateRSAdd {
                         });
                 })
                 ->get();
-                
+
         }
-        
+
         if ($cleanSheets->isEmpty()) {
             $cleanSheets = CleanSheet::where('product_name', $offer->product_name)
                 ->where('province', $province_name)
@@ -84,12 +84,12 @@ trait GenerateRSAdd {
                 })
                 ->get();
         }
-        
+
         if (!empty($cleanSheets) && count($cleanSheets) > 0) {
             foreach ($cleanSheets as $cleanSheet) {
                 $retailerRport = Report::where('id', $cleanSheet->report_id)->first();
                 $SKU = $offer->provincial_sku ? $offer->provincial_sku : $cleanSheet->sku;
-                
+
                 $checkCarveout = (new class {
                     use ICIntegrationTrait;
                 })->checkCarveOuts($retailerRport, $offer->province_id, $province_slug, $province_name, $offer->lp_id, $offer->lp_name, $SKU);
@@ -130,12 +130,12 @@ trait GenerateRSAdd {
                 } else {
                     $FinalDQIFEEMake = '';
                     $FinalFeeInDollar = '';
-                }   
+                }
 
                 $cleanSheet->update([
                     'lp_id' => $offer->lp_id,
                     'lp_name' => $offer->lp->name ?? null,
-                    'offer_lp' => $offer->lp_name ?? null,
+//                    'offer_lp' => $offer->lp_name ?? null,
                     'flag' => '3',
                     'dqi_flag' => '1',
                     'dqi_per' => $FinalDQIFEEMake,

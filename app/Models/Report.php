@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Report extends Model
 {
-    use HasFactory,SoftDeletes;
+    use HasFactory;
 
     // Specify the fillable fields for mass assignment
     protected $fillable = [

@@ -185,23 +185,32 @@ public function store(Request $request)
 
     public function settings()
     {
-        $user = Auth::user();  // Get authenticated user
+        $user = User::with('lp')->where('id', Auth::id())->first();
         return view('settings', compact('user'));
     }
 
     public function updateSettings(Request $request)
     {
         $request->validate([
-            'email' => 'required|string|email|max:255|unique:users,email,' . auth()->id(),
+            'first_name' => 'nullable|string|max:20',
+            'last_name' => 'required|string|max:255', 
             'phone' => 'nullable|string|max:20',
+            'dba' => 'required|string|max:255', 
         ]);
 
         $user = auth()->user(); // Fetch the authenticated user
-
+        if($request['password'] != null){
+            $user->update([
+                'password' => Hash::make($request->password)
+            ]);
+        }
+       
         // Update the user details
         $user->update([
-            'email' => $request->input('email'),
+            'first_name' => $request->input('first_name'),
+            'last_name' => $request->input('last_name'),
             'phone' => $request->input('phone'),
+            'dba' => $request->input('dba'),
         ]);
 
         return redirect()->back()->with('toast_success', 'Settings updated successfully.');

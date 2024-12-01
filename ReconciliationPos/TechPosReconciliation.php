@@ -37,10 +37,7 @@ if($report) {
         Log::error('Error in TechPOS reconciliation: ' . $e->getMessage());
         DB::rollBack();
         DB::table('reports')->where('id', $report->id)->update(['status' => 'failed']);
-
     }
-
-
     print_r('ReconciliationPos process completed successfully.');
 }
 

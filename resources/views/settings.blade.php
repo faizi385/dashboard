@@ -32,10 +32,21 @@
             <div class="row">
                 <!-- Email Field -->
                 <div class="col-md-6 mb-3">
-                    <label for="name" class="form-label">
-                        <i class="fas fa-envelope"></i> Name: <span class="text-danger">*</span>
+                    <label for="first_name" class="form-label">
+                        <i class="fas fa-envelope"></i>First Name: <span class="text-danger">*</span>
                     </label>
-                    <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name', $user->first_name . ' ' . $user->last_name) }}" oninput="removeValidation(this)" required>                    
+                    <input type="text" name="first_name" id="first_name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name', $user->first_name ) }}" oninput="removeValidation(this)" required>                    
+                    @error('email')
+                        <div class="invalid-feedback">
+                            {{ $message }}
+                        </div>
+                    @enderror
+                    </div>
+                    <div class="col-md-6 mb-3">
+                    <label for="last_name" class="form-label">
+                        <i class="fas fa-envelope"></i>Last Name: <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" name="last_name" id="last_name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name', $user->last_name) }}" oninput="removeValidation(this)" required>                    
                     @error('email')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -43,10 +54,19 @@
                     @enderror
                 </div>
                 <div class="col-md-6 mb-3">
+                    <label for="dba" class="form-label">
+                        <i class="fas fa-tag"></i> Organization Name <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" name="dba" id="dba" class="form-control @error('dba') is-invalid @enderror" placeholder="Enter Organization Name" readonly value="{{ old('dba', $user->lp->dba ?? '') }}" >
+                    @error('dba')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                 <div class="col-md-6 mb-3">
                     <label for="email" class="form-label">
                         <i class="fas fa-envelope"></i> Email <span class="text-danger">*</span>
                     </label>
-                    <input type="email" name="email" id="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email', $user->email) }}" oninput="removeValidation(this)" required >
+                    <input type="email" name="email" id="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email', $user->email) }}" oninput="removeValidation(this)" required readonly>
                     @error('email')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -66,13 +86,11 @@
                         </div>
                     @enderror
                 </div>
-            </div>
-
-            <div class="row">
+           
                 <!-- Password Field -->
                 <div class="col-md-6 mb-3">
                     <label for="password" class="form-label">
-                        <i class="fas fa-lock"></i> New Password (Leave blank if you don't want to change)
+                        <i class="fas fa-lock"></i> New Password
                     </label>
                     <input type="password" name="password" id="password" class="form-control @error('password') is-invalid @enderror" oninput="removeValidation(this)">
                     @error('password')
@@ -81,6 +99,10 @@
                         </div>
                     @enderror
                 </div>
+                 </div>
+            
+
+            <div class="row">
 
                 <!-- Confirm Password Field -->
                 <div class="col-md-6 mb-3">

@@ -28,9 +28,10 @@ class RetailerAddress extends Model
     {
         return "{$this->street_no} {$this->street_name}, {$this->city}, {$this->province}, {$this->location}";
     }
+   
     public function provinceDetails()
     {
-        return $this->belongsTo(Province::class, 'province', 'id'); // 'province' here is the foreign key
+        return $this->belongsTo(Province::class, 'province', 'id'); 
     }
 
 }
