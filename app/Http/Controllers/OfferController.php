@@ -22,6 +22,7 @@ class OfferController extends Controller
 {
     // Get the currently authenticated user
     $user = auth()->user();
+    $offerDate = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
     $lps = Lp::all(); // Get all LPs for super admin view
     $fromLpShow = $request->get('from_lp_show', false);
     // Check if the user is an LP
@@ -31,7 +32,7 @@ class OfferController extends Controller
         $provinces = Province::where('status',1)->get();
         if ($lp) {
             // Fetch offers created by this LP
-            $offers = Offer::where('lp_id', $lp->id)->get();
+            $offers = Offer::where('lp_id', $lp->id)->where('offer_date',$offerDate)->get();
             
         } else {
             $offers = collect(); // Empty collection if no LP found
@@ -42,10 +43,10 @@ class OfferController extends Controller
         $provinces = Province::where('status',1)->get();
         if ($lpId) {
             $lp = Lp::findOrFail($lpId); // Fetch the LP details
-            $offers = Offer::where('lp_id', $lpId)->get(); // Fetch offers for the LP
+            $offers = Offer::where('lp_id', $lpId)->where('offer_date',$offerDate)->get(); // Fetch offers for the LP
         } else {
             $lp = null;
-            $offers = Offer::all(); // Fetch all offers for super admin
+            $offers = Offer::where('offer_date',$offerDate)->get(); // Fetch all offers for super admin
         }
     }
 

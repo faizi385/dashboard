@@ -6,6 +6,7 @@ use App\Models\Lp;
 use Carbon\Carbon;
 use App\Models\Carveout;
 use App\Models\RetailerStatement;
+use App\Models\RetailerAddress;
 use App\Models\CleanSheet;
 use App\Models\Province;
 use App\Models\Retailer;
@@ -97,10 +98,19 @@ class CarveoutController extends Controller
             return redirect()->back()->withErrors(['retailer' => 'This retailer can only have one carveout per month.']);
         }
 
-        $province = Province::where('id',$request->province)->first();
-
-        // dd($request->province);
-
+        if(!empty($request->location)){
+            // dump('1');
+            $location = RetailerAddress::where('id',$request->location)->first();
+            // dump($location);
+            $province = Province::where('id',$location->province)->first();
+            if(!$province){
+                $province = Province::where('id',$request->province)->first();
+            }
+        }else{
+            // dump('2');
+            $province = Province::where('id',$request->province)->first();
+        }
+// dd($province);
         // Create the carveout
         $carveout = Carveout::create([
             'province_id' => $province->id,
