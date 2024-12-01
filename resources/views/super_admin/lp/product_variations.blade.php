@@ -28,6 +28,7 @@
                         <th>GTIN</th>
                         <th>Category</th>
                         <th>Brand</th>
+                         <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -40,6 +41,11 @@
                         <td>{{ $product->gtin }}</td>
                         <td>{{ $product->category }}</td>
                         <td>{{ $product->brand }}</td>
+                        <td class="text-center">
+                            <a href="{{ route('product_variation.edit', $product->id) }}" class="icon-action" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Product Variation">
+                                <i class="fas fa-edit" style="color: black;"></i> <!-- Yellow edit icon -->
+                            </a>
+                        </td>
                     </tr>
                     @empty
                     <tr>
