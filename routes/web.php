@@ -175,8 +175,10 @@ Route::middleware('auth')->group(function () {
     Route::delete('/products/{id}', [ProductController::class, 'destroy'])->name('products.destroy');
     Route::put('/products/{id}', [ProductController::class, 'update'])->name('products.update');
     Route::get('/products/variations/{lp_id}/{gtin}', [ProductController::class, 'showVariations'])->name('products.variations');
+
     Route::get('/product/edit/variation/{id}', [ProductController::class, 'update_variation_view'])->name('product_variation.edit');
     Route::post('/product/variation/edit/{id}', [ProductController::class, 'update_variation'])->name('variation.edit');
+
 
     Route::get('/retailers/{retailer}/addresses', [RetailerController::class, 'getAddresses']);
 
