@@ -42,7 +42,7 @@
                         <option value="">Select POS</option>
                         <option value="greenline">Greenline</option>
                         <option value="techpos">TechPOS</option>
-                        <option value="cova">COVA</option>
+{{--                        <option value="cova">Cova</option>--}}
                         <option value="barnet">Barnet</option>
                         <option value="profittech">ProfitTech</option>
                         <option value="global">Global Till</option>
