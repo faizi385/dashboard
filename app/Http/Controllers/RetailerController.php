@@ -199,7 +199,6 @@ $topLocations = DB::table('top_locations_by_retailer')
                 'max:20',
                 'regex:/^\+?\d{1,3}\s*\(?\d{3}?\)?\s*\d{3}[-\s]?\d{4}$/'  // Accepts formats like +1 (425) 274-9782
             ],
-            'type' => 'required|string', 
             'dba' => 'required|string', 
             // For Super Admin, validate LP if the user is Super Admin
             'lp_id' => auth()->user()->hasRole('Super Admin') ? 'required|exists:lps,id' : 'nullable',
@@ -261,7 +260,7 @@ $topLocations = DB::table('top_locations_by_retailer')
         Mail::to($validatedData['email'])->send(new RetailerFormMail($link));
     
         // Redirect back with a success message
-        return redirect()->route('retailer.create')->with('success', 'Distributor created and email sent successfully!');
+        return redirect()->route('retailer.index')->with('success', 'Distributor created and email sent successfully!');
     }
     
     
@@ -286,7 +285,6 @@ $topLocations = DB::table('top_locations_by_retailer')
             'addresses.*.address' => 'required|string|max:255', // Replace street_no and street_name with address
             'addresses.*.province' => 'nullable|string|max:255',
             'addresses.*.city' => 'nullable|string|max:255',
-            'addresses.*.location' => 'nullable|string|max:255',
             'addresses.*.contact_person_name' => 'nullable|string|max:255',
             'addresses.*.contact_person_phone' => 'nullable|string|max:20',
             'addresses.*.postal_code' => 'nullable|string|max:20',
