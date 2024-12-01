@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Mail\forgetPasswordMail;
+use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -30,21 +31,34 @@ class PasswordResetLinkController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
-            'email' => ['required', 'email'],
-        ]);
-
-       
-            $token = Str::random(64);
-            DB::table('password_resets')->insert([
-                'email' => $request->email,
-                'token' => $token,
-                'created_at' => Carbon::now()
+        try {
+            $request->validate([
+                'email' => ['required', 'email'],
             ]);
-            Mail::to($request->email)->send(new forgetPasswordMail($token));
-            $messages = "Reset Password Mail Sent Successfully";
+            $checkEmail = User::where('email', $request->email)->first();
+            if ($checkEmail) {
+                $checkForgotPassword = DB::table('password_resets')->where('email', $request->email)->first();
+                if ($checkForgotPassword) {
+                    DB::table('password_resets')->where('email', $request->email)->delete();
+                }
+                $token = Str::random(64);
+                DB::table('password_resets')->insert([
+                    'email' => $request->email,
+                    'token' => $token,
+                    'created_at' => Carbon::now()
+                ]);
+                Mail::to($request->email)->send(new forgetPasswordMail($token));
+                $messages = "Reset Password Mail Sent Successfully";
 
-            return redirect()->route('login')->with('success', $messages);
-       
+                return redirect()->route('login')->with('success', $messages);
+            } else {
+                $messages = "Email Not Found";
+                return redirect()->route('login')->with('error', $messages);
+            }
+        }catch (\Exception $e) {
+            $messages = "Something went wrong.";
+            return redirect()->route('login')->with('error', $messages);
+        }
+
     }
 }
