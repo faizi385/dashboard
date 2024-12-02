@@ -85,7 +85,8 @@ class RoleController extends Controller
         $userId = Auth::id();
 
         // Get only the permissions created by the logged-in user
-        $permissions = Permission::where('created_by', $userId)->get();
+//        $permissions = Permission::where('created_by', $userId)->get();
+        $permissions = Permission::get();
 
         // Get the IDs of the permissions assigned to the role
         $rolePermissions = $role->permissions->pluck('id')->toArray();

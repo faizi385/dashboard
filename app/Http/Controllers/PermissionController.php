@@ -9,7 +9,8 @@ class PermissionController extends Controller
 {
     public function index()
 {
-    $permissions = Permission::where('created_by', auth()->id())->get();
+//    $permissions = Permission::where('created_by', auth()->id())->get();
+    $permissions = Permission::get();
     return view('super_admin.permissions.index', compact('permissions'));
 }
 
@@ -25,17 +26,17 @@ class PermissionController extends Controller
             'name' => 'required|string|max:255|unique:permissions,name|regex:/^[a-zA-Z]+$/', // Only alphabets allowed
             'description' => 'required|string|max:255|regex:/^[a-zA-Z]+$/',
         ]);
-    
+
         Permission::create([
             'name' => $request->name,
             'description' => $request->description,
             'created_by' => auth()->id(), // Associate with the authenticated user
         ]);
-    
+
         return redirect()->route('permissions.index')->with('success', 'Permission created successfully.');
     }
-    
-    
+
+
     public function edit(Permission $permission)
     {
         return view('super_admin.permissions.edit', compact('permission'));
