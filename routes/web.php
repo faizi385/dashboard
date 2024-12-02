@@ -141,11 +141,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/offers/store', [OfferController::class, 'store'])->name('offers.store');
     Route::get('/offers/export', [OfferController::class, 'export'])->name('offers.export');
     Route::post('offers/import', [OfferController::class, 'import'])->name('offers.import');
-    Route::get('/offers', [OfferController::class, 'index'])->name('offers.index');
     Route::get('offers/{id}/edit', [OfferController::class, 'edit'])->name('offers.edit');
     Route::put('offers/{id}', [OfferController::class, 'update'])->name('offers.update');
     Route::delete('offers/{id}', [OfferController::class, 'destroy'])->name('offers.destroy');
     Route::get('/offer-logs', [OfferLogController::class, 'index'])->name('offer.logs.index');
+    //For Offers View
+    Route::get('/offers', [OfferController::class, 'index'])->name('offers.index');
     Route::get('/all-offers', [OfferController::class, 'allOffers'])->name('all-offers.index');
     Route::get('/all-offers-lp-wise', [OfferController::class, 'allOffersLPWise'])->name('all-offers.lp-wise');
 

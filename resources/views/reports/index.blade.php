@@ -14,15 +14,15 @@
             <a href="{{ route('retailers.reports.create', ['retailer' => $retailers->id]) }}" class="btn btn-primary">
                 <i class="fas fa-plus-circle"></i> Add Report
             </a>
-
             @endif
-
         </div>
     </div>
-
-    <div class="row">
-        <div class="col">
-            <table id="reportsTable" class="table table-hover table-bordered text-center align-middle">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">Reports</h5>
+        </div>
+        <div class="card-body">
+            <table id="reportsTable" class="table table-striped">
                 <thead>
                     <tr>
                         <th>Distributor Organization Name</th>
@@ -96,7 +96,7 @@
 
 
 
-</style>
+
 @push('scripts')
 <script>
     $(document).ready(function() {
@@ -112,23 +112,24 @@
                 emptyTable: "No reports found."
             },
             initComplete: function() {
-                $('#loader').addClass('hidden'); // Hide the loader once the table is initialized
-
-                // Prepend month filter to DataTable search box section
+                $('#loader').addClass('hidden');
                 $("#reportsTable_filter").prepend(`
-                    <span class="me-2 text-white" style="font-weight: bold;">Filter:</span>
-    <label class="me-3">
-        <input type="month" id="monthFilter" class="form-control form-control-sm" placeholder="Select month" />
-    </label>
+                    <span class="me-2 " style="font-weight: bold;">Filter:</span>
+                    <label class="me-3">
+                        <div class="input-group date">
+                            <input type="text" class="form-control" id="calendarFilter" placeholder="Select a date" value="{{ \Carbon\Carbon::parse($date)->format('F-Y') }}">
+                            <div class="input-group-append">
+                                <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+                            </div>
+                        </div>
+                    </label>
                 `);
-
-                // Attach month filter change event to filter table
-                $('#monthFilter').on('change', function() {
+                $('#calendarFilter').on('change', function() {
                     const selectedMonth = $(this).val();
                     if (selectedMonth) {
-                        table.column(5).search(selectedMonth).draw(); // Assumes date column is column index 5
+                        window.location.href = "{{ route('super_admin.reports.index') }}?month=" + selectedMonth;
                     } else {
-                        table.column(5).search('').draw();
+                        window.location.href = "{{ route('super_admin.reports.index') }}";
                     }
                 });
             }
@@ -168,7 +169,21 @@
         table.on('draw', function() {
             initializeDeleteConfirmation();
         });
-
+        $('#calendarFilter').datepicker({
+            format: 'MM-yyyy',
+            minViewMode: 1,
+            autoclose: true,
+            startView: "months",
+            viewMode: "months",
+            minDate: new Date(),
+            onSelect: function(dateText) {
+                var formattedDate = $.datepicker.formatDate('MM-yyyy', new Date(dateText));
+                $('#calendarFilter').val(formattedDate);
+            },
+            setDate: new Date(),
+            changeMonth: true,
+            changeYear: true
+        });
         // Display Toastr messages if session has toast_success
         @if(session('toast_success'))
             toastr.success("{{ session('toast_success') }}");
@@ -177,8 +192,19 @@
 </script>
 @endpush
 <style>
-
     .dataTables_wrapper .dataTables_paginate .paginate_button.disabled{
         color: white  !important;}
+
+</style>
+<style>
+    .container {
+        margin-top: 20px;
+    }
+    .dataTables_wrapper .dataTables_filter label,
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+        color: black;
+    }
 </style>
 @endsection

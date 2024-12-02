@@ -22,43 +22,61 @@ class OfferController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $offerDate = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
+        $date = $request->get('month');
+        if(!empty($date)){
+            $date = Carbon::parse($date)->format('Y-m-01');
+        }
+        else{
+            $date = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
+        }
         $lps = Lp::all();
         $lp = Lp::where('user_id', $user->id)->first();
         $provinces = Province::where('status',1)->get();
         if ($lp) {
-            $offers = Offer::where('lp_id', $lp->id)->where('offer_date',$offerDate)->get();
+            $offers = Offer::where('lp_id', $lp->id)->where('offer_date',$date)->get();
         } else {
             $offers = collect();
         }
-        return view('LP_portal.offers.index', compact('offers', 'lp', 'lps','provinces'));
+        return view('LP_portal.offers.index', compact('offers', 'lp', 'lps','provinces','date'));
     }
 
     public function allOffers(Request $request)
     {
-        $offerDate = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
+        $date = $request->get('month');
+        if(!empty($date)){
+            $date = Carbon::parse($date)->format('Y-m-01');
+        }
+        else{
+            $date = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
+        }
         $lps = Lp::all();
 
         $provinces = Province::where('status',1)->get();
         $lp = null;
-        $offers = Offer::where('offer_date',$offerDate)->get();
+        $offers = Offer::where('offer_date',$date)->get();
 
-        return view('super_admin.offers.all-offers', compact('offers', 'lp', 'lps','provinces'));
+        return view('super_admin.offers.all-offers', compact('offers', 'lp', 'lps','provinces','date'));
     }
 
     public function allOffersLPWise(Request $request)
     {
-        $offerDate = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
+        $date = $request->get('month');
+        if(!empty($date)){
+            $date = Carbon::parse($date)->format('Y-m-01');
+        }
+        else{
+            $date = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
+        }
         $lps = Lp::all();
 
         $lpId = $request->get('lp_id');
         $provinces = Province::where('status',1)->get();
         if ($lpId) {
             $lp = Lp::findOrFail($lpId);
-            $offers = Offer::where('lp_id', $lpId)->where('offer_date',$offerDate)->get();
+            $offers = Offer::where('lp_id', $lpId)->where('offer_date',$date)->get();
         }
 
-        return view('super_admin.offers.index', compact('offers', 'lp', 'lps','provinces'));
+        return view('super_admin.offers.index', compact('offers', 'lp', 'lps','provinces','date'));
     }
 
 
@@ -189,17 +207,17 @@ class OfferController extends Controller
 
     public function store(Request $request)
     {
-        
+
         $rules = [
-            'product_name' => 'required|string|max:255', 
+            'product_name' => 'required|string|max:255',
             'provincial_sku' => 'required|string|max:255',
-            'gtin' => 'required|digits_between:1,13', 
+            'gtin' => 'required|digits_between:1,13',
             'province_id' => 'nullable|exists:provinces,id',
             'general_data_fee' => 'required|numeric|min:0',
-            'exclusive_data_fee' => 'nullable|numeric|min:0', 
+            'exclusive_data_fee' => 'nullable|numeric|min:0',
             'unit_cost' => 'required|numeric',
-            'category' => 'required|string|max:255|regex:/^[^\d]*$/', 
-            'brand' => 'required|string|max:255|regex:/^[^\d]*$/', 
+            'category' => 'required|string|max:255|regex:/^[^\d]*$/',
+            'brand' => 'required|string|max:255|regex:/^[^\d]*$/',
             'case_quantity' => 'required|integer',
             'offer_start' => 'required|date',
             'offer_end' => 'required|date|after_or_equal:offer_start',
@@ -214,7 +232,7 @@ class OfferController extends Controller
         ];
 
         if (!is_null($request->exclusive_data_fee)) {
-            $rules['exclusive_data_fee'] = 'required|numeric|min:0'; 
+            $rules['exclusive_data_fee'] = 'required|numeric|min:0';
             $rules['retailer_ids'] = 'required|array';
             $rules['retailer_ids.*'] = 'exists:retailers,id';
         }
@@ -229,7 +247,7 @@ class OfferController extends Controller
         if ($request->has('exclusive_retailer_ids')) {
             foreach ($request->exclusive_retailer_ids as $retailerId) {
                 $exclusiveOfferData = $this->prepareOfferData($request, $retailerId, $request->general_data_fee);
-                $exclusiveOfferData['source'] = $request->source; 
+                $exclusiveOfferData['source'] = $request->source;
                 $offer = Offer::create($exclusiveOfferData);
                 $retailerStatementImpact = (new class
                 {
@@ -241,7 +259,7 @@ class OfferController extends Controller
         }
         if ($request->has('exclusive_data_fee') && $request->has('retailer_ids')) {
             $generalOfferData = $this->prepareOfferData($request, null, $request->general_data_fee);
-            $generalOfferData['source'] = $request->source; 
+            $generalOfferData['source'] = $request->source;
             $offer  = Offer::create($generalOfferData);
             $retailerStatementImpact = (new class
             {
@@ -251,7 +269,7 @@ class OfferController extends Controller
             if (isset($request->retailer_ids)) {
                 foreach ($request->retailer_ids as $retailerId) {
                     $exclusiveOfferData = $this->prepareOfferData($request, $retailerId, $request->exclusive_data_fee);
-                    $exclusiveOfferData['source'] = $request->source; 
+                    $exclusiveOfferData['source'] = $request->source;
                     $offer = Offer::create($exclusiveOfferData);
                     $retailerStatementImpact = (new class
                     {
@@ -263,7 +281,7 @@ class OfferController extends Controller
             return redirect()->route('offers.create')->with('success', 'General and exclusive offers added successfully.');
         }
         $generalOfferData = $this->prepareOfferData($request, null, $request->general_data_fee);
-        $generalOfferData['source'] = $request->source; 
+        $generalOfferData['source'] = $request->source;
         $offer = Offer::create($generalOfferData);
         $retailerStatementImpact = (new class
         {

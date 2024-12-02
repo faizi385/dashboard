@@ -48,23 +48,19 @@ class ReportController extends Controller
 {
     public function index(Request $request, $retailers = '')
     {
-        $user = auth()->user();
-        if(isset($request->date)){
-            $date = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
-            $month = Carbon::now()->startOfMonth()->subMonth()->format('m');
-            $year = Carbon::now()->startOfMonth()->subMonth()->format('Y');
+        $date = $request->get('month');
+        if(!empty($date)){
+            $date = Carbon::parse($date)->format('Y-m-01');
         }
         else{
             $date = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
-            $month = Carbon::now()->startOfMonth()->subMonth()->format('m');
-            $year = Carbon::now()->startOfMonth()->subMonth()->format('Y');
         }
+        $user = auth()->user();
         if ($user->hasRole('Retailer')) {
             $retailers = Retailer::where('user_id', $user->id)->first();
             if ($retailers) {
                 $reports = Report::where('reports.retailer_id',$retailers->id)
-                    ->whereMonth('date', $month)
-                    ->whereYear('date', $year)
+                    ->where('date', $date)
                     ->with(['retailer'])
                     ->whereHas('retailer', function ($q) {
                         return $q->where('retailers.status', 'Approved');
@@ -106,8 +102,7 @@ class ReportController extends Controller
 
             if ($lp) {
                 $reports = Report::where('reports.lp_id',$lp->id)
-                    ->whereMonth('date', $month)
-                    ->whereYear('date', $year)
+                    ->where('date', $date)
                     ->with(['retailer'])
                     ->whereHas('retailer', function ($q) {
                         return $q->where('retailers.status', 'Approved');
@@ -147,8 +142,7 @@ class ReportController extends Controller
             }
         } else {
             $reports = Report::
-                whereMonth('date', $month)
-                ->whereYear('date', $year)
+                where('date', $date)
                 ->with(['retailer'])
                 ->whereHas('retailer', function ($q) {
                     return $q->where('retailers.status', 'Approved');
@@ -184,7 +178,7 @@ class ReportController extends Controller
                 ->get();
         }
 
-        return view('reports.index', compact('reports', 'retailers'));
+        return view('reports.index', compact('reports', 'retailers','date'));
 
     }
 

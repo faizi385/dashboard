@@ -71,6 +71,7 @@
         </div>
     </div>
 </div>
+
 <script>
     $(document).ready(function() {
         $("#loader").fadeOut("slow");
@@ -89,18 +90,22 @@
             initComplete: function() {
                 $('#loader').addClass('hidden');
                 $("#offersTable_filter").prepend(`
-                  <span class="me-2 " style="font-weight: bold;">Filter:</span>
+                    <span class="me-2 " style="font-weight: bold;">Filter:</span>
                     <label class="me-3">
-
-                        <input type="month" id="monthFilter" class="form-control form-control-sm" placeholder="Select month" />
+                        <div class="input-group date">
+                            <input type="text" class="form-control" id="calendarFilter" placeholder="Select a date" value="{{ \Carbon\Carbon::parse($date)->format('F-Y') }}">
+                            <div class="input-group-append">
+                                <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+                            </div>
+                        </div>
                     </label>
                 `);
-                $('#monthFilter').on('change', function() {
+                $('#calendarFilter').on('change', function() {
                     const selectedMonth = $(this).val();
                     if (selectedMonth) {
-                        table.column(8).search(selectedMonth).draw();
+                        window.location.href = "{{ route('all-offers.index') }}?month=" + selectedMonth;
                     } else {
-                        table.column(8).search('').draw();
+                        window.location.href = "{{ route('all-offers.index') }}";
                     }
                 });
             }
