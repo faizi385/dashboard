@@ -12,8 +12,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
     <!-- Toastr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
-    <!-- Select2 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <!-- FontAwesome (for icons) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <!-- AdminLTE CSS -->
@@ -30,6 +28,112 @@
 
 
     </style>
+    <style>
+select {
+    /* background-color: #cbdcff; */
+    border: none !important;
+    border-radius: 8px;
+    font-family: "Poppins";
+    font-style: normal;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 20px;
+    text-transform: capitalize;
+    color: #3e445e;
+    background-image: url(../images/dropdown.svg) !important;
+    width: 100%;
+    z-index: 99 !important;
+    height: 43px !important;
+}
+.select2-hidden-accessible {
+    border: 0 !important;
+    clip: rect(0 0 0 0) !important;
+    -webkit-clip-path: inset(50%) !important;
+    clip-path: inset(50%) !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    position: absolute !important;
+    width: 1px !important;
+    white-space: nowrap !important;
+}
+.select2 {
+    /* background-color: #cbdcff; */
+    border: none !important;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-family: "Poppins";
+    font-style: normal;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 20px;
+    text-transform: capitalize;
+    color: #3e445e;
+    background-image: url(../images/dropdown.svg) !important;
+    width: 100%;
+    z-index: 99 !important;
+    overflow: auto !important;
+}
+.form-select, select, .select2 {
+    -webkit-appearance: none;
+    background-image: url(../images/arrow-down.svg);
+    background-repeat: no-repeat;
+    background-position: calc(100% - 15px) center;
+    background-size: 14px;
+    line-height: 20px !important;
+    z-index: 9999;
+}
+.select2-container {
+    box-sizing: border-box;
+    display: inline-block;
+    margin: 0;
+    position: relative;
+    vertical-align: middle;
+}
+.select2-selection__clear{
+    display: none;
+}
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 26px !important;
+    position: absolute !important;
+    top: 6px !important;
+    right: 18px !important;
+    width: 20px !important;
+}
+.select2 {
+    /* background-color: #cbdcff; */
+    border: none !important;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-family: "Poppins";
+    font-style: normal;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 20px;
+    text-transform: capitalize;
+    color: #3e445e;
+    background-image: url(../images/dropdown.svg) !important;
+    width: 100%;
+    z-index: 99 !important;
+    overflow: auto !important;
+}
+.form-select, select, .select2 {
+    -webkit-appearance: none;
+    background-image: url(../images/arrow-down.svg);
+    background-repeat: no-repeat;
+    background-position: calc(100% - 15px) center;
+    background-size: 14px;
+    line-height: 20px !important;
+    z-index: 9999;
+}
+.select2-container {
+    box-sizing: border-box;
+    display: inline-block;
+    margin: 0;
+    position: relative;
+    vertical-align: middle;
+}
+</style>
 </head>
 <body class="hold-transition sidebar-mini">
     <div class="wrapper">
@@ -342,8 +446,6 @@
     <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
     <!-- Toastr JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    <!-- Select2 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -355,8 +457,21 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script src="{{ asset('js/custom.js') }}"></script>
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Optional: Apply Select2 only if needed
+        $('.select2').select2({
+            placeholder: "Select Supplier",
+            allowClear: true
+        });
+    });
+</script>
     <script>
         $(document).ready(function() {
+            
             @if (session('success'))
                 toastr.success("{{ session('success') }}");
             @endif

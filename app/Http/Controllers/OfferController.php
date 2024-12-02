@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Lp;
 use App\Models\Offer;
 use App\Models\Product;
+use App\Models\ProductVariation;
 use App\Models\Province;
 use App\Models\Retailer;
 use App\Models\CleanSheet;
@@ -188,21 +189,20 @@ class OfferController extends Controller
 
     public function store(Request $request)
     {
-        // dd($request->all()); 
-        // Base validation rules for common fields
+        
         $rules = [
-            'product_name' => 'required|string|max:255', // Ensure no integers
+            'product_name' => 'required|string|max:255', 
             'provincial_sku' => 'required|string|max:255',
-             'gtin' => 'required|digits_between:1,13', // Accepts only numeric characters with a length between 1 and 255
-            'province_id' => 'required', // Ensure no integers
+            'gtin' => 'required|digits_between:1,13', 
+            'province_id' => 'nullable|exists:provinces,id',
             'general_data_fee' => 'required|numeric|min:0',
-            'exclusive_data_fee' => 'nullable|numeric|min:0', // Keep as nullable
+            'exclusive_data_fee' => 'nullable|numeric|min:0', 
             'unit_cost' => 'required|numeric',
-            'category' => 'required|string|max:255|regex:/^[^\d]*$/', // Ensure no integers
-            'brand' => 'required|string|max:255|regex:/^[^\d]*$/', // Ensure no integers
+            'category' => 'required|string|max:255|regex:/^[^\d]*$/', 
+            'brand' => 'required|string|max:255|regex:/^[^\d]*$/', 
             'case_quantity' => 'required|integer',
             'offer_start' => 'required|date',
-            'offer_end' => 'required|date',
+            'offer_end' => 'required|date|after_or_equal:offer_start',
             'product_size' => 'required|integer',
             'thc_range' => 'required|string|max:255',
             'cbd_range' => 'required|string|max:255',
@@ -210,33 +210,26 @@ class OfferController extends Controller
             'offer_date' => 'nullable|date',
             'product_link' => 'nullable|url|max:255',
             'comment' => 'nullable|string|max:255',
-            'source' => 'required|integer', // Add validation for source
+            'source' => 'required|integer',
         ];
 
-        // Add conditional validation for the first checkbox (Add Exclusive Offer)
-        if ($request->has('exclusive_offer') && $request->exclusive_offer) {
-            $rules['exclusive_data_fee'] = 'required|numeric|min:0'; // Required only when this checkbox is checked
+        if (!is_null($request->exclusive_data_fee)) {
+            $rules['exclusive_data_fee'] = 'required|numeric|min:0'; 
             $rules['retailer_ids'] = 'required|array';
             $rules['retailer_ids.*'] = 'exists:retailers,id';
         }
 
-        // Add conditional validation for the second checkbox (Make Exclusive to Specific Retailers)
-        if ($request->has('makeExclusiveOfferCheckbox') && $request->makeExclusiveOfferCheckbox) {
+        if ($request->has('exclusive_retailer_ids')) {
             $rules['exclusive_retailer_ids'] = 'required|array';
             $rules['exclusive_retailer_ids.*'] = 'exists:retailers,id';
         }
-
-        // Validate the request with conditional rules
         $validatedData = $request->validate($rules);
 
-        // Store the product in the products table
         $this->storeProduct($validatedData);
-
-        // Handle retailer-specific exclusive offer (Second Checkbox)
-        if ($request->has('makeExclusiveOfferCheckbox') && $request->makeExclusiveOfferCheckbox) {
+        if ($request->has('exclusive_retailer_ids')) {
             foreach ($request->exclusive_retailer_ids as $retailerId) {
                 $exclusiveOfferData = $this->prepareOfferData($request, $retailerId, $request->general_data_fee);
-                $exclusiveOfferData['source'] = $request->source; // Include source
+                $exclusiveOfferData['source'] = $request->source; 
                 $offer = Offer::create($exclusiveOfferData);
                 $retailerStatementImpact = (new class
                 {
@@ -246,22 +239,19 @@ class OfferController extends Controller
 
             return redirect()->route('offers.create')->with('success', 'Exclusive offers for specific retailers added successfully.');
         }
-
-        // Handle general and exclusive offers (First Checkbox)
-        if ($request->has('exclusive_offer') && $request->exclusive_offer) {
+        if ($request->has('exclusive_data_fee') && $request->has('retailer_ids')) {
             $generalOfferData = $this->prepareOfferData($request, null, $request->general_data_fee);
-            $generalOfferData['source'] = $request->source; // Include source
+            $generalOfferData['source'] = $request->source; 
             $offer  = Offer::create($generalOfferData);
             $retailerStatementImpact = (new class
             {
                 use GenerateRSAdd;
             })->generateRS($offer->id);
 
-            // Create exclusive offers for selected retailers
             if (isset($request->retailer_ids)) {
                 foreach ($request->retailer_ids as $retailerId) {
                     $exclusiveOfferData = $this->prepareOfferData($request, $retailerId, $request->exclusive_data_fee);
-                    $exclusiveOfferData['source'] = $request->source; // Include source
+                    $exclusiveOfferData['source'] = $request->source; 
                     $offer = Offer::create($exclusiveOfferData);
                     $retailerStatementImpact = (new class
                     {
@@ -272,10 +262,8 @@ class OfferController extends Controller
 
             return redirect()->route('offers.create')->with('success', 'General and exclusive offers added successfully.');
         }
-
-        // Default case: Create general offer
         $generalOfferData = $this->prepareOfferData($request, null, $request->general_data_fee);
-        $generalOfferData['source'] = $request->source; // Include source
+        $generalOfferData['source'] = $request->source; 
         $offer = Offer::create($generalOfferData);
         $retailerStatementImpact = (new class
         {
@@ -312,8 +300,7 @@ class OfferController extends Controller
             'product_link' => $request->product_link,
             'lp_id' => $request->lp_id,
             'lp_name' => $lpName,
-           'offer_date' => $request->offer_date,
-            // 'offer_date' => Carbon::parse($request->offer_date)->startOfMonth()->subMonth(),
+           'offer_date' => Carbon::now()->startOfMonth()->subMonth()->format('Y-m-d'),
             'data_fee' => $dataFee,
             'retailer_id' => $retailerId,
         ];
@@ -321,10 +308,8 @@ class OfferController extends Controller
 
     private function storeProduct($data)
     {
-        // Check if a product with the same GTIN exists in the product family
-        $existingProduct = \App\Models\Product::where('gtin', $data['gtin'])->first();
+        $existingProduct = Product::where('gtin', $data['gtin'])->first();
 
-        // If GTIN doesn't match, create a new product in the product family
         if (!$existingProduct) {
             $product = Product::create([
                 'product_name' => $data['product_name'],
@@ -342,21 +327,15 @@ class OfferController extends Controller
                 'unit_cost' => $data['unit_cost'],
             ]);
         } else {
-            // If GTIN matches, set $product to the existing product
             $product = $existingProduct;
         }
 
-        // Check if a product variation with the same SKU exists
-        $existingVariation = \App\Models\ProductVariation::where('provincial_sku', $data['provincial_sku'])
+        $existingVariation = ProductVariation::where('provincial_sku', $data['provincial_sku'])
                                     ->where('gtin', $data['gtin'])
                                     ->first();
-
-        // If an existing variation is found
         if ($existingVariation) {
-            // If province is different, create a new variation
             if ($existingVariation->province_id !== $data['province_id']) {
-                // Create a new product variation
-                \App\Models\ProductVariation::create([
+                ProductVariation::create([
                     'product_name' => $data['product_name'],
                     'provincial_sku' => $data['provincial_sku'],
                     'gtin' => $data['gtin'],
@@ -372,11 +351,9 @@ class OfferController extends Controller
                     'price_per_unit' => $data['unit_cost'],
                 ]);
             }
-            return; // SKU exists, no need to create a new product variation
+            return;
         }
-
-        // If SKU does not exist, create the product variation
-        \App\Models\ProductVariation::create([
+        ProductVariation::create([
             'product_name' => $data['product_name'],
             'provincial_sku' => $data['provincial_sku'],
             'gtin' => $data['gtin'],
@@ -390,7 +367,6 @@ class OfferController extends Controller
             'comment' => $data['comment'],
             'product_link' => $data['product_link'],
             'price_per_unit' => $data['unit_cost'],
-            // Add any additional fields as needed
         ]);
     }
 
