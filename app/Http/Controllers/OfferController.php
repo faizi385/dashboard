@@ -74,14 +74,6 @@ class OfferController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'province' => 'required|string',
-            'product_name' => 'required|string',
-            'category' => 'required|string',
-            'brand' => 'required|string',
-            'provincial_sku' => 'required|string',
-            'offer_start' => 'required|date',
-            'offer_end' => 'required|date',
-            'gtin' => 'required|string',
             'data_fee' => 'required|numeric',
             'unit_cost' => 'required|numeric',
         ]);
@@ -196,6 +188,7 @@ class OfferController extends Controller
 
     public function store(Request $request)
     {
+        // dd($request->all()); 
         // Base validation rules for common fields
         $rules = [
             'product_name' => 'required|string|max:255', // Ensure no integers
@@ -319,8 +312,8 @@ class OfferController extends Controller
             'product_link' => $request->product_link,
             'lp_id' => $request->lp_id,
             'lp_name' => $lpName,
-//            'offer_date' => $request->offer_date,
-            'offer_date' => Carbon::parse($request->offer_date)->startOfMonth()->subMonth(),
+           'offer_date' => $request->offer_date,
+            // 'offer_date' => Carbon::parse($request->offer_date)->startOfMonth()->subMonth(),
             'data_fee' => $dataFee,
             'retailer_id' => $retailerId,
         ];

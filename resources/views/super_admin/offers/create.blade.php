@@ -24,7 +24,7 @@
                         <input type="text" class="form-control" value="{{ $lp->name }}" disabled>
                     @else
                         <!-- Dropdown for selecting LP -->
-                        <select name="lp_id" id="lp_id" class="form-control @error('lp_id') is-invalid @enderror">
+                        <select name="lp_id" id="lp_id" class="form-control lp_id @error('lp_id') is-invalid @enderror">
                             <option value="">Select Supplier</option>
                             @foreach($lps as $lp)
                                 <option value="{{ $lp->id }}" {{ old('lp_id') == $lp->id ? 'selected' : '' }}>
@@ -318,16 +318,21 @@
     </div>
 </div>
 
-<!-- JavaScript -->
-
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
-      // Select2 Initialization
-      $(document).ready(function() {
-        $('.select2').select2({
-            placeholder: 'Select Retailers',
-            tags: true // Allows adding new tags if needed
+    $(document).ready(function() {
+        // Optional: Apply Select2 only if needed
+        $('#lp_id').select2({
+            placeholder: "Select Supplier",
+            allowClear: true
         });
     });
+</script>
+<script>
+    // $(document).ready(function() {
+    //     $('.lp_id').select2();
+    // });
 
     document.addEventListener('DOMContentLoaded', function () {
         // Function to remove 'is-invalid' class and error message when user starts typing
