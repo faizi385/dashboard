@@ -52,7 +52,7 @@
                     <div class="invalid-feedback">Please provide a valid LP name.</div>
                 </div>
                 <div class="col-md-4 form-group">
-                    <label for="dba"><i class="fas fa-tag"></i> DBA (Doing Business As)  <span class="text-danger">*</label>
+                    <label for="dba"><i class="fas fa-tag"></i> Organization Name  <span class="text-danger">*</label>
                     <input type="text" class="form-control" name="dba" id="dba" value="{{ $lp->dba }}">
                 </div>
                 <div class="col-md-4 form-group">
