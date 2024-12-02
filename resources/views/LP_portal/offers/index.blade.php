@@ -9,13 +9,26 @@
 <div class="container p-2">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3 class="text-white">Deals List</h3>
-        <a href="{{ route('lp.show', $lp->id) }}" class="btn btn-primary">
-            <i class="fas fa-arrow-left"></i> Back
-        </a>
+        <div class="d-flex">
+            @if(auth()->user()->hasRole('LP'))
+                <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addOfferModal">
+                    <i class="fas fa-upload"></i> Upload Offer
+                </button>
+            @endif
+            @if(isset($lp))
+            <a href="{{ url()->previous() }}" class="btn btn-primary">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+            @endif
+        </div>
     </div>
     <div class="card">
         <div class="card-header">
-            <h5 class="card-title">Deals for All Suppliers</h5>
+            @if(isset($lp))
+                <h5 class="card-title">Deals for Supplier: {{ $lp->name }} ({{ $lp->dba }})</h5>
+            @else
+                <h5 class="card-title">Deals for All Suppliers</h5>
+            @endif
         </div>
         <div class="card-body">
             <table id="offersTable" class="table table-striped">
@@ -74,6 +87,70 @@
         </div>
     </div>
 </div>
+<div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addOfferModalLabel">Add Deals</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <form action="{{ route('offers.import') }}" method="POST" enctype="multipart/form-data">
+                            @csrf
+                            <input type="hidden" name="lp_id" value="{{ $lp->id ?? null}}">
+                            <input type="hidden" name="source" value="1">
+                            <div class="mb-3">
+                                <label class="form-label">Supplier</label>
+                                <p><strong>{{ $lp->name ?? null}} ({{ $lp->dba ?? null }})</strong></p>
+                            </div>
+                            <div class="mb-3">
+                                <label for="lpSelect" class="form-label">Select Province</label>
+                                <select class="form-select"  name="province">
+                                    <option value="" selected disabled>Select Province</option>
+                                    @foreach($provinces as $province)
+                                        <option value="{{ $province->id }}">{{ $province->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="offerExcel" class="form-label">Upload Bulk Deals (Excel)</label>
+                                <input type="file" class="form-control" id="offerExcel" name="offerExcel" accept=".xlsx, .xls, .csv">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Select Month</label>
+                                <div class="d-flex">
+                                    <div class="form-check me-3">
+                                        <input class="form-check-input" type="radio" name="month" id="currentMonth" value="current" checked>
+                                        <label class="form-check-label" for="currentMonth">
+                                            Current Month
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="month" id="nextMonth" value="next">
+                                        <label class="form-check-label" for="nextMonth">
+                                            Next Month
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-upload"></i> Upload Excel
+                            </button>
+                        </form>
+                    </div>
+                    <div>
+                        <a href="{{ route('offers.create', ['lp_id' => $lp->id ?? null]) }}" class="btn btn-primary">
+                            <i class="fas fa-plus-circle"></i> Add Single Deal
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     $(document).ready(function() {
         $("#loader").fadeOut("slow");
@@ -101,7 +178,7 @@
                 $('#monthFilter').on('change', function() {
                     const selectedMonth = $(this).val();
                     if (selectedMonth) {
-                        table.column(8).search(selectedMonth).draw();
+                        table.column(8).search(selectedMonth).draw(); // Assumes 'Date' is column index 8
                     } else {
                         table.column(8).search('').draw();
                     }

@@ -23,75 +23,84 @@ class OfferController extends Controller
         $user = auth()->user();
         $offerDate = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
         $lps = Lp::all();
-        $fromLpShow = $request->get('from_lp_show', false);
-        if ($user->hasRole('LP')) {
-            // Get the LP ID associated with the logged-in user
-            $lp = Lp::where('user_id', $user->id)->first();
-            $provinces = Province::where('status',1)->get();
-            if ($lp) {
-                // Fetch offers created by this LP
-                $offers = Offer::where('lp_id', $lp->id)->where('offer_date',$offerDate)->get();
-
-            } else {
-                $offers = collect(); // Empty collection if no LP found
-            }
+        $lp = Lp::where('user_id', $user->id)->first();
+        $provinces = Province::where('status',1)->get();
+        if ($lp) {
+            $offers = Offer::where('lp_id', $lp->id)->where('offer_date',$offerDate)->get();
         } else {
-            // Super admin: Fetch all offers or filter by specific LP if lp_id is provided
-            $lpId = $request->get('lp_id');
-            $provinces = Province::where('status',1)->get();
-            if ($lpId) {
-                $lp = Lp::findOrFail($lpId); // Fetch the LP details
-                $offers = Offer::where('lp_id', $lpId)->where('offer_date',$offerDate)->get(); // Fetch offers for the LP
-            } else {
-                $lp = null;
-                $offers = Offer::where('offer_date',$offerDate)->get(); // Fetch all offers for super admin
-            }
+            $offers = collect();
+        }
+        return view('LP_portal.offers.index', compact('offers', 'lp', 'lps','provinces'));
+    }
+
+    public function allOffers(Request $request)
+    {
+        $offerDate = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
+        $lps = Lp::all();
+
+        $provinces = Province::where('status',1)->get();
+        $lp = null;
+        $offers = Offer::where('offer_date',$offerDate)->get();
+
+        return view('super_admin.offers.all-offers', compact('offers', 'lp', 'lps','provinces'));
+    }
+
+    public function allOffersLPWise(Request $request)
+    {
+        $offerDate = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
+        $lps = Lp::all();
+
+        $lpId = $request->get('lp_id');
+        $provinces = Province::where('status',1)->get();
+        if ($lpId) {
+            $lp = Lp::findOrFail($lpId);
+            $offers = Offer::where('lp_id', $lpId)->where('offer_date',$offerDate)->get();
         }
 
         return view('super_admin.offers.index', compact('offers', 'lp', 'lps','provinces'));
     }
 
 
-public function edit($id)
-{
-    $offer = Offer::findOrFail($id);
+    public function edit($id)
+    {
+        $offer = Offer::findOrFail($id);
 
-    // Fetch all retailers from the database
-    $retailers = Retailer::all(); // Replace `Retailer` with the correct model for your retailers
+        // Fetch all retailers from the database
+        $retailers = Retailer::all(); // Replace `Retailer` with the correct model for your retailers
 
-    return view('super_admin.offers.edit', compact('offer', 'retailers'));
-}
+        return view('super_admin.offers.edit', compact('offer', 'retailers'));
+    }
 
-public function update(Request $request, $id)
-{
-    $request->validate([
-        'province' => 'required|string',
-        'product_name' => 'required|string',
-        'category' => 'required|string',
-        'brand' => 'required|string',
-        'provincial_sku' => 'required|string',
-        'offer_start' => 'required|date',
-        'offer_end' => 'required|date',
-        'gtin' => 'required|string',
-        'data_fee' => 'required|numeric',
-        'unit_cost' => 'required|numeric',
-    ]);
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'province' => 'required|string',
+            'product_name' => 'required|string',
+            'category' => 'required|string',
+            'brand' => 'required|string',
+            'provincial_sku' => 'required|string',
+            'offer_start' => 'required|date',
+            'offer_end' => 'required|date',
+            'gtin' => 'required|string',
+            'data_fee' => 'required|numeric',
+            'unit_cost' => 'required|numeric',
+        ]);
 
-    $offer = Offer::findOrFail($id);
-    $offer->update($request->all());
+        $offer = Offer::findOrFail($id);
+        $offer->update($request->all());
 
-    return redirect()->route('offers.index')->with('success', 'Offer updated successfully.');
-}
-public function destroy($id)
-{
-    $offer = Offer::findOrFail($id);
+        return redirect()->route('offers.index')->with('success', 'Offer updated successfully.');
+    }
+    public function destroy($id)
+    {
+        $offer = Offer::findOrFail($id);
 
-    $this->deleteRetailerStatement($offer);
-    $this->update_clean_sheet($offer);
+        $this->deleteRetailerStatement($offer);
+        $this->update_clean_sheet($offer);
 
-    $offer->delete();
-    return redirect()->route('offers.index')->with('success', 'Offer deleted successfully.');
-}
+        $offer->delete();
+        return redirect()->route('offers.index')->with('success', 'Offer deleted successfully.');
+    }
     public function deleteRetailerStatement($offer)
     {
         RetailerStatement::where('offer_id', $offer->id)->delete();

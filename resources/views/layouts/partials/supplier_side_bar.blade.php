@@ -158,7 +158,7 @@
                 @endif
                 @if(in_array('view deals', $permission))
                     <li class="nav-item">
-                        <a href="{{ route('offers.index') }}" class="nav-link {{ (Route::currentRouteName() == 'offers.index' && !request()->get('from_lp_show')) ? 'active' : '' }}">
+                        <a href="{{ route('offers.index') }}" class="nav-link {{ (Route::currentRouteName() == 'offers.index') ? 'active' : '' }}">
                             <i class="nav-icon fas fa-tag"></i>
                             <p>Deals</p>
                         </a>

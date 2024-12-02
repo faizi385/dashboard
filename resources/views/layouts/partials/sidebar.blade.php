@@ -148,7 +148,7 @@
                 @endif
                 @if(in_array('view distributor', $permission))
                     <li class="nav-item">
-                        <a href="{{ route('retailer.index') }}" class="nav-link {{ Route::currentRouteName() == 'retailer.index' ? 'active' : '' }}">
+                        <a href="{{ route('retailer.index') }}" class="nav-link {{ Route::currentRouteName() == 'retailer.index' || Route::currentRouteName() == 'all-offers.lp-wise' ? 'active' : '' }}">
                             <i class="nav-icon fas fa-user"></i>
                             <p>Distributor </p>
                         </a>
@@ -156,7 +156,7 @@
                 @endif
                 @if(in_array('view deals', $permission))
                     <li class="nav-item">
-                        <a href="{{ route('offers.index') }}" class="nav-link {{ (Route::currentRouteName() == 'offers.index' && !request()->get('from_lp_show')) ? 'active' : '' }}">
+                        <a href="{{ route('all-offers.index') }}" class="nav-link {{ (Route::currentRouteName() == 'all-offers.index') ? 'active' : '' }}">
                             <i class="nav-icon fas fa-tag"></i>
                             <p>Deals</p>
                         </a>

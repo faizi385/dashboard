@@ -9,9 +9,6 @@
 <div class="container p-2">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3 class="text-white">Deals List</h3>
-        <a href="{{ route('lp.show', $lp->id) }}" class="btn btn-primary">
-            <i class="fas fa-arrow-left"></i> Back
-        </a>
     </div>
     <div class="card">
         <div class="card-header">
@@ -34,7 +31,7 @@
                         <th>Data Fee (%)</th>
                         <th>Cost ($)</th>
                         <th>Exclusive</th>
-                        <th>Action</th>
+{{--                        <th>Action</th>--}}
                     </tr>
                 </thead>
                 <tbody>
@@ -53,18 +50,18 @@
                         <td>{{ $offer->data_fee }}</td>
                         <td>{{ $offer->unit_cost }}</td>
                         <td>{{ $offer->retailer ? $offer->retailer->first_name . ' ' . $offer->retailer->last_name : 'ALL' }}</td>
-                        <td class="text-center">
-                            <a href="{{ route('offers.edit', $offer->id) }}" class="icon-action" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Offer">
-                                <i style="color: black" class="fas fa-edit"></i>
-                            </a>
-                            <form action="{{ route('offers.destroy', $offer->id) }}" method="POST" style="display:inline;" class="delete-form">
-                                @csrf
-                                @method('DELETE')
-                                <button type="button" class="btn btn-link p-0 delete-offer" data-id="{{ $offer->id }}" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete Offer">
-                                    <i style="color: black" class="fas fa-trash"></i>
-                                </button>
-                            </form>
-                        </td>
+{{--                        <td class="text-center">--}}
+{{--                            <a href="{{ route('offers.edit', $offer->id) }}" class="icon-action" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Offer">--}}
+{{--                                <i style="color: black" class="fas fa-edit"></i>--}}
+{{--                            </a>--}}
+{{--                            <form action="{{ route('offers.destroy', $offer->id) }}" method="POST" style="display:inline;" class="delete-form">--}}
+{{--                                @csrf--}}
+{{--                                @method('DELETE')--}}
+{{--                                <button type="button" class="btn btn-link p-0 delete-offer" data-id="{{ $offer->id }}" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete Offer">--}}
+{{--                                    <i style="color: black" class="fas fa-trash"></i>--}}
+{{--                                </button>--}}
+{{--                            </form>--}}
+{{--                        </td>--}}
                     </tr>
                     @empty
                     @endforelse

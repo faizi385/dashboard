@@ -34,7 +34,7 @@
                 <tbody>
                     @forelse($products as $product)
                     <tr>
-                        <td>{{ $product->lp->dba ?? 'N/A' }}</td> 
+                        <td>{{ $product->lp->dba ?? 'N/A' }}</td>
                         <td>{{ $product->province }}</td>
                         <td>{{ $product->product_name }}</td>
                         <td>{{ $product->provincial_sku }}</td>
@@ -71,7 +71,7 @@
         $('#productsTable').DataTable({
             responsive: true,
             "scrollX": true,
-            autoWidth: false, 
+            autoWidth: false,
             "language": {
                 "emptyTable": "No product variations found for this GTIN."
             },
@@ -87,7 +87,7 @@
         margin-top: 20px;
     }
 
-   
+
 
     .table th, .table td {
     padding: 0.75rem; /* Adjust padding for a balanced layout */
@@ -108,7 +108,7 @@
 }
 
 
-    
+
 </style>
 
 @endsection

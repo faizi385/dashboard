@@ -146,7 +146,8 @@ Route::middleware('auth')->group(function () {
     Route::put('offers/{id}', [OfferController::class, 'update'])->name('offers.update');
     Route::delete('offers/{id}', [OfferController::class, 'destroy'])->name('offers.destroy');
     Route::get('/offer-logs', [OfferLogController::class, 'index'])->name('offer.logs.index');
-    Route::get('/all-offers', [OfferController::class, 'index'])->name('offers.index');
+    Route::get('/all-offers', [OfferController::class, 'allOffers'])->name('all-offers.index');
+    Route::get('/all-offers-lp-wise', [OfferController::class, 'allOffersLPWise'])->name('all-offers.lp-wise');
 
     // Carveout Routes
     Route::get('/carveouts', [CarveoutController::class, 'index'])->name('carveouts.index');
