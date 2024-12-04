@@ -16,6 +16,7 @@ class RetailerAddress extends Model
         'location',
         'contact_person_name',
         'contact_person_phone',
+        'province_id',
         'postal_code', // Add postal_code here
     ];
 

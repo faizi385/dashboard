@@ -39,7 +39,5 @@ if($report) {
          DB::table('reports')->where('id', $report->id)->update(['status' => 'failed']);
 
      }
-
-
      print_r('ReconciliationPos process completed successfully.');
 }

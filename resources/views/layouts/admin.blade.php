@@ -219,7 +219,25 @@
                         </li>
                         @endif
         
-
+                        @if(auth()->user()->hasRole('LP'))
+                        <li class="nav-item">
+                            <a href="{{ route('analytics.index') }}" 
+                               class="nav-link {{ Route::currentRouteName() == 'analytics.index' ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-chart-line"></i>
+                                <p>Analytics</p>
+                            </a>
+                        </li>
+                        @endif 
+                        
+                        @if(auth()->user()->hasRole('Super Admin'))
+                        <li class="nav-item">
+                            <a href="{{ route('performance.index') }}" 
+                               class="nav-link {{ Route::currentRouteName() == 'performance.index' ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-chart-line"></i>
+                                <p>Analytics</p>
+                            </a>
+                        </li>
+                        @endif 
 
                         
                         @if(in_array('view distributor', $permission))

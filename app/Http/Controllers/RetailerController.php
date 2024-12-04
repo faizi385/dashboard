@@ -49,7 +49,10 @@ class RetailerController extends Controller
         $totalLocations = RetailerAddress::where('retailer_id', $retailer->id)->count();
     
         // Get the total number of reports submitted by the retailer
-        $totalReportsSubmitted = DB::table('reports')->where('retailer_id', $retailer->id)->count();
+        $totalReportsSubmitted = DB::table('reports')
+        ->where('retailer_id', $retailer->id)
+        ->whereNull('deleted_at')
+        ->count();
     
         // Get the total number of products the retailer has purchased from the Cleansheet
         $totalPurchasedProducts = Cleansheet::where('retailer_id', $retailer->id)
@@ -282,7 +285,7 @@ $topLocations = DB::table('top_locations_by_retailer')
             'dba' => 'required|string|max:255',
             'password' => 'required|confirmed|min:8',
             'addresses.*.address' => 'required|string|max:255', // Replace street_no and street_name with address
-            'addresses.*.province' => 'nullable|string|max:255',
+            'addresses.*.province_id' => 'nullable|exists:provinces,id', // Ensure province_id exists in the provinces table
             'addresses.*.city' => 'nullable|string|max:255',
             'addresses.*.location' => 'nullable|string|max:255',
             'addresses.*.contact_person_name' => 'nullable|string|max:255',
@@ -322,12 +325,34 @@ $topLocations = DB::table('top_locations_by_retailer')
         // Clear existing addresses and create new ones
         $retailer->address()->delete();
         foreach ($request->input('addresses', []) as $addressData) {
-            $retailer->address()->create($addressData);
+            // Get the province ID from the input data directly
+            $provinceId = $addressData['province'] ?? null;
+    
+            // If the province_id exists in the address data, save it
+            if ($provinceId) {
+                // Fetch the province name using the province_id
+                $province = Province::find($provinceId);
+                $provinceName = $province ? $province->name : null;
+    // dd(    $provinceName);
+                // Create a new address with province_id and province name
+                $retailer->address()->create([
+                    'address' => $addressData['address'],
+                    'province' => $provinceName, // Store province name
+                    'province_id' => $provinceId, // Store province_id
+                    'city' => $addressData['city'] ?? null,
+                    'location' => $addressData['location'] ?? null,
+                    'contact_person_name' => $addressData['contact_person_name'] ?? null,
+                    'contact_person_phone' => $addressData['contact_person_phone'] ?? null,
+                    'postal_code' => $addressData['postal_code'] ?? null,
+                ]);
+            }
         }
     
         // Redirect to the login page with a success message
         return redirect()->route('login')->with('success', 'Distributor information completed successfully. Please log in.');
     }
+    
+    
     
     public function edit($id)
     {

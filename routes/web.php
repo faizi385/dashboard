@@ -14,11 +14,13 @@ use App\Http\Controllers\CarveoutController;
 use App\Http\Controllers\OfferLogController;
 use App\Http\Controllers\ProvinceController;
 use App\Http\Controllers\RetailerController;
+use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReportLogController;
 use App\Http\Controllers\ManageInfoController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\CarveoutLogController;
+use App\Http\Controllers\PerformanceController;
 use App\Http\Controllers\ProvinceLogController;
 use App\Http\Controllers\RetailerLogController;
 
@@ -203,6 +205,18 @@ Route::patch('/lp/{lp}/status', [LPController::class, 'updateStatus'])->name('lp
 Route::get('/account-created', function () {
     return view('account-created');
 })->name('account.created');
+
+
+Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
+Route::get('/performance', [PerformanceController::class, 'index'])->name('performance.index');
+Route::get('/analytics/get-provinces', [AnalyticsController::class, 'getProvincesByDistributor']);
+
+// In web.php (routes file)
+// In your routes file (web.php or api.php)
+Route::get('/analytics/get-availed-vs-nonavailed', [AnalyticsController::class, 'getAvailedVsNonAvailed']);
+
+Route::post('/api/get-chart-data', [AnalyticsController::class, 'getChartData']);
+
 
 
 

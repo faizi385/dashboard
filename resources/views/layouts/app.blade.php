@@ -240,7 +240,27 @@
                             </a>
                         </li>
                         @endif
-        
+                       @if(auth()->user()->hasRole('LP'))
+                        <li class="nav-item">
+                            <a href="{{ route('analytics.index') }}" 
+                               class="nav-link {{ Route::currentRouteName() == 'analytics.index' ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-chart-line"></i>
+                                <p>Analytics</p>
+                            </a>
+                        </li>
+                        @endif 
+                        
+                        @if(auth()->user()->hasRole('Super Admin'))
+                        <li class="nav-item">
+                            <a href="{{ route('performance.index') }}" 
+                               class="nav-link {{ Route::currentRouteName() == 'performance.index' ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-chart-line"></i>
+                                <p>Analytics</p>
+                            </a>
+                        </li>
+                        @endif 
+
+
                         @if(in_array('view distributor', $permission))
                         <li class="nav-item">
                             <a href="{{ route('retailer.index') }}" class="nav-link {{ Route::currentRouteName() == 'retailer.index' ? 'active' : '' }}">
@@ -391,7 +411,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-   
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
  <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="{{ asset('js/custom.js') }}"></script>
