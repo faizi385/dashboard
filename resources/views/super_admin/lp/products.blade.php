@@ -11,7 +11,7 @@
     <div class="d-flex justify-content-between mb-4">
         <h3 class="text-white">Products Family</h3>
         <div>
-            @if(isset($lp)) 
+            @if(isset($lp))
             <a href="{{ url()->previous() }}" class="btn btn-primary">
                 <i class="fas fa-arrow-left"></i> Back
             </a>
@@ -56,7 +56,7 @@
                             <a href="{{ route('products.edit', $product->id) }}" class="icon-action" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Product">
                                 <i class="fas fa-edit" style="color: black;"></i> <!-- Yellow edit icon -->
                             </a>
-                            
+
                             <!-- Delete Icon -->
                             <form action="{{ route('products.destroy', $product->id) }}" method="POST" class="delete-form" style="display:inline;">
                                 @csrf
@@ -66,7 +66,7 @@
                                 </button>
                             </form>
                         </td>
-                        
+
                     </tr>
                     @empty
                     <!-- Handle case when no products are available -->
@@ -88,7 +88,7 @@
   <script>
     $(document).ready(function() {
         $("#loader").fadeOut("slow");
-        
+
         // Initialize tooltips
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
@@ -98,8 +98,8 @@
         // Initialize DataTable
         var table = $('#productsTable').DataTable({
             responsive: true,
-            scrollX: true, 
-            autoWidth: false, 
+            scrollX: true,
+            autoWidth: false,
             language: {
                 emptyTable: "No products found." // Custom message for no data
             },
@@ -108,20 +108,20 @@
                 $('#loader').addClass('hidden'); // Hide loader once table is initialized
 
                 // Add "Filter" label and month filter input next to the search box
-                $("#productsTable_filter").prepend(`
-                    <span class="me-2 " style="font-weight: bold;">Filter:</span>
-                    <label class="me-3">
-                       
-                        <input type="month" id="monthFilter" class="form-control form-control-sm" placeholder="Select month" />
-                    </label>
-                    
-                `);
+                // $("#productsTable_filter").prepend(`
+                //     <span class="me-2 " style="font-weight: bold;">Filter:</span>
+                //     <label class="me-3">
+                //
+                //         <input type="month" id="monthFilter" class="form-control form-control-sm" placeholder="Select month" />
+                //     </label>
+                //
+                // `);
 
                 // Month filter functionality to filter table by selected month
                 $('#monthFilter').on('change', function() {
                     const selectedMonth = $(this).val();
                     if (selectedMonth) {
-                        table.column(8).search(selectedMonth).draw(); 
+                        table.column(8).search(selectedMonth).draw();
                     } else {
                         table.column(8).search('').draw();
                     }
@@ -155,7 +155,7 @@
         margin-top: 20px;
     }
 
-   
+
     .table th, .table td {
         vertical-align: middle;
         white-space: nowrap;

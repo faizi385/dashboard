@@ -211,8 +211,15 @@ $retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
         );
     }
 
-    public function viewStatement($lp_id)
+    public function viewStatement($lp_id,Request $request)
     {
+        $date = $request->get('month');
+        if(!empty($date)){
+            $date = Carbon::parse($date)->format('Y-m-01');
+        }
+        else{
+            $date = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
+        }
         $lpId = $lp_id;
         $lp = LP::where('id',$lp_id)->first();
         $lpStatement = DB::table('retailer_statements')
@@ -231,6 +238,7 @@ $retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
             })
             ->where('retailer_statements.lp_id', $lpId)
             ->where('retailer_statements.flag', '0')
+            ->where('retailer_statements.reconciliation_date',$date)
             ->select(
                 DB::raw('YEAR(reports.date) as year'),
                 DB::raw('MONTH(reports.date) as month'),
@@ -243,7 +251,7 @@ $retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
             ->orderByDesc('month')
             ->get();
 
-        return view('super_admin.lp.statement', compact('lp','lpStatement'));
+        return view('super_admin.lp.statement', compact('lp','lpStatement','date'));
     }
 
     public function index()
@@ -464,10 +472,10 @@ $retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
     public function update(Request $request, Lp $lp)
     {
         $customMessages = [
-            'address.*.address.required' => 'Address is required',  
-            'address.*.province_id.required' => 'Province is required', 
-            'address.*.city.required' => 'City is required',  
-            'address.*.postal_code.required' => 'Postal code is required', 
+            'address.*.address.required' => 'Address is required',
+            'address.*.province_id.required' => 'Province is required',
+            'address.*.city.required' => 'City is required',
+            'address.*.postal_code.required' => 'Postal code is required',
         ];
 
         $validatedData = $request->validate([
@@ -477,9 +485,9 @@ $retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
             'primary_contact_email' => 'required|email|max:255',
             'primary_contact_position' => 'nullable|string|max:255',
 
-            'address.*.address' => 'required|string|max:255',  
-            'address.*.province_id' => 'required|exists:provinces,id',  
-            'address.*.city' => 'required|string|max:100',  
+            'address.*.address' => 'required|string|max:255',
+            'address.*.province_id' => 'required|exists:provinces,id',
+            'address.*.city' => 'required|string|max:100',
             'address.*.postal_code' => 'nullable|string|max:20',
         ], $customMessages);
         $lp->update([
@@ -489,13 +497,13 @@ $retailerOfferCounts = $topRetailers->pluck('offer_count')->toArray();
             'primary_contact_email' => $validatedData['primary_contact_email'],
             'primary_contact_position' => $validatedData['primary_contact_position'] ?? null,
         ]);
-    
+
         if (isset($request->address)) {
             foreach ($request->address as $index => $addressData) {
                 $lp->address[$index]->update([
-                    'address' => $addressData['address'],  
-                    'province_id' => $addressData['province_id'],  
-                    'city' => $addressData['city'], 
+                    'address' => $addressData['address'],
+                    'province_id' => $addressData['province_id'],
+                    'city' => $addressData['city'],
                 ]);
             }
         }

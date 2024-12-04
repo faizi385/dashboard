@@ -134,16 +134,4 @@
         @endif
     });
 </script>
-
-<style>
-    .container {
-        margin-top: 20px;
-    }
-    .dataTables_wrapper .dataTables_filter label,
-    .dataTables_wrapper .dataTables_length,
-    .dataTables_wrapper .dataTables_info,
-    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
-        color: black;
-    }
-</style>
 @endsection

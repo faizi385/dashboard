@@ -2,12 +2,10 @@
 @extends('layouts.app')
 
 @section('content')
-<!-- Loader -->
 <div id="loader" class="loader-overlay">
     <div class="loader"></div>
 </div>
-
-<div class="container">
+<div class="container p-2">
     <h1 class="text-white">Supplier Management</h1>
 
     <div class="col text-end mb-3">
@@ -15,82 +13,88 @@
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addOfferModal">
             Add Deal
         </button>
-    </div>  
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">Supplier</h5>
+        </div>
+        <div class="card-body">
+            <table id="lpTable" class="table table-striped table-bordered mt-3">
+                <thead>
+                    <tr>
+                        <th>Supplier Name</th>
+                        <th>Organization Name</th>
+                        <th>Primary Contact Email</th>
+                        <th>Province</th> <!-- New Province Column -->
+                        <th>Status</th>
+                        <th>Approval</th> <!-- New Approval Column -->
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($lps as $lp)
+                        <tr>
+                            <td>{{ $lp->name }}</td>
+                            <td>{{ $lp->dba }}</td>
+                            <td>{{ $lp->primary_contact_email }}</td>
+                            <td>{{ $lp->address->first()?->province->name ?? '-' }}</td>
 
-    <table id="lpTable" class="table table-striped table-bordered mt-3">
-        <thead>
-            <tr>
-                <th>Supplier Name</th>
-                <th>Organization Name</th>
-                <th>Primary Contact Email</th>
-                <th>Province</th> <!-- New Province Column -->
-                <th>Status</th>
-                <th>Approval</th> <!-- New Approval Column -->
-                <th class="text-center">Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($lps as $lp)
-                <tr>
-                    <td>{{ $lp->name }}</td>
-                    <td>{{ $lp->dba }}</td>
-                    <td>{{ $lp->primary_contact_email }}</td>
-                    <td>{{ $lp->address->first()?->province->name ?? '-' }}</td>
 
+                            <td>{{ ucfirst($lp->status) }}</td>
+                            <td class="text-center">
+                                @if($lp->status !== 'approved')
+                                <form action="{{ route('lp.updateStatus', $lp->id) }}" method="POST" class="d-inline" id="approveForm{{ $lp->id }}">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="status" value="approved">
+                                     <button type="submit" class="d-none" id="approveButton{{ $lp->id }}"></button>
+                                        <img
+                                            src="{{ asset('check-mark.png') }}"
+                                            alt="Approve"
+                                            style="cursor: pointer; width: 24px; height: 24px;"
+                                            onclick="document.getElementById('approveButton{{ $lp->id }}').click();"
+                                        >
+                                </form>
+                                @endif
 
-                    <td>{{ ucfirst($lp->status) }}</td>
-                    <td class="text-center">
-                        @if($lp->status !== 'approved')
-                        <form action="{{ route('lp.updateStatus', $lp->id) }}" method="POST" class="d-inline" id="approveForm{{ $lp->id }}">
-                            @csrf
-                            @method('PATCH')
-                            <input type="hidden" name="status" value="approved">
-                             <button type="submit" class="d-none" id="approveButton{{ $lp->id }}"></button>
-                                <img 
-                                    src="{{ asset('check-mark.png') }}" 
-                                    alt="Approve" 
-                                    style="cursor: pointer; width: 24px; height: 24px;" 
-                                    onclick="document.getElementById('approveButton{{ $lp->id }}').click();"
-                                >
-                        </form>
-                        @endif
+                                @if($lp->status !== 'rejected')
+                                <form action="{{ route('lp.updateStatus', $lp->id) }}" method="POST" class="d-inline" id="rejectForm{{ $lp->id }}">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="status" value="rejected">
+                                     <button type="submit" class="d-none" id="approveButtonreject{{ $lp->id }}"></button>
+                                        <img
+                                            src="{{ asset('cross.png') }}"
+                                            alt="Reject"
+                                            style="cursor: pointer; width: 24px; height: 24px;"
+                                            onclick="document.getElementById('approveButtonreject{{ $lp->id }}').click();"
+                                        >
+                                </form>
+                                @endif
+                            </td>
+                            <td class="text-center">
+                                <a href="{{ route('lp.show', $lp->id) }}" class="icon-action text-decoration-none" data-bs-toggle="tooltip" data-bs-placement="top" title="View Supplier">
+                                    <i style="color: black" class="fas fa-eye"></i>
+                                </a>
 
-                        @if($lp->status !== 'rejected')
-                        <form action="{{ route('lp.updateStatus', $lp->id) }}" method="POST" class="d-inline" id="rejectForm{{ $lp->id }}">
-                            @csrf
-                            @method('PATCH')
-                            <input type="hidden" name="status" value="rejected">
-                             <button type="submit" class="d-none" id="approveButtonreject{{ $lp->id }}"></button>
-                                <img 
-                                    src="{{ asset('cross.png') }}" 
-                                    alt="Reject" 
-                                    style="cursor: pointer; width: 24px; height: 24px;" 
-                                    onclick="document.getElementById('approveButtonreject{{ $lp->id }}').click();"
-                                >
-                        </form>
-                        @endif
-                    </td>
-                    <td class="text-center">
-                        <a href="{{ route('lp.show', $lp->id) }}" class="icon-action text-decoration-none" data-bs-toggle="tooltip" data-bs-placement="top" title="View Supplier">
-                            <i style="color: black" class="fas fa-eye"></i>
-                        </a>
+                                <a href="{{ route('lp.edit', $lp) }}" class="icon-action text-decoration-none" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Supplier">
+                                    <i style="color: black" class="fas fa-edit"></i>
+                                </a>
 
-                        <a href="{{ route('lp.edit', $lp) }}" class="icon-action text-decoration-none" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Supplier">
-                            <i style="color: black" class="fas fa-edit"></i>
-                        </a>
-
-                        <form action="{{ route('lp.destroy', $lp) }}" method="POST" class="d-inline delete-form">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-link p-0" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete Supplier" style="color: inherit; text-decoration: none;">
-                                <i style="color: black" class="fas fa-trash"></i>
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
+                                <form action="{{ route('lp.destroy', $lp) }}" method="POST" class="d-inline delete-form">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-link p-0" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete Supplier" style="color: inherit; text-decoration: none;">
+                                        <i style="color: black" class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 <!-- Add Offer Modal -->
 <div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
@@ -128,7 +132,7 @@
                                 </select>
                             </div>
 
-                           
+
 
                             <!-- File Upload Section -->
                             <div class="mb-3">
@@ -172,13 +176,6 @@
     </div>
 </div>
 
-
-<style>
-    
-    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled{
-        color: white  !important;}
-</style>
-
 @push('scripts')
 
 <script>
@@ -189,7 +186,7 @@
 $('form[action="{{ route('offers.import') }}"]').on('submit', function(e) {
     $("#loader").fadeIn("slow");
 });
-        
+
         // Initialize DataTable
         $('#lpTable').DataTable({
             "initComplete": function() {}

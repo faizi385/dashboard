@@ -48,7 +48,30 @@
     <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
     @stack('styles')
     <style>
+        .container {
+            margin-top: 20px;
+        }
+        .dataTables_wrapper .dataTables_filter label,
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_info,
+        .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+            color: black !important;
+        }
+        .dataTables_length label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
+        .dataTables_length label select {
+            margin-top: 2px;
+        }
+
+        .dataTables_length label span,
+        .dataTables_length label {
+            font-size: 14px;
+            margin-top: 3px;
+        }
 
 
     </style>

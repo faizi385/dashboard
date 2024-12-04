@@ -108,6 +108,7 @@
             responsive: true,
             scrollX: true,
             autoWidth: false,
+            lengthMenu: [10, 25, 50, 100],
             language: {
                 emptyTable: "No reports found."
             },
@@ -191,20 +192,4 @@
     });
 </script>
 @endpush
-<style>
-    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled{
-        color: white  !important;}
-
-</style>
-<style>
-    .container {
-        margin-top: 20px;
-    }
-    .dataTables_wrapper .dataTables_filter label,
-    .dataTables_wrapper .dataTables_length,
-    .dataTables_wrapper .dataTables_info,
-    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
-        color: black;
-    }
-</style>
 @endsection

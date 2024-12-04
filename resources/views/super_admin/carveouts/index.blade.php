@@ -8,7 +8,7 @@
     <div class="d-flex justify-content-between mb-4">
         <h3 class="text-white">Carveout List</h3>
         <div>
-      
+
             @if(isset($lp)) <!-- Check if $lp is set -->
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCarveoutModal">
                 Add Carveout
@@ -35,7 +35,7 @@
                 <h5 class="card-title">Carveouts for All Suppliers</h5> <!-- Fallback when $lp is not available -->
             @endif
         </div>
-        
+
         <div class="card-body">
             <table id="carveoutTable" class="table table-striped">
                 <thead>
@@ -66,7 +66,7 @@
                                 {{-- <a href="{{ route('carveouts.edit', $carveout->id) }}" class="icon-action" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Carveout">
                                     <i style="color: black" class="fas fa-edit "></i> <!-- Edit Icon -->
                                 </a> --}}
-                                
+
                                 <!-- Delete Carveout Icon -->
                                 <form action="{{ route('carveouts.destroy', $carveout->id) }}" method="POST" style="display:inline;" class="delete-form">
                                     @csrf
@@ -76,8 +76,8 @@
                                     </button>
                                 </form>
                             </td>
-                            
-                            
+
+
                         </tr>
                         @endforeach
                     @else
@@ -157,12 +157,12 @@
 <script>
     $(document).ready(function() {
         $("#loader").fadeOut("slow");
-    
-     
+
+
     var table = $('#carveoutTable').DataTable({
         responsive: true,
         scrollX: true,
-        autoWidth: false, 
+        autoWidth: false,
         language: {
             emptyTable: "No carveouts found."
         },
@@ -170,34 +170,36 @@
         initComplete: function() {
             $('#loader').addClass('hidden'); // Hide loader once table is initialized
 
-            // Add "Filter" label and month filter input next to the search box
-            $("#carveoutTable_filter").prepend(`
-                <span class="me-2" style="font-weight: bold;">Filter:</span>
-                <label class="me-3">
-                    <input type="month" id="monthFilter" class="form-control form-control-sm" placeholder="Select month" />
-                </label>
-            `);
-
-            // Month filter functionality to filter table by selected month
-            $('#monthFilter').on('change', function() {
-                const selectedMonth = $(this).val(); // Format YYYY-MM
-                if (selectedMonth) {
-                    table.column(5).search('^' + selectedMonth, true, false).draw(); // Use regex for partial match
-                } else {
-                    table.column(5).search('').draw();
-                }
-            });
+            {{--$("#carveoutsTable_filter").prepend(`--}}
+            {{--        <span class="me-2 " style="font-weight: bold;">Filter:</span>--}}
+            {{--        <label class="me-3">--}}
+            {{--            <div class="input-group date">--}}
+            {{--                <input type="text" class="form-control" id="calendarFilter" placeholder="Select a date" value="{{ \Carbon\Carbon::parse($date)->format('F-Y') }}">--}}
+            {{--                <div class="input-group-append">--}}
+            {{--                    <span class="input-group-text"><i class="fa fa-calendar"></i></span>--}}
+            {{--                </div>--}}
+            {{--            </div>--}}
+            {{--        </label>--}}
+            {{--    `);--}}
+            // $('#calendarFilter').on('change', function() {
+            //     const selectedMonth = $(this).val();
+                {{--if (selectedMonth) {--}}
+                {{--    window.location.href = "{{ route('offers.index') }}?month=" + selectedMonth;--}}
+                {{--} else {--}}
+                {{--    window.location.href = "{{ route('offers.index') }}";--}}
+                {{--}--}}
+            // });
         }
     });
-    
+
         // Initialize Bootstrap tooltips
         $('[data-bs-toggle="tooltip"]').tooltip();
-    
+
         // Handle delete button click using event delegation
         $('#carveoutTable tbody').on('click', '.delete-btn', function (event) {
             event.preventDefault(); // Prevent form submission
             const form = $(this).closest('form'); // Get the parent form
-    
+
             Swal.fire({
                 title: 'Are you sure?',
                 text: "You won't be able to revert this!",
@@ -212,29 +214,29 @@
                 }
             });
         });
-    
+
         // Clear form data when modal is closed
         $('#addCarveoutModal').on('hidden.bs.modal', function () {
             $(this).find('form')[0].reset(); // Reset the form
             $(this).find('.form-control').removeClass('is-invalid'); // Remove any validation classes if present
         });
-    
+
         // Display errors with toastr if there are any
         @if ($errors->any())
             toastr.error("{{ $errors->first() }}");
         @endif
     });
-    
+
     document.addEventListener('DOMContentLoaded', function () {
         const retailerSelect = document.getElementById('retailer');
         const locationSelect = document.getElementById('location');
-    
+
         retailerSelect.addEventListener('change', function () {
             const retailerId = this.value;
-    
+
             // Clear existing options
             locationSelect.innerHTML = '<option value="" disabled selected>Select Location</option>';
-    
+
             if (retailerId) {
                 fetch(`/retailers/${retailerId}/addresses`) // Update this URL according to your routes
                     .then(response => response.json())
@@ -242,7 +244,7 @@
                         data.forEach(address => {
                             // Format the address as desired
                             const formattedAddress = `${address.street_no} ${address.street_name}, ${address.province}, ${address.city}, ${address.location}`;
-                            
+
                             const option = document.createElement('option');
                             option.value = address.id; // Assuming the address has an ID
                             option.textContent = formattedAddress; // Set the formatted address as the option text
@@ -255,34 +257,10 @@
         });
     });
     </script>
-    
+
 
 <style>
-    .container {
-        margin-top: 20px;
-    }
 
-  
 
-    .table th, .table td {
-        vertical-align: middle;
-        white-space: nowrap; /* Prevent wrapping */
-        overflow: hidden;    /* Hide overflow */
-        text-overflow: ellipsis; /* Add ellipsis for overflow */
-    }
-
-    .table th {
-        font-size: 0.85rem; /* Adjust header font size to be smaller */
-        padding: 0.75rem; /* Optional: Adjust padding to reduce height */
-    }
-    .dataTables_wrapper .dataTables_filter label,
-    .dataTables_wrapper .dataTables_length,
-    .dataTables_wrapper .dataTables_info,
-    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
-        color: black;
-    }   
-    .mb-4 {
-        margin-bottom: 1.5rem;
-    }
 </style>
 @endsection
