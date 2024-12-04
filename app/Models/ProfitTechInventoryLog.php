@@ -41,6 +41,9 @@ class ProfitTechInventoryLog extends Model
         'other_reductions_value',
         'closing_inventory_units',
         'closing_inventory_value',
+        'status',  
+        'retailer_id',
+        'lp_id',
     ];
 
     public function report()

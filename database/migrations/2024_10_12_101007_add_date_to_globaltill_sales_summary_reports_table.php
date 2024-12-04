@@ -8,7 +8,7 @@ class AddDateToGlobaltillSalesSummaryReportsTable extends Migration
     public function up()
     {
         Schema::table('globaltill_sales_summary_reports', function (Blueprint $table) {
-            $table->date('date')->default(now()->startOfMonth()); // Add the date column with default
+            $table->date('date')->nullable(); // Add the date column with default
         });
     }
 

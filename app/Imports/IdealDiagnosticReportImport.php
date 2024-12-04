@@ -2,22 +2,28 @@
 
 namespace App\Imports;
 
+use App\Models\Report;
+use Illuminate\Support\Facades\Log;
 use App\Models\IdealDiagnosticReport;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Illuminate\Support\Facades\Log;
 
 class IdealDiagnosticReportImport implements ToModel, WithHeadingRow
 {
     protected $location;
     protected $reportId;
+    protected $retailerId; // New property for retailer ID
+    protected $lpId;
     protected $errors = []; // Array to store error messages
     protected $hasCheckedHeaders = false; // Flag to check if headers have been validated
+    protected $diagnosticReportId; // Stores the last imported diagnostic report ID
 
-    public function __construct($location, $reportId)
+    public function __construct($location, $reportId, $retailerId, $lpId = null)
     {
         $this->location = $location;
         $this->reportId = $reportId;
+        $this->retailerId = $retailerId; // Assign retailer ID
+        $this->lpId = $lpId;
     }
 
     public function model(array $row)
@@ -54,26 +60,42 @@ class IdealDiagnosticReportImport implements ToModel, WithHeadingRow
                 return null; // Stop processing this row
             }
         }
+        $report = Report::find($this->reportId);
+        $reportDate = $report ? $report->date : null; 
+        if(!empty($row['sku']) || !empty($row['description'])) {
+            // Create the diagnostic report and save it to the database
+            $diagnosticReport = IdealDiagnosticReport::create([
+                'report_id' => $this->reportId,
+                'sku' => $row['sku'],
+                'description' => $row['description'],
+                'opening' => $row['opening'],
+                'purchases' => $row['purchases'],
+                'returns' => $row['returns'],
+                'trans_in' => $row['trans_in'],
+                'trans_out' => $row['trans_out'],
+                'unit_sold' => $row['unit_sold'],
+                'write_offs' => $row['write_offs'],
+                'closing' => $row['closing'],
+                'net_sales_ex' => $row['net_sales_ex'],
+                'retailer_id' => $this->retailerId, // Include retailer ID
+                'lp_id' => $this->lpId,
+                'date' => $reportDate, // Add report date to the model
+            ]);
 
-        // Proceed with creating the model if headers are valid
-        return new IdealDiagnosticReport([
-            'report_id' => $this->reportId,
-            'sku' => $row['sku'],
-            'description' => $row['description'],
-            'opening' => $row['opening'],
-            'purchases' => $row['purchases'],
-            'returns' => $row['returns'],
-            'trans_in' => $row['trans_in'],
-            'trans_out' => $row['trans_out'],
-            'unit_sold' => $row['unit_sold'],
-            'write_offs' => $row['write_offs'],
-            'closing' => $row['closing'],
-            'net_sales_ex' => $row['net_sales_ex'],
-        ]);
+            // Store the ID of the last inserted diagnostic report
+            $this->diagnosticReportId = $diagnosticReport->id;
+        }
     }
 
     public function getErrors()
     {
         return $this->errors; // Return collected errors
     }
+
+    public function getId()
+    {
+        return $this->diagnosticReportId; // Return the ID of the last imported diagnostic report
+    }
 }
+
+

@@ -21,7 +21,7 @@
             <table id="productsTable" class="table table-striped table-bordered">
                 <thead>
                     <tr>
-                        <th>LP </th>
+                        <th>Supplier Organization Name</th>
                         <th>Province</th>
                         <th>Product</th>
                         <th>Provincial SKU</th>
@@ -65,6 +65,7 @@
         $('#productsTable').DataTable({
             responsive: true,
             "scrollX": true,
+            autoWidth: false, 
             "language": {
                 "emptyTable": "No product variations found for this GTIN."
             },

@@ -26,12 +26,12 @@
                 @endphp
                 <tr>
                     <td>{{ $log->user ? $log->user->first_name . ' ' . $log->user->last_name : 'System' }}</td>
-                    <td>{{ $log->province ? $log->province->name : 'N/A' }}</td>
+                    <td>{{ $log->province ? $log->province->name : '-' }}</td>
                     <td>{{ $log->created_at->format('d-M-Y h:i A') }}</td>
                     <td>{{ ucfirst($log->action) }}</td>
-                    <td>
-                        <button class="btn btn-info btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#logModal{{ $log->id }}">
-                            <i class="fas fa-eye"></i>
+                    <td class="text-center">
+                        <button class="btn btn-link p-0" type="button" data-bs-toggle="modal" data-bs-target="#logModal{{ $log->id }}">
+                            <i style="color: black" class="fas fa-eye"></i>
                         </button>
                     </td>
                 </tr>
@@ -53,7 +53,7 @@
                                                 @foreach($description['old'] ?? [] as $key => $value)
                                                 @if(isset($description['new'][$key]) && $description['old'][$key] !== $description['new'][$key])
                                                     <div class="mb-2">
-                                                        <strong>{{ ucfirst($key) }}:</strong>
+                                                        <strong>{{ ucwords(str_replace('_', ' ', $key)) }}:</strong>
                                                         @if($key === 'status')
                                                             {{ $value == 1 ? 'Active' : 'Inactive' }}
                                                         @elseif(is_string($value) && strtotime($value) !== false)
@@ -72,7 +72,7 @@
                                                 @foreach($description['new'] ?? [] as $key => $value)
                                                 @if(isset($description['old'][$key]) && $description['old'][$key] !== $description['new'][$key])
                                                     <div class="mb-2">
-                                                        <strong>{{ ucfirst($key) }}:</strong>
+                                                        <strong>{{ ucwords(str_replace('_', ' ', $key)) }}:</strong>
                                                         @if($key === 'status')
                                                             {{ $value == 1 ? 'Active' : 'Inactive' }}
                                                         @elseif(is_string($value) && strtotime($value) !== false)
@@ -92,7 +92,7 @@
                                         <div class="custom-card-body">
                                             @foreach($description as $key => $value)
                                                 <div class="mb-2">
-                                                    <strong>{{ ucfirst($key) }}:</strong>
+                                                    <strong>{{ ucwords(str_replace('_', ' ', $key)) }}:</strong>
                                                     @if(is_string($value) && strtotime($value) !== false)
                                                         {{ \Carbon\Carbon::parse($value)->format('d-M-Y h:i A') }}
                                                     @else
@@ -108,7 +108,7 @@
                                         <div class="custom-card-body">
                                             @foreach($description as $key => $value)
                                                 <div class="mb-2">
-                                                    <strong>{{ ucfirst($key) }}:</strong>
+                                                    <strong>{{ ucwords(str_replace('_', ' ', $key)) }}:</strong>
                                                     @if(is_string($value) && strtotime($value) !== false)
                                                         {{ \Carbon\Carbon::parse($value)->format('d-M-Y h:i A') }}
                                                     @else
@@ -131,6 +131,12 @@
         </tbody>
     </table>
 </div>
+
+
+<style>
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled{
+        color: white  !important;}
+</style>
 @endsection
 
 

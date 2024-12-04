@@ -22,5 +22,14 @@ class IdealDiagnosticReport extends Model
         'write_offs',
         'closing',
         'net_sales_ex',
+        'status',  
+        'retailer_id',
+        'lp_id',
+          'date'
     ];
+
+    public function report()
+    {
+        return $this->belongsTo(Report::class, 'report_id'); // Adjust 'report_id' if your foreign key is named differently
+    }
 }

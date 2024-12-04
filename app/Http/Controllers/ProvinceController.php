@@ -21,8 +21,31 @@ class ProvinceController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:provinces',
-            'slug' => 'required|string|max:255|unique:provinces',
+           'name' => [
+    'required',
+    'string',
+    'max:255',
+    'regex:/^[a-zA-Z\s]+$/', // Ensures only alphabets and spaces are allowed
+    function ($attribute, $value, $fail) {
+        $existing = Province::withTrashed()->where('name', $value)->first();
+        if ($existing && !$existing->trashed()) {
+            $fail('The province name has already been taken.');
+        }
+    },
+],
+'slug' => [
+    'required',
+    'string',
+    'max:255',
+    'regex:/^[a-zA-Z\s]+$/',
+    function ($attribute, $value, $fail) {
+        $existing = Province::withTrashed()->where('slug', $value)->first();
+        if ($existing && !$existing->trashed()) {
+            $fail('The province slug has already been taken.');
+        }
+    },
+],
+
             'timezone_1' => 'nullable|string|max:255',
             'timezone_2' => 'nullable|string|max:255',
             'tax_value' => [
@@ -49,9 +72,16 @@ class ProvinceController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:provinces,slug,' . $province->id,
-            'timezone_1' => 'required|string|max:255',
+            'timezone_1' => 'nullable|string|max:255',
             'timezone_2' => 'nullable|string|max:255',
-            'tax_value' => 'required|numeric',
+            'tax_value' => [
+                'required',
+                'numeric',
+                'regex:/^\d{1,2}(\.\d{1,2})?$/', // Two digits before the decimal and up to two digits after
+            ],
+        ], [
+            'tax_value.regex' => 'The tax value format is invalid Correct format: 9.00',
+    
             'status' => 'required|boolean',
         ]);
 

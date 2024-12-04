@@ -21,24 +21,19 @@ class UserObserver
         // Handle the case where there is no authenticated user
         $actionUserId = $actionUser ? $actionUser->id : null;
     
-        // Get the roles, if available, or an empty array
-        $roles = $user->roles->pluck('name')->toArray() ?? [];
-    
         Log::create([
             'action' => 'created',
             'user_id' => $user->id,
             'action_user_id' => $actionUserId, // Store the action user's ID, or null if not authenticated
             'ip_address' => request()->ip(),
             'description' => json_encode([
-                'name' => $user->first_name . ' ' . $user->last_name,
-                'email' => $user->email,
-                'phone' => $user->phone, // Include the phone number here
-                'role' => $roles, // Ensure roles are logged correctly
-                'updated_at' => $user->updated_at,
+                'Name' => $user->first_name . ' ' . $user->last_name,
+                'Email' => '*****', // Mask the email on creation
+                'Phone' => $user->phone,
+                'Created At' => $user->created_at->format('Y-m-d H:i:s'),
             ]),
         ]);
     }
-    
 
     /**
      * Handle the User "updated" event.
@@ -48,36 +43,46 @@ class UserObserver
      */
     public function updated(User $user)
     {
+        // Skip logging if the user is being deleted
+        if ($user->isDirty('deleted_at') && $user->deleted_at !== null) {
+            return;
+        }
+    
         $actionUser = auth()->user(); // Get the currently authenticated user
-    
-        $original = $user->getOriginal();
-        $changes = $user->getChanges();
-    
+        
+        $original = $user->getOriginal(); // Original data before update
+        $changes = $user->getChanges(); // New changes after update
+        
         // Prepare a new changes array
         $loggedChanges = [];
-    
+        
+        // Loop through the changes and mask sensitive fields
         foreach ($changes as $key => $value) {
             if ($key === 'password') {
                 $loggedChanges[$key] = '**********'; // Mask password changes
+            } elseif ($key === 'email') {
+                $loggedChanges[$key] = '*****'; // Mask email changes in new data
             } else {
                 $loggedChanges[$key] = $value; // Log other changes as is
             }
         }
     
+        // Mask the old email as '*****' if it exists
+        $original['email'] = '*****';
+        
         Log::create([
             'action' => 'updated',
             'user_id' => $user->id,
             'action_user_id' => $actionUser ? $actionUser->id : null,
             'ip_address' => request()->ip(),
             'description' => json_encode([
-                'old' => $original,
-                'new' => $loggedChanges,
+                'old' => $original, // Include masked email in the 'old' data
+                'new' => $loggedChanges, // Include masked email in the 'new' data
             ]),
         ]);
     }
     
     
-
     /**
      * Handle the User "deleted" event.
      *
@@ -87,15 +92,17 @@ class UserObserver
     public function deleted(User $user)
     {
         $actionUser = auth()->user();
-        
+    
+        // Exclude email from the description when the user is deleted
         Log::create([
             'action' => 'deleted',
             'user_id' => $user->id,
-            'action_user_id' => $actionUser->id, // Store the action user's ID
+            'action_user_id' => $actionUser ? $actionUser->id : null, // Store the action user's ID
             'ip_address' => request()->ip(),
             'description' => json_encode([
                 'name' => $user->first_name . ' ' . $user->last_name,
-                'email' => $user->email,
+                'Email' => '*****', // Mask email during deletion
+                'Phone' => $user->phone, 
             ]),
         ]);
     }
@@ -113,11 +120,11 @@ class UserObserver
         Log::create([
             'action' => 'restored',
             'user_id' => $user->id,
-            'action_user_id' => $actionUser->id, // Store the action user's ID
+            'action_user_id' => $actionUser ? $actionUser->id : null, // Store the action user's ID
             'ip_address' => request()->ip(),
             'description' => json_encode([
                 'name' => $user->first_name . ' ' . $user->last_name,
-                'email' => $user->email,
+                'email' => '*****', // Mask email during restoration
             ]),
         ]);
     }
@@ -135,11 +142,11 @@ class UserObserver
         Log::create([
             'action' => 'force deleted',
             'user_id' => $user->id,
-            'action_user_id' => $actionUser->id, // Store the action user's ID
+            'action_user_id' => $actionUser ? $actionUser->id : null, // Store the action user's ID
             'ip_address' => request()->ip(),
             'description' => json_encode([
                 'name' => $user->first_name . ' ' . $user->last_name,
-                'email' => $user->email,
+                'email' => '*****', // Mask email during force deletion
             ]),
         ]);
     }

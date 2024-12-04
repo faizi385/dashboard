@@ -2,10 +2,13 @@
 
 namespace App\Imports;
 
+use App\Models\Report;
 use App\Models\CovaSalesReport;
+use Illuminate\Support\Facades\Log;
+use App\Models\CovaDiagnosticReport;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Illuminate\Support\Facades\Log;
+use Exception; // Ensure to import the Exception class
 
 class CovaSalesReportImport implements ToModel, WithHeadingRow
 {
@@ -65,41 +68,62 @@ class CovaSalesReportImport implements ToModel, WithHeadingRow
                 $this->errors[] = 'Missing header: ' . implode(', ', $formattedHeaders);
 
                 // Throw an exception with the collected errors
-                throw new \Exception('' . implode(', ', $this->errors));
-
-                // Set the flag to prevent further header checks
-                $this->hasCheckedHeaders = true;
-                return null; // Stop processing this row
+                throw new Exception('Missing headers: ' . implode(', ', $this->errors));
             }
-        }
 
-        // Proceed with creating the model if headers are valid
-        return new CovaSalesReport([
-            'report_id' => $this->reportId,
-            'product' => $row['product'] ?? null,
-            'sku' => $row['sku'] ?? null,
-            'classification' => $row['classification'] ?? null,
-            'items_sold' => $row['items_sold'] ?? null,
-            'items_ref' => $row['items_ref'] ?? null,
-            'net_sold' => $row['net_sold'] ?? null,
-            'gross_sales' => $row['gross_sales'] ?? null,
-            'subtotal' => $row['subtotal'] ?? null,
-            'total_cost' => $row['total_cost'] ?? null,
-            'gross_profit' => $row['gross_profit'] ?? null,
-            'gross_margin' => $row['gross_margin'] ?? null,
-            'total_discount' => $row['total_discount'] ?? null,
-            'markdown_percent' => $row['markdown_percent'] ?? null,
-            'avg_regular_price' => $row['avg_regular_price'] ?? null,
-            'avg_sold_at_price' => $row['avg_sold_at_price'] ?? null,
-            'unit_type' => $row['unit_type'] ?? null,
-            'net_weight' => $row['net_weight'] ?? null,
-            'total_net_weight' => $row['total_net_weight'] ?? null,
-            'brand' => $row['brand'] ?? null,
-            'supplier' => $row['supplier'] ?? null,
-            'supplier_skus' => $row['supplier_skus'] ?? null,
-            'total_tax' => $row['total_tax'] ?? null,
-            'hst_13' => $row['hst_13'] ?? null,
-        ]);
+            // Set the flag to prevent further header checks
+            $this->hasCheckedHeaders = true;
+        }
+        $report = Report::find($this->reportId);
+        $reportDate = $report ? $report->date : null;
+        
+        $product = $row['product_name'] ?? $row['product'] ?? null;
+        $covaDiagnosticReport = CovaDiagnosticReport::where('product_name', $product)
+            ->where('report_id', $this->reportId)
+            ->first();
+
+        if ($covaDiagnosticReport) {
+            // Ensure the row has valid data
+            if (!empty(array_filter($row))) {
+             
+                unset($row['grand_total']);
+                
+                $sku = $row['supplier_skus'] ?? $row['sku'] ?? null;
+
+                if ($sku !== null && $sku !== '*') {
+                    return new CovaSalesReport([
+                        'report_id' => $this->reportId,
+                        'cova_diagnostic_report_id' => $covaDiagnosticReport->id, // Correctly referencing the diagnostic report ID
+                        'product' => $row['product'] ?? null,
+                        'sku' => $sku,
+                        'classification' => $row['classification'] ?? null,
+                        'items_sold' => $row['items_sold'] ?? null,
+                        'items_ref' => $row['items_ref'] ?? null,
+                        'net_sold' => $row['net_sold'] ?? null,
+                        'gross_sales' => $row['gross_sales'] ?? null,
+                        'subtotal' => $row['subtotal'] ?? null,
+                        'total_cost' => $row['total_cost'] ?? null,
+                        'gross_profit' => $row['gross_profit'] ?? null,
+                        'gross_margin' => $row['gross_margin'] ?? null,
+                        'total_discount' => $row['total_discount'] ?? null,
+                        'markdown_percent' => $row['markdown_percent'] ?? null,
+                        'avg_regular_price' => $row['avg_regular_price'] ?? null,
+                        'avg_sold_at_price' => $row['avg_sold_at_price'] ?? null,
+                        'unit_type' => $row['unit_type'] ?? null,
+                        'net_weight' => $row['net_weight'] ?? null,
+                        'total_net_weight' => $row['total_net_weight'] ?? null,
+                        'brand' => $row['brand'] ?? null,
+                        'supplier' => $row['supplier'] ?? null,
+                        'supplier_skus' => $row['supplier_skus'] ?? null,
+                        'total_tax' => $row['total_tax'] ?? null,
+                        'hst_13' => $row['hst_13'] ?? null,
+                        'date' => $reportDate, // Store the date from the report
+                    ]);
+                }
+            }
+        }else{
+            return;
+        }
     }
 
     public function getErrors()

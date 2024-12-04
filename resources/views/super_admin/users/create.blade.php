@@ -52,7 +52,7 @@
                     <label for="email" class="form-label">
                         <i class="fas fa-envelope"></i> Email <span class="text-danger">*</span>
                     </label>
-                    <input type="email" name="email" id="email" class="form-control @error('email') is-invalid @enderror" placeholder="Enter Email Address" value="{{ old('email', $user->email ?? '') }}" oninput="removeValidation(this)">
+                    <input type="text" name="email" id="email" class="form-control @error('email') is-invalid @enderror" placeholder="Enter Email Address" value="{{ old('email', $user->email ?? '') }}" oninput="removeValidation(this)">
                     @error('email')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -110,7 +110,7 @@
     <select name="roles[]" id="roles" class="form-select @error('roles') is-invalid @enderror" oninput="removeValidation(this)">
         <option value="">Select a role</option>
         @foreach($roles as $role)
-            @if(!in_array($role->original_name, ['LP', 'Retailer', 'Super Admin']))
+            @if(!in_array($role->original_name, ['LP', 'Retailer']))
                 <option value="{{ $role->original_name }}" {{ isset($user) && $user->hasRole($role->name) ? 'selected' : '' }}>
                     {{ $role->original_name }}
                 </option>

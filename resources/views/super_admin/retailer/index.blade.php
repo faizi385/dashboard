@@ -8,17 +8,19 @@
 
 <div class="container p-2">
     <div class="d-flex justify-content-between mb-4">
-        <h3 class="text-white">Retailer Management</h3>
-        <a href="{{ route('retailer.create') }}" class="btn btn-primary">Create Retailer</a>
+        <h3 class="text-white">Distributor Management</h3>
+        <a href="{{ route('retailer.create') }}" class="btn btn-primary">Create Distributor </a>
     </div>
 
     <table id="retailersTable" class="table table-striped">
         <thead>
             <tr>
                 <th>Full Name</th>
-                <th>DBA</th>
+                <th>Organization Name</th>
+                <th> Supplier Organization Name</th> <!-- New Column for LP DBA -->
                 <th>Phone</th>
                 <th>Email</th>
+                <th>Type</th> <!-- New Column -->
                 <th>Action</th>
             </tr>
         </thead>
@@ -27,16 +29,19 @@
                 <tr>
                     <td>{{ $retailer->first_name }} {{ $retailer->last_name }}</td>
                     <td>{{ $retailer->dba ?? '-' }}</td>
+                    <!-- Show LP DBA -->
+                    <td>{{ $retailer->lp->dba ?? '-' }}</td> <!-- Display the LP DBA -->
                     <td>{{ $retailer->phone }}</td>
                     <td>{{ $retailer->email }}</td>
+                    <td>{{ $retailer->type ?? '-' }}</td> <!-- Display Type -->
                     <td class="text-center">
                         <!-- View Icon -->
-                        <a href="{{ route('retailer.show', $retailer->id) }}" class="icon-action text-decoration-none " data-bs-toggle="tooltip" data-bs-placement="top" title="View Retailer">
+                        <a href="{{ route('retailer.show', $retailer->id) }}" class="icon-action text-decoration-none " data-bs-toggle="tooltip" data-bs-placement="top" title="View Distributor ">
                             <i style="color: black" class="fas fa-eye "></i>
                         </a>
         
                         <!-- Edit Icon -->
-                        <a href="{{ route('retailer.edit', $retailer->id) }}" class="icon-action text-decoration-none" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Retailer">
+                        <a href="{{ route('retailer.edit', $retailer->id) }}" class="icon-action text-decoration-none" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Distributor ">
                             <i style="color: black" class="fas fa-edit "></i>
                         </a>
         
@@ -44,7 +49,7 @@
                         <form action="{{ route('retailer.destroy', $retailer->id) }}" method="POST" class="d-inline delete-form">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn btn-link p-0" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete Retailer" style="color: inherit; text-decoration: none;">
+                            <button type="submit" class="btn btn-link p-0" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete Distributor " style="color: inherit; text-decoration: none;">
                                 <i style="color: black" class="fas fa-trash "></i>
                             </button>
                         </form>
@@ -52,21 +57,25 @@
                 </tr>
             @endforeach
         </tbody>
-        
     </table>
 </div>
+
+<style>
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled{
+        color: white !important;
+    }
+</style>
 @endsection
 
-
 @push('scripts')
-
 
 <script>
   $(document).ready(function() {
     $("#loader").fadeOut("slow");
     $('#retailersTable').DataTable({
+        scrollX: true,
+        autoWidth: false,
         "initComplete": function() {
-            // Hide the loader once the table is initialized
         }
     });
 

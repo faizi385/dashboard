@@ -8,7 +8,7 @@
     <div class="loader"></div>
 </div>
 
-<div class="container ">
+<div class="container">
     <table id="example" class="table table-hover">
         <thead>
             <tr>
@@ -28,20 +28,17 @@
                     <td>{{ $log->user ? $log->user->first_name . ' ' . $log->user->last_name : 'System' }}</td>
                     <td>
                         @if($log->retailer && $log->retailer->deleted_at === null)
-                            {{ $log->retailer->dba }} <!-- Dynamic retailer DBA if retailer exists and is not soft-deleted -->
+                            {{ $log->retailer->dba }}
                         @elseif($log->retailer_dba)
-                            {{ $log->retailer_dba }} <!-- Static retailer DBA from logs if retailer is soft-deleted or fully deleted -->
+                            {{ $log->retailer_dba }}
                         @else
-                            N/A <!-- Fallback if no DBA exists -->
+                          -
                         @endif
                     </td>
-                    
-                    
-
                     <td>{{ $log->created_at->format('d-M-Y h:i A') }}</td>
                     <td>{{ ucfirst($log->action) }}</td>
                     <td class="text-center">
-                        <button class="btn btn-link p-0  " type="button" data-bs-toggle="modal" data-bs-target="#logModal{{ $log->id }}">
+                        <button class="btn btn-link p-0" type="button" data-bs-toggle="modal" data-bs-target="#logModal{{ $log->id }}">
                             <i style="color: black" class="fas fa-eye"></i>
                         </button>
                     </td>
@@ -62,18 +59,14 @@
                                             <div class="custom-card-header">Old Retailer</div>
                                             <div class="custom-card-body">
                                                 @foreach($description['old'] ?? [] as $key => $value)
-                                                    @if(isset($description['new'][$key]) && $description['old'][$key] !== $description['new'][$key])
-                                                        @if($key != 'corporate_name' && $key != 'dba' && $key != 'created_at' && $key != 'updated_at')
-                                                            <div class="mb-2">
-                                                                <strong>{{ ucfirst($key) }}:</strong>
-                                                                {{ $value }}
-                                                            </div>
-                                                        @endif
+                                                    @if(isset($description['new'][$key]) && $description['old'][$key] !== $description['new'][$key] && !in_array($key, ['id', 'user_id', 'corporate_name', 'dba', 'created_at', 'updated_at']))
+                                                        <div class="mb-2">
+                                                            <strong>{{ ucwords(str_replace('_', ' ', $key)) }}:</strong> {{ $value }}
+                                                        </div>
                                                     @endif
                                                 @endforeach
                                                 <div class="mb-2">
-                                                    <strong>Created At:</strong>
-                                                    {{ \Carbon\Carbon::parse($log->created_at)->format('d-M-Y h:i A') }}
+                                                    <strong>Created At:</strong> {{ \Carbon\Carbon::parse($log->created_at)->format('d-M-Y h:i A') }}
                                                 </div>
                                             </div>
                                         </div>
@@ -81,18 +74,14 @@
                                             <div class="custom-card-header">Updated Retailer</div>
                                             <div class="custom-card-body">
                                                 @foreach($description['new'] ?? [] as $key => $value)
-                                                    @if(isset($description['old'][$key]) && $description['old'][$key] !== $description['new'][$key])
-                                                        @if($key != 'created_at' && $key != 'updated_at')
-                                                            <div class="mb-2">
-                                                                <strong>{{ ucfirst($key) }}:</strong>
-                                                                {{ $value }}
-                                                            </div>
-                                                        @endif
+                                                    @if(isset($description['old'][$key]) && $description['old'][$key] !== $description['new'][$key] && !in_array($key, ['id', 'user_id', 'created_at', 'updated_at']))
+                                                        <div class="mb-2">
+                                                            <strong>{{ ucwords(str_replace('_', ' ', $key)) }}:</strong> {{ $value }}
+                                                        </div>
                                                     @endif
                                                 @endforeach
                                                 <div class="mb-2">
-                                                    <strong>Updated At:</strong>
-                                                    {{ \Carbon\Carbon::parse($log->updated_at)->format('d-M-Y h:i A') }}
+                                                    <strong>Updated At:</strong> {{ \Carbon\Carbon::parse($log->updated_at)->format('d-M-Y h:i A') }}
                                                 </div>
                                             </div>
                                         </div>
@@ -102,16 +91,14 @@
                                         <div class="custom-card-header">Created Retailer</div>
                                         <div class="custom-card-body">
                                             @foreach($description as $key => $value)
-                                                @if($key != 'created_at' && $key != 'updated_at')
+                                                @if(!in_array($key, ['id', 'user_id', 'created_at', 'updated_at']))
                                                     <div class="mb-2">
-                                                        <strong>{{ ucfirst($key) }}:</strong>
-                                                        {{ $value }}
+                                                        <strong>{{ ucwords(str_replace('_', ' ', $key)) }}:</strong> {{ $value }}
                                                     </div>
                                                 @endif
                                             @endforeach
                                             <div class="mb-2">
-                                                <strong>Created At:</strong>
-                                                {{ \Carbon\Carbon::parse($log->created_at)->format('d-M-Y h:i A') }}
+                                                <strong>Created At:</strong> {{ \Carbon\Carbon::parse($log->created_at)->format('d-M-Y h:i A') }}
                                             </div>
                                         </div>
                                     </div>
@@ -120,23 +107,19 @@
                                         <div class="custom-card-header">Deleted Retailer</div>
                                         <div class="custom-card-body">
                                             @foreach($description as $key => $value)
-                                            @if($key != 'created_at' && $key != 'updated_at')
-                                                <div class="mb-2">
-                                                    <strong>{{ ucfirst($key) }}:</strong>
-                                                    @if(is_array($value))
-                                                        {{-- Handle array values, convert to a string or display in a readable format --}}
-                                                        {{ implode(', ', $value) }}
-                                                    @else
-                                                        {{-- If it's not an array, print it normally --}}
-                                                        {{ $value }}
-                                                    @endif
-                                                </div>
-                                            @endif
-                                        @endforeach
-                                        
+                                                @if(!in_array($key, ['id', 'user_id', 'created_at', 'updated_at']))
+                                                    <div class="mb-2">
+                                                        <strong>{{ ucwords(str_replace('_', ' ', $key)) }}:</strong>
+                                                        @if(is_array($value))
+                                                            {{ implode(', ', $value) }}
+                                                        @else
+                                                            {{ $value }}
+                                                        @endif
+                                                    </div>
+                                                @endif
+                                            @endforeach
                                             <div class="mb-2">
-                                                <strong>Deleted At:</strong>
-                                                {{ \Carbon\Carbon::parse($log->created_at)->format('d-M-Y h:i A') }}
+                                                <strong>Deleted At:</strong> {{ \Carbon\Carbon::parse($log->created_at)->format('d-M-Y h:i A') }}
                                             </div>
                                         </div>
                                     </div>
@@ -148,24 +131,22 @@
                         </div>
                     </div>
                 </div>
-
             @endforeach
         </tbody>
     </table>
 </div>
+<style>
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled{
+        color: white  !important;}
+</style>
 @endsection
 
-
-
 @push('scripts')
-
-
 <script>
     $(document).ready(function() {
         $("#loader").fadeOut("slow");
         $('#example').DataTable({
             "initComplete": function() {
-                // Hide the loader once the table is initialized
                 $('#loader').addClass('hidden');
             }
         });

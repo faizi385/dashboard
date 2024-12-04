@@ -10,10 +10,10 @@ class CreateGlobalTillDiagnosticReportsTable extends Migration
     {
         Schema::create('global_till_diagnostic_reports', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('report_id'); // Foreign key to reports table
-            $table->string('storelocation');
-            $table->string('store_sku');
-            $table->string('product');
+            $table->unsignedBigInteger('report_id')->index(); // Foreign key to reports table with index
+            $table->string('storelocation')->nullable()->index();
+            $table->string('store_sku')->nullable()->index();
+            $table->string('product')->nullable();
             $table->string('compliance_code')->nullable();
             $table->string('supplier_sku')->nullable();
             $table->decimal('pos_equivalent_grams', 10, 2)->nullable();

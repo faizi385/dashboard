@@ -15,16 +15,15 @@ return new class extends Migration
     {
         Schema::create('reports', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('retailer_id');
-            $table->string('location');
-            $table->string('pos');
+            $table->unsignedBigInteger('retailer_id')->nullable()->index(); // Nullable and indexed
+            $table->string('location')->nullable(); // Nullable
+            $table->string('pos')->nullable(); // Nullable
             $table->timestamps();
-    
+
             // Foreign key constraint
             $table->foreign('retailer_id')->references('id')->on('retailers')->onDelete('cascade');
         });
     }
-    
 
     /**
      * Reverse the migrations.

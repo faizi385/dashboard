@@ -21,7 +21,7 @@
                     <label for="name" class="form-label">
                         <i class="fas fa-briefcase"></i> Role Name <span class="text-danger">*</span>
                     </label>
-                    <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" placeholder="Enter role name" value="{{ old('name') }}" >
+                    <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" placeholder="Enter role name" value="{{ old('name') }}">
                     @error('name')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -61,6 +61,7 @@
     </div> <!-- End of white background div -->
 </div>
 @endsection
+
 
 @push('scripts')
 <script>

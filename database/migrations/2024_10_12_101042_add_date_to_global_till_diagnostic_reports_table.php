@@ -8,7 +8,7 @@ class AddDateToGlobalTillDiagnosticReportsTable extends Migration
     public function up()
     {
         Schema::table('global_till_diagnostic_reports', function (Blueprint $table) {
-            $table->date('date')->default(now()->startOfMonth()); // Add the date column with default
+            $table->date('date')->nullable(); // Add the date column with default
         });
     }
 

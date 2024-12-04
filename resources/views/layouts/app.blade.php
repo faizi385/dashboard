@@ -9,7 +9,7 @@
 <!-- Toastr CSS -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Ivy+Mode:wght@400&display=swap" rel="stylesheet">
-
+   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <!-- Toastr JS -->
 {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script> --}}
 
@@ -90,7 +90,7 @@
 </ul>
 
         </nav>
-        
+        <?php $permission = auth()->user()->getAllPermissions()->pluck('name')->toArray(); ?>
         <aside style="background-color: #54595F" class="main-sidebar sidebar-dark-primary elevation-4">
             <a style="text-decoration: none" href="{{ auth()->user()->hasRole('Super Admin') ? route('dashboard') : (auth()->user()->hasRole('LP') ? route('lp.dashboard') : route('retailer.dashboard')) }}" class="brand-link">
                 <span class="brand-text font-weight-light">Novatore</span>
@@ -111,7 +111,7 @@
                 <nav class="mt-2">
                     <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
         
-                        <!-- Manage Users Dropdown (Visible to both Super Admin and Retailers) -->
+                     @if(auth()->user()->hasRole('Super Admin'))
                         <li class="nav-item has-treeview {{ request()->is('users*') || request()->is('roles*') || request()->is('permissions*') ? 'menu-open' : '' }}">
                             <a href="#" class="nav-link {{ request()->is('users*') || request()->is('roles*') || request()->is('permissions*') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-users"></i>
@@ -135,27 +135,28 @@
                                 </li>
         
                                 <!-- Permissions (Visible only to Super Admin) -->
-                                @if(auth()->user()->hasRole('Super Admin'))
+                              
                                 <li class="nav-item">
                                     <a href="{{ route('permissions.index') }}" class="nav-link {{ Route::currentRouteName() == 'permissions.index' ? 'active' : '' }}">
                                         <i class="nav-icon"></i>
                                         <p>Permissions</p>
                                     </a>
                                 </li>
-                                @endif
+                          
                             </ul>
                         </li>
-        
+   @endif
                         <!-- Manage Provinces (Visible only to Super Admin) -->
-                        @if(auth()->user()->hasRole('Super Admin'))
+                        @if(in_array('view provinces', $permission))
                         <li class="nav-item">
                             <a href="{{ route('provinces.index') }}" class="nav-link {{ Route::currentRouteName() == 'provinces.index' ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-map"></i>
                                 <p>Provinces</p>
                             </a>
                         </li>
-        
-                        <!-- Logs Dropdown (Visible only to Super Admin) -->
+                        @endif
+
+                        @if(in_array('view logs', $permission))
                         <li class="nav-item has-treeview 
     {{ request()->is('logs*') || request()->is('province-logs*') || request()->is('retailer-logs*') || request()->is('lp-logs*') || request()->is('offer-logs*') || request()->is('carveout-logs*') || request()->is('report-logs*') || 
       Route::currentRouteName() == 'retailer.logs' || Route::currentRouteName() == 'lp.logs.index' ? 'menu-open' : '' }}">
@@ -182,19 +183,19 @@
         <li class="nav-item">
             <a href="{{ route('retailer.logs') }}" class="nav-link {{ Route::currentRouteName() == 'retailer.logs' ? 'active' : '' }}">
                 <i class="nav-icon"></i>
-                <p>Retailer Logs</p>
+                <p>Distributor Logs</p>
             </a>
         </li>
         <li class="nav-item">
             <a href="{{ route('lp.logs.index') }}" class="nav-link {{ Route::currentRouteName() == 'lp.logs.index' ? 'active' : '' }}">
                 <i class="nav-icon"></i>
-                <p>LP Logs</p>
+                <p>Supplier Logs</p>
             </a>
         </li>
         <li class="nav-item">
             <a href="{{ route('offer.logs.index') }}" class="nav-link {{ Route::currentRouteName() == 'offer.logs.index' ? 'active' : '' }}">
                 <i class="nav-icon"></i>
-                <p>Offers Logs</p>
+                <p>Deals Logs</p>
             </a>
         </li>
         <li class="nav-item">
@@ -212,21 +213,15 @@
     </ul>
 </li>
 
-                        
-                        
-                        <!-- Retailer Management (Visible only to Super Admin) -->
-                        <li class="nav-item">
-                            <a href="{{ route('retailer.index') }}" class="nav-link {{ Route::currentRouteName() == 'retailer.index' ? 'active' : '' }}">
-                                <i class="nav-icon fas fa-user"></i>
-                                <p>Retailer Management</p>
-                            </a>
-                        </li>
+              @endif                  
+              @if(in_array('view supplier', $permission))
+
                         <li class="nav-item">
                             <a href="{{ route('lp.management') }}" 
                                class="nav-link {{ (request()->is('lp/management*') || Route::currentRouteName() == 'lp.management' || Route::currentRouteName() == 'lp.show') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-building"></i>
                                 <p>
-                                    LP Management
+                                    Supplier 
                                     {{-- <span class="right badge badge-danger">New</span> --}}
                                 </p>
                             </a>
@@ -235,9 +230,9 @@
                         
                         
                         @endif
-        
+                       
                         <!-- Manage Info (Visible only to LPs) -->
-                        @if(auth()->user()->hasRole('LP'))
+                        @if(in_array('view manage info', $permission))
                         <li class="nav-item {{ request()->is('manage-info*') ? 'menu-open' : '' }}">
                             <a href="{{ route('manage-info.index') }}" class="nav-link {{ request()->is('manage-info*') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-info-circle"></i>
@@ -245,21 +240,45 @@
                             </a>
                         </li>
                         @endif
-        
-                        <!-- Offers Tab (Visible to Super Admin and LPs) -->
-                       <!-- Offers Tab (Visible to Super Admin and LPs) -->
-                  
-                   
-                   <!-- Offers Tab (Visible to Super Admin and LPs) -->
-                   @if(auth()->user()->hasRole('Super Admin') || auth()->user()->hasRole('LP'))
+                       @if(auth()->user()->hasRole('LP'))
+                        <li class="nav-item">
+                            <a href="{{ route('analytics.index') }}" 
+                               class="nav-link {{ Route::currentRouteName() == 'analytics.index' ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-chart-line"></i>
+                                <p>Analytics</p>
+                            </a>
+                        </li>
+                        @endif 
+                        
+                        @if(auth()->user()->hasRole('Super Admin'))
+                        <li class="nav-item">
+                            <a href="{{ route('performance.index') }}" 
+                               class="nav-link {{ Route::currentRouteName() == 'performance.index' ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-chart-line"></i>
+                                <p>Analytics</p>
+                            </a>
+                        </li>
+                        @endif 
+
+
+                        @if(in_array('view distributor', $permission))
+                        <li class="nav-item">
+                            <a href="{{ route('retailer.index') }}" class="nav-link {{ Route::currentRouteName() == 'retailer.index' ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-user"></i>
+                                <p>Distributor </p>
+                            </a>
+                        </li>
+                        @endif
+                    @if(in_array('view deals', $permission))
                    <li class="nav-item">
                        <a href="{{ route('offers.index') }}"
                           class="nav-link {{ (Route::currentRouteName() == 'offers.index' && !request()->get('from_lp_show')) ? 'active' : '' }}">
                            <i class="nav-icon fas fa-tag"></i>
-                           <p>Offers</p>
+                           <p>Deals</p>
                        </a>
                    </li>
                    @endif
+            
                    
                    
                        
@@ -268,20 +287,19 @@
                    
 
         
-                        <!-- Carveouts Tab (Visible to Super Admin and LPs) -->
-                        @if(auth()->user()->hasRole('Super Admin') || auth()->user()->hasRole('LP'))
-                        <li class="nav-item">
-                            <a href="{{ route('carveouts.index', ['lp_id' => auth()->user()->hasRole('Super Admin') ? 0 : auth()->user()->id, 'from' => 'sidebar']) }}" 
-                               class="nav-link {{ request()->has('from') && request('from') === 'sidebar' ? 'active' : '' }}">
-                                <i class="nav-icon fas fa-cut"></i>
-                                <p>Carveouts</p>
-                            </a>
-                        </li>
-                        
-                        @endif
-        
-                        <!-- Products Tab (Visible only to LPs) -->
-                        @if(auth()->user()->hasRole('Super Admin') || auth()->user()->hasRole('LP'))
+                   @if(in_array('view carveouts', $permission))
+                   <li class="nav-item">
+                       <a href="{{ route('carveouts.index', ['lp_id' => auth()->user()->hasRole('Super Admin') ? 0 : auth()->user()->id, 'from' => 'sidebar']) }}" 
+                          class="nav-link {{ request()->has('from') && request('from') === 'sidebar' ? 'active' : '' }}">
+                           <i class="nav-icon fas fa-cut"></i>
+                           <p>Carveouts</p>
+                       </a>
+                   </li>
+                   
+                   @endif
+                     
+                   
+                   @if(in_array('view products', $permission))
                         <li class="nav-item">
                             <a href="{{ route('lp.products', ['from_sidebar' => true]) }}" 
                                class="nav-link {{ request()->routeIs('lp.products.index') || request()->get('from_sidebar') ? 'active' : '' }}">
@@ -290,17 +308,38 @@
                             </a>
                         </li>
                     @endif
-                    
-                    {{-- <li class="nav-item">
-                        <a href="{{ route('retailers.reports.create', ['retailer' => $retailer->id]) }}" class="nav-link {{ Route::currentRouteName() == 'reports.create' ? 'active' : '' }}">
+                    @if(in_array('view reports', $permission))
+                    <li class="nav-item">
+                        <a href="{{ route('super_admin.reports.index') }}" class="nav-link {{ request()->routeIs('super_admin.reports.index') ? 'active' : '' }}">
                             <i class="nav-icon fas fa-file-alt"></i>
                             <p>Reports</p>
                         </a>
-                    </li> --}}
+                    </li>
                     
-                    
-                    
-                    
+                    @endif
+                    {{-- @if(auth()->user()->hasRole('LP'))
+                    <li class="nav-item">
+                        <a href="{{ route('retailer.create') }}" class="nav-link {{ Route::currentRouteName() == 'retailer.create' ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-plus"></i>
+                            <p>Create Retailer</p>
+                        </a>
+                    </li>
+                    @endif --}}
+                    @php
+                    $lpId = \App\Models\Lp::where('user_id', auth()->id())->value('id');
+                @endphp
+                
+                @if(in_array('view statement', $permission))
+                @if($lpId)
+                <li class="nav-item">
+                    <a href="{{ route('lp.statement.view', ['lp_id' => $lpId]) }}"
+                       class="nav-link {{ Route::currentRouteName() == 'lp.statement.view' ? 'active' : '' }}">
+                        <i class="nav-icon fas fa-file-invoice"></i>
+                        <p>Statement</p>
+                    </a>
+                </li>
+                @endif
+                @endif
                     
                     </ul>
                 </nav>
@@ -372,8 +411,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-   
-    <!-- Other plugins -->
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+ <!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ asset('js/custom.js') }}"></script>
     @stack('scripts')
 </body>
 </html>

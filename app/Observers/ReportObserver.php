@@ -25,9 +25,14 @@ class ReportObserver
     }
 
     public function deleted(Report $report)
-    {
-        $this->logReportChange($report, 'deleted');
+{
+    if (!$report->exists) {
+        // The report has already been deleted; avoid creating log
+        return;
     }
+    
+    $this->logReportChange($report, 'deleted');
+}
 
     protected function logReportChange(Report $report, string $action)
     {
@@ -77,6 +82,7 @@ class ReportObserver
             'action' => $action,
             'description' => json_encode($description), // Store details as JSON
         ]);
+        // dd($report);
     }
 
     protected function mapFields(Report $report, array $fieldsMap)
@@ -87,17 +93,17 @@ class ReportObserver
         // Construct the location string
         $location = $address 
             ? trim("{$address->street_no} {$address->street_name}, {$address->province}, {$address->city}")
-            : 'N/A';
+            : '-';
 
         // Map the report fields to human-readable labels
         return [
             'Retailer' => optional($report->retailer)->dba ?? 'N/A', // Show DBA instead of ID
             'Location' => $location,
             'POS' => $report->pos,
-            'File 1' => $report->file_1 ?? 'N/A', // Display N/A if file is not present
-            'File 2' => $report->file_2 ?? 'N/A', // Display N/A if file is not present
+            'File 1' => $report->file_1 ?? '-', // Display N/A if file is not present
+            'File 2' => $report->file_2 ?? '-', // Display N/A if file is not present
             'Status' => $report->status,
-            'Created_at' => $report->created_at->format('Y-m-d H:i:s'), 
+            'Created At' => $report->created_at->format('Y-m-d H:i:s'), 
         ];
     }
 }

@@ -6,12 +6,19 @@ use Illuminate\Support\Facades\Schema;
 
 class CreateTendyDiagnosticReportsTable extends Migration
 {
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
     public function up()
     {
         Schema::create('tendy_diagnostic_reports', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('report_id')->constrained()->onDelete('cascade'); // Assuming a report ID exists
-            $table->string('product_sku')->nullable();
+            $table->foreignId('report_id')->constrained()->onDelete('cascade'); // Reference to the Report table
+            
+            // Defining columns with nullable and indexing where appropriate
+            $table->string('product_sku')->nullable()->index();
             $table->integer('opening_inventory_units')->nullable();
             $table->decimal('opening_inventory_value', 10, 2)->nullable();
             $table->integer('quantity_purchased_units')->nullable();
@@ -38,10 +45,16 @@ class CreateTendyDiagnosticReportsTable extends Migration
             $table->decimal('other_reductions_value', 10, 2)->nullable();
             $table->integer('closing_inventory_units')->nullable();
             $table->decimal('closing_inventory_value', 10, 2)->nullable();
+
             $table->timestamps();
         });
     }
 
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
     public function down()
     {
         Schema::dropIfExists('tendy_diagnostic_reports');

@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container">
-    <h1 class="text-white">Offer Logs</h1>
+    <h1 class="text-white">Deal Logs</h1>
 
     <!-- Loader -->
     <div id="loader" class="loader-overlay">
@@ -150,6 +150,10 @@
         </tbody>
     </table>
 </div>
+<style>
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled{
+        color: white  !important;}
+</style>
 @endsection
 
 @push('scripts')

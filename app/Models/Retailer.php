@@ -19,12 +19,19 @@ class Retailer extends Model
         'user_id',
         'status',
         'postal_code',
+        'lp_id',
+        'type',
     ];
 
     public function user()
     {
         return $this->belongsTo(User::class);
     }
+// In the Retailer model
+public function lp()
+{
+    return $this->belongsTo(LP::class); // Assuming 'lp_id' is the foreign key in the 'retailers' table
+}
 
     public function address()
     {

@@ -1,118 +1,206 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="container mt-4">
+<div class="container p-2">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="text-white"><i class="fas fa-user-plus"></i> Create Retailer</h1>
+        <h1 class="text-white">
+            <i class="fas fa-user-plus"></i>
+            {{ isset($retailer) ? 'Edit Distributor ' : 'Create Distributor ' }}
+        </h1>
         <a href="{{ route('retailer.index') }}" class="btn btn-primary">
             <i class="fas fa-arrow-left"></i> Back
         </a>
     </div>
     <div class="bg-white p-4 rounded shadow-sm mb-4">
-        <!-- Form for creating retailer -->
-        <form action="{{ route('retailers.store') }}" method="POST" id="retailerForm">
+        <form action="{{ isset($retailer) ? route('retailers.update', $retailer) : route('retailers.store') }}" method="POST" id="retailerForm">
             @csrf
+            @if(isset($retailer))
+                @method('PUT')
+            @endif
+            @if(auth()->user()->hasRole('Super Admin'))
+            <div class="mb-3 col-lg-6">
+                <label for="lp_id" class="form-label">Select Supplier <span class="text-danger">*</span></label>
+                <select name="lp_id" id="lp_id" class="form-select @error('lp_id') is-invalid @enderror">
+                    <option value="">-- Select Supplier --</option>
+                    @foreach($lps as $lp)
+                        <option value="{{ $lp->id }}" {{ old('lp_id', $retailer->lp_id ?? '') == $lp->id ? 'selected' : '' }}>
+                            {{ $lp->name }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('lp_id')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+            @endif
 
-            <!-- First Name and Last Name -->
+            <!-- First Name and Last Name Fields -->
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <div class="form-group">
-                        <label for="first_name"><i class="fas fa-user"></i> First Name <span class="text-danger">*</span></label>
-                        <input type="text" name="first_name" class="form-control @error('first_name') is-invalid @enderror" id="first_name" value="{{ old('first_name') }}">
-                        @error('first_name')
-                            <div class="invalid-feedback">
-                                {{ $message }}
-                            </div>
-                        @enderror
-                    </div>
+                    <label for="first_name" class="form-label">
+                        <i class="fas fa-user"></i> First Name <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" name="first_name" id="first_name" class="form-control @error('first_name') is-invalid @enderror" placeholder="Enter First Name" value="{{ old('first_name', $retailer->first_name ?? '') }}">
+                    @error('first_name')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
                 <div class="col-md-6 mb-3">
-                    <div class="form-group">
-                        <label for="last_name"><i class="fas fa-user"></i> Last Name <span class="text-danger">*</span></label>
-                        <input type="text" name="last_name" 
-                               class="form-control @error('last_name') is-invalid @enderror" 
-                               id="last_name"
-                               oninput="removeValidation(this)"
-                               value="{{ old('last_name') }}">
-                        @error('last_name')
-                            <span class="invalid-feedback d-block">{{ $message }}</span>
-                        @enderror
-                    </div>
+                    <label for="last_name" class="form-label">
+                        <i class="fas fa-user"></i> Last Name <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" name="last_name" id="last_name" class="form-control @error('last_name') is-invalid @enderror" placeholder="Enter Last Name" value="{{ old('last_name', $retailer->last_name ?? '') }}">
+                    @error('last_name')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
             </div>
 
-            <!-- Email and Phone -->
+            <!-- Email and Phone Fields -->
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <div class="form-group">
-                        <label for="email"><i class="fas fa-envelope"></i> Email <span class="text-danger">*</span></label>
-                        <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" id="email" value="{{ old('email') }}">
-                        @error('email')
-                            <div class="invalid-feedback">
-                                {{ $message }}
-                            </div>
-                        @enderror
-                    </div>
+                    <label for="email" class="form-label">
+                        <i class="fas fa-envelope"></i> Email <span class="text-danger">*</span>
+                    </label>
+                    <input type="email" name="email" id="email" class="form-control @error('email') is-invalid @enderror" placeholder="Enter Email" value="{{ old('email', $retailer->email ?? '') }}">
+                    @error('email')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
                 <div class="col-md-6 mb-3">
-                    <div class="form-group">
-                        <label for="phone"><i class="fas fa-phone"></i> Phone Number <span class="text-danger">*</span></label>
-                        <input type="text" name="phone" class="form-control @error('phone') is-invalid @enderror" id="phone" value="{{ old('phone') }}">
-                        @error('phone')
-                            <div class="invalid-feedback">
-                                {{ $message }}
-                            </div>
-                        @enderror
-                    </div>
+                    <label for="phone" class="form-label">
+                        <i class="fas fa-phone"></i> Phone Number <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" name="phone" id="phone" class="form-control @error('phone') is-invalid @enderror" placeholder="Enter Phone Number" value="{{ old('phone', $retailer->phone ?? '') }}" minlength="9" maxlength="11">
+                    @error('phone')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
             </div>
 
-            <!-- Submit and Clear Buttons -->
-            <div class="d-flex justify-content-between">
-                <button type="submit" class="btn btn-primary btn-sm">
-                    <i class="fas fa-paper-plane"></i> Create Retailer
-                </button>
-                {{-- <button type="button" class="btn btn-primary btn-sm" id="clearFormButton">
-                    <i class="fas fa-eraser"></i> Clear
-                </button> --}}
-            </div>
+            <!-- Role Selection Radio Button Group -->
+          <!-- Role Selection Radio Button Group -->
+<div class="mb-3">
+    <label class="form-label">Select Type <span class="text-danger">*</span></label>
+    <div class="form-check">
+        <input class="form-check-input @error('type') is-invalid @enderror" type="radio" name="type" id="distributor" value="Distributor" {{ old('type', $retailer->type ?? '') == 'Distributor' ? 'checked' : '' }}>
+        <label class="form-check-label" for="distributor">
+            Distributor
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input @error('type') is-invalid @enderror" type="radio" name="type" id="shop" value="Shop" {{ old('type', $retailer->type ?? '') == 'Shop' ? 'checked' : '' }}>
+        <label class="form-check-label" for="shop">
+            Shop
+        </label>
+    </div>
+
+    <!-- Show error message only if 'type' has an error -->
+    @error('type')
+        <div class="invalid-feedback d-block">{{ $message }}</div>
+    @enderror
+</div>
+
+            
+            
+            <button type="submit" class="btn btn-primary mt-3">
+                <i class="fas fa-paper-plane"></i> {{ isset($retailer) ? 'Update Distributor' : 'Create Distributor' }}
+            </button>
         </form>
     </div>
 </div>
 @endsection
 
-@section('scripts')
+@push('scripts')
 <script>
-    $(document).ready(function() {
-        // Clear button functionality
-        $('#clearFormButton').on('click', function() {
-            // Reset all fields in the form
-            $('#retailerForm')[0].reset(); 
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('retailerForm');
 
-            // Optionally, clear any validation error styles
-            $('#retailerForm input').removeClass('is-invalid');
-            $('#retailerForm .invalid-feedback').hide();
-        });
+    // Validation function
+    function validateForm(event) {
+        let isValid = true;
 
-        // Remove validation errors when the user types in the fields
-        $('#retailerForm input').on('input', function() {
-            let $input = $(this); // Current input element
-            if ($input.hasClass('is-invalid')) {
-                // Remove the 'is-invalid' class
-                $input.removeClass('is-invalid');
-                // Hide the validation error message
-                $input.next('.invalid-feedback').hide();
+        // Clear all previous errors
+        document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        document.querySelectorAll('.invalid-feedback').forEach(feedback => feedback.remove());
+
+        // Validate text fields
+        const textFields = ['first_name', 'last_name', 'email', 'phone'];
+        textFields.forEach(field => {
+            const input = document.getElementById(field);
+            if (!input.value.trim()) {
+                showValidationError(input, `${capitalize(field.replace('_', ' '))} is required.`);
+                isValid = false;
             }
         });
 
-        // Display success/error messages with Toastr
-        @if (session('success'))
-            toastr.success("{{ session('success') }}");
-        @endif
+        // Validate dropdown
+        const lpId = document.getElementById('lp_id');
+        if (lpId && lpId.value === '') {
+            showValidationError(lpId, 'Supplier selection is required.');
+            isValid = false;
+        }
 
-        @if (session('error'))
-            toastr.error("{{ session('error') }}");
-        @endif
+        // Validate radio buttons
+        const typeRadios = document.querySelectorAll('input[name="type"]');
+        const isTypeSelected = Array.from(typeRadios).some(radio => radio.checked);
+        if (!isTypeSelected) {
+            const typeContainer = typeRadios[0].closest('.mb-3');
+            const errorDiv = document.createElement('div');
+            errorDiv.classList.add('invalid-feedback', 'd-block');
+            errorDiv.textContent = 'Select a type.';
+            typeContainer.appendChild(errorDiv);
+            isValid = false;
+        }
+
+        if (!isValid) {
+            event.preventDefault(); // Prevent form submission if validation fails
+        }
+    }
+
+    // Show validation error
+    function showValidationError(input, message) {
+        input.classList.add('is-invalid');
+        let errorDiv = input.closest('.mb-3')?.querySelector('.invalid-feedback');
+        if (!errorDiv) {
+            errorDiv = document.createElement('div');
+            errorDiv.classList.add('invalid-feedback');
+            input.closest('.mb-3').appendChild(errorDiv);
+        }
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+    }
+
+    // Remove validation error dynamically
+    function removeValidationError(event) {
+        const input = event.target;
+        if (input.classList.contains('is-invalid')) {
+            input.classList.remove('is-invalid');
+        }
+
+        const errorDiv = input.closest('.mb-3')?.querySelector('.invalid-feedback');
+        if (errorDiv) {
+            errorDiv.remove();
+        }
+    }
+
+    // Capitalize helper function
+    function capitalize(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+
+    // Attach the validation function to form submission
+    form.addEventListener('submit', validateForm);
+
+    // Attach dynamic error removal on input
+    const formInputs = document.querySelectorAll('#retailerForm input, #retailerForm select');
+    formInputs.forEach(input => {
+        input.addEventListener('input', removeValidationError);
+        if (input.type === 'radio') {
+            input.addEventListener('change', removeValidationError);
+        }
     });
+});
 </script>
-@endsection
+@endpush
+

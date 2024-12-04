@@ -2,22 +2,27 @@
 
 namespace App\Imports;
 
+use App\Models\Report;
+use Illuminate\Support\Facades\Log;
 use App\Models\TendyDiagnosticReport;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Illuminate\Support\Facades\Log;
 
 class TendyDiagnosticReportImport implements ToModel, WithHeadingRow
 {
     protected $reportId;
     protected $location;
+    protected $retailerId; // New property for retailer ID
+    protected $lpId;
     protected $errors = []; // Array to store error messages
     protected $hasCheckedHeaders = false; // Flag to check if headers have been validated
 
-    public function __construct($reportId, $location)
+    public function __construct($reportId, $location, $retailerId, $lpId = null)
     {
         $this->reportId = $reportId;
         $this->location = $location;
+        $this->retailerId = $retailerId; // Assign retailer ID
+        $this->lpId = $lpId;
     }
 
     public function model(array $row)
@@ -69,39 +74,48 @@ class TendyDiagnosticReportImport implements ToModel, WithHeadingRow
                 throw new \Exception('Missing header: ' . implode(', ', $formattedHeaders));
             }
         }
+        $report = Report::find($this->reportId);
 
-        // Proceed with creating the model if headers are valid
-        return new TendyDiagnosticReport([
-            'report_id' => $this->reportId,
-            'location' => $this->location,
-            'product_sku' => $row['product_sku'] ?? null,
-            'opening_inventory_units' => $row['opening_inventory_units'] ?? null,
-            'opening_inventory_value' => $row['opening_inventory_value'] ?? null,
-            'quantity_purchased_units' => $row['quantity_purchased_units'] ?? null,
-            'quantity_purchased_value' => $row['quantity_purchased_value'] ?? null,
-            'quantity_purchased_units_transfer' => $row['quantity_purchased_units_transfer'] ?? null,
-            'quantity_purchased_value_transfer' => $row['quantity_purchased_value_transfer'] ?? null,
-            'returns_from_customers_units' => $row['returns_from_customers_units'] ?? null,
-            'returns_from_customers_value' => $row['returns_from_customers_value'] ?? null,
-            'other_additions_units' => $row['other_additions_units'] ?? null,
-            'other_additions_value' => $row['other_additions_value'] ?? null,
-            'quantity_sold_instore_units' => $row['quantity_sold_instore_units'] ?? null,
-            'quantity_sold_instore_value' => $row['quantity_sold_instore_value'] ?? null,
-            'quantity_sold_online_units' => $row['quantity_sold_online_units'] ?? null,
-            'quantity_sold_online_value' => $row['quantity_sold_online_value'] ?? null,
-            'quantity_sold_units_transfer' => $row['quantity_sold_units_transfer'] ?? null,
-            'quantity_sold_value_transfer' => $row['quantity_sold_value_transfer'] ?? null,
-            'quantity_destroyed_units' => $row['quantity_destroyed_units'] ?? null,
-            'quantity_destroyed_value' => $row['quantity_destroyed_value'] ?? null,
-            'quantity_losttheft_units' => $row['quantity_losttheft_units'] ?? null,
-            'quantity_losttheft_value' => $row['quantity_losttheft_value'] ?? null,
-            'returns_to_aglc_units' => $row['returns_to_aglc_units'] ?? null,
-            'returns_to_aglc_value' => $row['returns_to_aglc_value'] ?? null,
-            'other_reductions_units' => $row['other_reductions_units'] ?? null,
-            'other_reductions_value' => $row['other_reductions_value'] ?? null,
-            'closing_inventory_units' => $row['closing_inventory_units'] ?? null,
-            'closing_inventory_value' => $row['closing_inventory_value'] ?? null,
-        ]);
+        // Check if the report exists and retrieve the date
+        $reportDate = $report ? $report->date : null;
+        if(!empty($row['product_sku'])) {
+           
+       
+            return new TendyDiagnosticReport([
+                'report_id' => $this->reportId,
+                'location' => $this->location,
+                'product_sku' => $row['product_sku'] ?? null,
+                'opening_inventory_units' => $row['opening_inventory_units'] ?? null,
+                'opening_inventory_value' => $row['opening_inventory_value'] ?? null,
+                'quantity_purchased_units' => $row['quantity_purchased_units'] ?? null,
+                'quantity_purchased_value' => $row['quantity_purchased_value'] ?? null,
+                'quantity_purchased_units_transfer' => $row['quantity_purchased_units_transfer'] ?? null,
+                'quantity_purchased_value_transfer' => $row['quantity_purchased_value_transfer'] ?? null,
+                'returns_from_customers_units' => $row['returns_from_customers_units'] ?? null,
+                'returns_from_customers_value' => $row['returns_from_customers_value'] ?? null,
+                'other_additions_units' => $row['other_additions_units'] ?? null,
+                'other_additions_value' => $row['other_additions_value'] ?? null,
+                'quantity_sold_instore_units' => $row['quantity_sold_instore_units'] ?? null,
+                'quantity_sold_instore_value' => $row['quantity_sold_instore_value'] ?? null,
+                'quantity_sold_online_units' => $row['quantity_sold_online_units'] ?? null,
+                'quantity_sold_online_value' => $row['quantity_sold_online_value'] ?? null,
+                'quantity_sold_units_transfer' => $row['quantity_sold_units_transfer'] ?? null,
+                'quantity_sold_value_transfer' => $row['quantity_sold_value_transfer'] ?? null,
+                'quantity_destroyed_units' => $row['quantity_destroyed_units'] ?? null,
+                'quantity_destroyed_value' => $row['quantity_destroyed_value'] ?? null,
+                'quantity_losttheft_units' => $row['quantity_losttheft_units'] ?? null,
+                'quantity_losttheft_value' => $row['quantity_losttheft_value'] ?? null,
+                'returns_to_aglc_units' => $row['returns_to_aglc_units'] ?? null,
+                'returns_to_aglc_value' => $row['returns_to_aglc_value'] ?? null,
+                'other_reductions_units' => $row['other_reductions_units'] ?? null,
+                'other_reductions_value' => $row['other_reductions_value'] ?? null,
+                'closing_inventory_units' => $row['closing_inventory_units'] ?? null,
+                'closing_inventory_value' => $row['closing_inventory_value'] ?? null,
+                'retailer_id' => $this->retailerId, // Include retailer ID
+                'lp_id' => $this->lpId,
+                'date' => $reportDate, // Add report date to the model
+            ]);
+        }
     }
 
     public function getErrors()

@@ -9,15 +9,20 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Illuminate\Support\Facades\Log;
 
 class OtherPOSReportImport implements ToModel, WithHeadingRow
-{   protected $location;
+{
+    protected $location;
     protected $reportId;
+    protected $retailerId; // New property for retailer ID
+    protected $lpId;
     protected $errors = []; // Array to store error messages
     protected $hasCheckedHeaders = false; // Flag to check if headers have been validated
 
-    public function __construct($location, $reportId)
+    public function __construct($location, $reportId, $retailerId, $lpId = null)
     {
         $this->location = $location;
         $this->reportId = $reportId;
+        $this->retailerId = $retailerId; // Assign retailer ID
+        $this->lpId = $lpId;
     }
 
     public function model(array $row)
@@ -38,28 +43,39 @@ class OtherPOSReportImport implements ToModel, WithHeadingRow
                 Log::error('Missing headers: ' . implode(', ', $formattedHeaders));
                 $this->errors[] = 'Missing headers: ' . implode(', ', $formattedHeaders);
                 $this->hasCheckedHeaders = true; // Set the flag to prevent further checks
-                return null; // Stop processing this row
+
+                // Throw an exception for missing headers
+                throw new \Exception('Missing headers: ' . implode(', ', $formattedHeaders));
             }
         }
+        $report = Report::find($this->reportId);
 
-        // Fetch the report ID based on the location
-        $report = Report::where('location', $this->location)->first();
+        // Check if the report exists and retrieve the date
+        $reportDate = $report ? $report->date : null;
+        
+        if(!empty($row['sku']) || !empty($row['barcode']) || $row['name']) {
+            // Fetch the report associated with the given report_id
+           
 
-        // Proceed with creating the model if headers are valid
-        return new OtherPOSReport([
-            'sku' => $row['sku'] ?? null,
-            'name' => $row['name'] ?? null,
-            'barcode' => $row['barcode'] ?? null,
-            'brand' => $row['brand'] ?? null,
-            'compliance_category' => $row['compliance_category'] ?? null,
-            'opening' => $row['opening'] ?? null,
-            'sold' => $row['sold'] ?? null,
-            'purchased' => $row['purchased'] ?? null,
-            'closing' => $row['closing'] ?? null,
-            'average_price' => $this->convertToDecimal($row['average_price'] ?? null),
-            'average_cost' => $this->convertToDecimal($row['average_cost'] ?? null),
-            'report_id' => $report ? $report->id : null,
-        ]);
+            // Proceed with creating the model if headers are valid
+            return new OtherPOSReport([
+                'sku' => $row['sku'] ?? null,
+                'name' => $row['name'] ?? null,
+                'barcode' => $row['barcode'] ?? null,
+                'brand' => $row['brand'] ?? null,
+                'compliance_category' => $row['compliance_category'] ?? null,
+                'opening' => $row['opening'] ?? null,
+                'sold' => $row['sold'] ?? null,
+                'purchased' => $row['purchased'] ?? null,
+                'closing' => $row['closing'] ?? null,
+                'average_price' => $this->convertToDecimal($row['average_price'] ?? null),
+                'average_cost' => $this->convertToDecimal($row['average_cost'] ?? null),
+                'report_id' => $this->reportId,
+                'retailer_id' => $this->retailerId, // Include retailer ID
+                'lp_id' => $this->lpId,
+                'date' => $reportDate, // Add report date to the model
+            ]);
+        }
     }
 
     public function getErrors()

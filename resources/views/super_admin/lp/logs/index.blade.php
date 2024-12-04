@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container">
-    <h1 class="text-white">LP Logs</h1>
+    <h1 class="text-white">Supplier Logs</h1>
 
     <!-- Loader -->
     <div id="loader" class="loader-overlay">
@@ -30,7 +30,7 @@
                     <td>{{ $log->created_at->format('d-M-Y h:i A') }}</td>
                     <td>{{ ucfirst($log->action) }}</td>
                     <td class="text-center">
-                        <button class="btn btn-link p-0  " type="button" data-bs-toggle="modal" data-bs-target="#logModal{{ $log->id }}">
+                        <button class="btn btn-link p-0" type="button" data-bs-toggle="modal" data-bs-target="#logModal{{ $log->id }}">
                             <i style="color: black" class="fas fa-eye"></i>
                         </button>
                     </td>
@@ -50,37 +50,34 @@
                                         <div class="custom-card old-card half-width-card">
                                             <div class="custom-card-header">Old LP</div>
                                             <div class="custom-card-body">
-                                                <div class="mb-2">
-                                                    <strong>Name:</strong> {{ $description['old']['name'] ?? 'N/A' }}
-                                                </div>
-                                                <div class="mb-2">
-                                                    <strong>DBA:</strong> {{ $log->lp->dba ?? 'N/A' }}
-                                                </div>
-                                                <div class="mb-2">
-                                                    <strong>Primary Contact Email:</strong> {{ $description['old']['primary_contact_email'] ?? 'N/A' }}
-                                                </div>
-                                                <div class="mb-2">
-                                                    <strong>Created At:</strong>
-                                                    {{ \Carbon\Carbon::parse($log->created_at)->format('d-M-Y h:i A') }}
-                                                </div>
+                                                @if(isset($description['old']))
+                                                    @foreach ($description['old'] as $field => $value)
+                                                        @if (isset($description['new'][$field]) && $description['new'][$field] != $value)
+                                                            <div class="mb-2">
+                                                                <strong>{{ ucfirst(str_replace('_', ' ', $field)) }}:</strong> {{ $value ?? 'N/A' }}
+                                                            </div>
+                                                        @endif
+                                                    @endforeach
+                                                @else
+                                                    <div class="mb-2">Old data not available</div>
+                                                @endif
                                             </div>
                                         </div>
+
                                         <div class="custom-card updated-card half-width-card">
                                             <div class="custom-card-header">Updated LP</div>
                                             <div class="custom-card-body">
-                                                <div class="mb-2">
-                                                    <strong>Name:</strong> {{ $description['new']['name'] ?? 'N/A' }}
-                                                </div>
-                                                <div class="mb-2">
-                                                    <strong>DBA:</strong> {{ $log->lp->dba ?? 'N/A' }}
-                                                </div>
-                                                <div class="mb-2">
-                                                    <strong>Primary Contact Email:</strong> {{ $description['new']['primary_contact_email'] ?? 'N/A' }}
-                                                </div>
-                                                <div class="mb-2">
-                                                    <strong>Updated At:</strong>
-                                                    {{ \Carbon\Carbon::parse($log->updated_at)->format('d-M-Y h:i A') }}
-                                                </div>
+                                                @if(isset($description['new']))
+                                                    @foreach ($description['new'] as $field => $value)
+                                                        @if (isset($description['old'][$field]) && $description['old'][$field] != $value)
+                                                            <div class="mb-2">
+                                                                <strong>{{ ucfirst(str_replace('_', ' ', $field)) }}:</strong> {{ $value ?? 'N/A' }}
+                                                            </div>
+                                                        @endif
+                                                    @endforeach
+                                                @else
+                                                    <div class="mb-2">New data not available</div>
+                                                @endif
                                             </div>
                                         </div>
                                     </div>
@@ -115,10 +112,13 @@
         </tbody>
     </table>
 </div>
+
+<style>
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+        color: white !important;
+    }
+</style>
 @endsection
-
-
-
 
 @push('scripts')
 <!-- jQuery and DataTables JS -->

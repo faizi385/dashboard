@@ -1,19 +1,23 @@
 @extends('layouts.admin')
 
 @section('content')
+<div id="loader" class="loader-overlay">
+    <div class="loader"></div>
+</div>
+
 <div class="container">
     <div class="d-flex justify-content-between mb-4">
-        <h3 class="text-white">LP Details</h3>
+        <h3 class="text-white">Supplier Details</h3>
         <div>
             <a href="{{ route('lp.index') }}" class="btn btn-primary ">Back </a>
             
             <button class="btn btn-primary " data-bs-toggle="modal" data-bs-target="#addOfferModal">
-                Add Offer
+                Add Deal
             </button>
             
             <a href="{{ route('offers.index', ['lp_id' => $lp->id, 'from_lp_show' => 1]) }}" 
                 class="btn btn-primary">
-                View Offers
+                View Deal
              </a>
              
              
@@ -25,6 +29,11 @@
             <button class="btn btn-primary" onclick="window.location.href='{{ route('lp.products.by.id', ['lp_id' => $lp->id]) }}'">
                 View Products
             </button>
+
+            <!-- View LP Statement Button -->
+            <button class="btn btn-primary" onclick="window.location.href='{{ route('lp.statement.view', ['lp_id' => $lp->id]) }}'">
+                View Supplier Statement
+            </button>
             
 
         </div>
@@ -32,12 +41,12 @@
 
     <div class="card">
         <div class="card-header">
-            <h5 class="card-title">LP Information</h5>
+            <h5 class="card-title">Supplier Information</h5>
         </div>
         <div class="card-body">
             <h6 class="card-subtitle mb-2 text-muted">General Information</h6>
-            <p><strong>LP Name:</strong> {{ $lp->name }}</p>
-            <p><strong>DBA:</strong> {{ $lp->dba }}</p>
+            <p><strong>Supplier Name:</strong> {{ $lp->name }}</p>
+            <p><strong>Organization Name:</strong> {{ $lp->dba }}</p>
             <p><strong>Primary Contact Email:</strong> {{ $lp->primary_contact_email }}</p>
             <p><strong>Primary Contact Phone:</strong> {{ $lp->primary_contact_phone }}</p>
             <p><strong>Primary Contact Position:</strong> {{ $lp->primary_contact_position }}</p>
@@ -63,12 +72,11 @@
 
 </div>
 
-<!-- Add Offer Modal -->
 <div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Add Offers to {{ $lp->name }}</h5>
+                <h5 class="modal-title" id="addOfferModalLabel">Add Deals</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -77,14 +85,39 @@
                     <div>
                         <form action="{{ route('offers.import') }}" method="POST" enctype="multipart/form-data">
                             @csrf
-                            <!-- Hidden LP ID -->
-                            <input type="hidden" name="lp_id" value="{{ $lp->id }}">
-                            <!-- Display LP Name -->
-                            <p><strong>LP:</strong> {{ $lp->name }} ({{ $lp->dba }})</p>
+                            <input type="hidden" name="lp_id" value="{{ $lp->id }}"> <!-- Hidden LP ID -->
+                            <input type="hidden" name="source" value="1"> <!-- Source for bulk upload -->
 
+                            <!-- Display LP Name instead of Dropdown -->
                             <div class="mb-3">
-                                <label for="offerExcel" class="form-label">Upload Bulk Offers (Excel)</label>
-                                <input type="file" class="form-control" id="offerExcel" name="offerExcel" accept=".xlsx, .xls, .csv" required>
+                                <label class="form-label">Supplier</label>
+                                <p><strong>{{ $lp->name }} ({{ $lp->dba }})</strong></p>
+                            </div>
+
+                            <!-- Radio buttons for Current Month and Previous Month -->
+                         
+
+                            <!-- File Upload Section -->
+                            <div class="mb-3">
+                                <label for="offerExcel" class="form-label">Upload Bulk Deals (Excel)</label>
+                                <input type="file" class="form-control" id="offerExcel" name="offerExcel" accept=".xlsx, .xls, .csv">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Select Month</label>
+                                <div class="d-flex">
+                                    <div class="form-check me-3">
+                                        <input class="form-check-input" type="radio" name="month" id="currentMonth" value="current" checked>
+                                        <label class="form-check-label" for="currentMonth">
+                                            Current Month
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="month" id="nextMonth" value="next">
+                                        <label class="form-check-label" for="nextMonth">
+                                            Next Month
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-upload"></i> Upload Excel
@@ -95,7 +128,7 @@
                     <!-- Single Offer Add Option -->
                     <div>
                         <a href="{{ route('offers.create', ['lp_id' => $lp->id]) }}" class="btn btn-primary">
-                            <i class="fas fa-plus-circle"></i> Add Single Offer
+                            <i class="fas fa-plus-circle"></i> Add Single Deal
                         </a>
                     </div>
                 </div>
@@ -104,10 +137,9 @@
     </div>
 </div>
 
-<!-- Toastr CSS -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />
 
-<!-- Toastr JS -->
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
 <style>
@@ -122,7 +154,49 @@
 </style>
 
 <script>
-    // Initialize Toastr notifications
+    document.addEventListener('DOMContentLoaded', function () {
+
+        $("#loader").fadeOut("slow");
+
+// Show the loader on form submission
+$('form[action="{{ route('offers.import') }}"]').on('submit', function(e) {
+    $("#loader").fadeIn("slow");
+});   const modalForm = document.querySelector('form[action="{{ route('offers.import') }}"]');
+        const offerExcel = modalForm.querySelector('#offerExcel');
+
+        modalForm.addEventListener('submit', function (e) {
+            // Clear previous errors
+            const errorContainer = offerExcel.nextElementSibling;
+            if (errorContainer) {
+                errorContainer.remove();
+            }
+
+            let isValid = true;
+
+            // Validate the file input
+            if (!offerExcel.value.trim()) {
+                isValid = false;
+
+                // Add error message
+                const errorMessage = document.createElement('div');
+                errorMessage.classList.add('text-danger', 'mt-1');
+                errorMessage.textContent = 'Please upload a valid file.';
+                offerExcel.parentNode.appendChild(errorMessage);
+            }
+
+            if (!isValid) {
+                e.preventDefault(); // Prevent form submission if validation fails
+            }
+        });
+
+        // Remove error dynamically when user interacts
+        offerExcel.addEventListener('change', function () {
+            const errorContainer = offerExcel.nextElementSibling;
+            if (errorContainer) {
+                errorContainer.remove();
+            }
+        });
+    });
     @if(session('toast_success'))
         toastr.success("{{ session('toast_success') }}");
     @endif
@@ -131,5 +205,6 @@
         toastr.error("{{ session('error') }}");
     @endif
 </script>
+
 
 @endsection

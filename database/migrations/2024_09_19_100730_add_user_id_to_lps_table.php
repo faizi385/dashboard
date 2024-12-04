@@ -11,7 +11,7 @@ class AddUserIdToLpsTable extends Migration
     public function up()
     {
         Schema::table('lps', function (Blueprint $table) {
-            $table->unsignedBigInteger('user_id')->nullable()->after('id'); // Adjust position if necessary
+            $table->unsignedBigInteger('user_id')->nullable()->after('id'); 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }

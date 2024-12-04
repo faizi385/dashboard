@@ -8,6 +8,7 @@ class RetailerAddress extends Model
 {
     protected $fillable = [
         'retailer_id',
+        'address',
         'street_no',
         'street_name',
         'province',
@@ -15,6 +16,7 @@ class RetailerAddress extends Model
         'location',
         'contact_person_name',
         'contact_person_phone',
+        'province_id',
         'postal_code', // Add postal_code here
     ];
 
@@ -27,4 +29,9 @@ class RetailerAddress extends Model
     {
         return "{$this->street_no} {$this->street_name}, {$this->city}, {$this->province}, {$this->location}";
     }
+    public function provinceDetails()
+    {
+        return $this->belongsTo(Province::class, 'province', 'id'); // 'province' here is the foreign key
+    }
+
 }

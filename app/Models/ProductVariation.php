@@ -1,7 +1,6 @@
 <?php
 
 
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,10 +10,8 @@ class ProductVariation extends Model
 {
     use HasFactory;
 
-    // Specify the table name if it does not follow Laravel's naming convention
     protected $table = 'product_variations';
 
-    // Define fillable attributes to allow mass assignment
     protected $fillable = [
         'product_name',
         'provincial_sku',
@@ -28,11 +25,32 @@ class ProductVariation extends Model
         'cbd_range',
         'comment',
         'product_link',
+        'price_per_unit',
+        'province_id',
+        'product_id'
     ];
 
+    // Define relationship to LP model
     public function lp()
     {
-        return $this->belongsTo(Lp::class, 'lp_id'); // Adjust the foreign key if it's different
+        return $this->belongsTo(Lp::class, 'lp_id');
+    }
+
+    // Define relationship to CleanSheet model, if applicable
+    public function cleanSheets()
+    {
+        return $this->hasMany(CleanSheet::class, 'product_variation_id');
+    }
+
+    // Define relationship to Product model, if applicable
+    public function product()
+    {
+        return $this->belongsTo(Product::class, 'product_id'); // Adjust foreign key if necessary
     }
     
+    // Additional example: A retailer relationship if ProductVariation is linked to Retailer
+    public function retailer()
+    {
+        return $this->belongsTo(Retailer::class, 'retailer_id'); // Adjust as necessary
+    }
 }

@@ -51,13 +51,15 @@ public function store(Request $request)
             'max:255',
             'regex:/^[a-zA-Z\s]+$/', // Only alphabets and spaces allowed
         ],
-        'email' => [
-            'required',
-            'string',
-            'email',
-            'max:255',
-            'unique:users,email,NULL,id,deleted_at,NULL', // Check uniqueness only for active users
-        ],
+  'email' => [
+    'required',
+    'string',
+    'email',
+    'max:255',
+    'unique:users,email,NULL,id,deleted_at,NULL', // Ensure email is unique
+    'regex:/^([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\.)com$/', // Ensure email ends with .com
+],
+
         'password' => [
             !isset($user) ? 'required' : 'nullable', // Password is required for new users, optional for updates
             'string',
@@ -73,9 +75,10 @@ public function store(Request $request)
         'roles' => 'required|array', // Ensure at least one role is selected
         'permissions' => 'nullable|array',
     ], [
-        'first_name.regex' => 'The first name may only contain letters and spaces.',
-        'last_name.regex' => 'The last name may only contain letters and spaces.',
+        'first_name.regex' => 'The first name may only contain letters ',
+        'last_name.regex' => 'The last name may only contain letters',
         'email.unique' => 'This email address is already associated with another account.',
+        'email.regex' => 'The email must be a valid email address and must include the "@" symbol.',
         'roles.required' => 'Please select at least one role.', // Custom message for roles validation
         'phone.regex' => 'Please enter a valid phone number format.',
     ]);

@@ -2,10 +2,12 @@
 
 namespace App\Imports;
 
+use App\Models\Report;
+use Illuminate\Support\Facades\Log;
+use App\Models\TendyDiagnosticReport;
 use App\Models\TendySalesSummaryReport;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Illuminate\Support\Facades\Log;
 
 class TendySalesSummaryReportImport implements ToModel, WithHeadingRow
 {
@@ -44,7 +46,7 @@ class TendySalesSummaryReportImport implements ToModel, WithHeadingRow
             'avg_retail_price',
             'gross_margin',
         ];
-    
+
         // Check if required headers are missing only once
         if (!$this->hasCheckedHeaders) {
             $missingHeaders = array_diff($requiredHeaders, array_keys($row));
@@ -61,31 +63,49 @@ class TendySalesSummaryReportImport implements ToModel, WithHeadingRow
                 throw new \Exception('Missing header: ' . implode(', ', $formattedHeaders));
             }
         }
-    
-        // Proceed with creating the model if headers are valid
-        return new TendySalesSummaryReport([
-            'category' => $row['category'] ?? null,
-            'compliance_type' => $row['compliance_type'] ?? null,
-            'brand' => $row['brand'] ?? null,
-            'product' => $row['product'] ?? null,
-            'variant' => $row['variant'] ?? null,
-            'sku' => $row['sku'] ?? null,
-            'items_sold' => $row['items_sold'] ?? null,
-            'items_refunded' => $row['items_refunded'] ?? null,
-            'net_qty_sold' => $row['net_qty_sold'] ?? null,
-            'gross_sales' => $row['gross_sales'] ?? null,
-            'net_sales' => $row['net_sales'] ?? null,
-            'total_discounts' => $row['total_discounts'] ?? null,
-            'markdown' => $row['markdown'] ?? null,
-            'reward_tiers' => $row['reward_tiers'] ?? null,
-            'total_tax' => $row['total_tax'] ?? null,
-            'cost_of_goods_sold' => $row['cost_of_goods_sold'] ?? null,
-            'gross_profit' => $row['gross_profit'] ?? null,
-            'avg_retail_price' => $row['avg_retail_price'] ?? null,
-            'gross_margin' => $row['gross_margin'] ?? null,
-            'report_id' => $this->reportId,
-            'location' => $this->location,
-        ]);
+
+        $report = Report::find($this->reportId);
+
+        // Check if the report exists and retrieve the date
+        $reportDate = $report ? $report->date : null;
+        $tendyDaignosticReport = TendyDiagnosticReport::where('product_sku', $row['sku'])->where('report_id', $this->reportId)->first();
+        if($tendyDaignosticReport) {
+            if (!empty(array_filter($row))) {
+                if ($row['product'] != null || $row['sku'] != null) {
+                    if (($row['sku'] != '*')) {
+                    
+                      
+                        return new TendySalesSummaryReport([
+                            'category' => $row['category'] ?? null,
+                            'compliance_type' => $row['compliance_type'] ?? null,
+                            'brand' => $row['brand'] ?? null,
+                            'product' => $row['product'] ?? null,
+                            'variant' => $row['variant'] ?? null,
+                            'sku' => $row['sku'] ?? null,
+                            'items_sold' => $row['items_sold'] ?? null,
+                            'items_refunded' => $row['items_refunded'] ?? null,
+                            'net_qty_sold' => $row['net_qty_sold'] ?? null,
+                            'gross_sales' => $row['gross_sales'] ?? null,
+                            'net_sales' => $row['net_sales'] ?? null,
+                            'total_discounts' => $row['total_discounts'] ?? null,
+                            'markdown' => $row['markdown'] ?? null,
+                            'reward_tiers' => $row['reward_tiers'] ?? null,
+                            'total_tax' => $row['total_tax'] ?? null,
+                            'cost_of_goods_sold' => $row['cost_of_goods_sold'] ?? null,
+                            'gross_profit' => $row['gross_profit'] ?? null,
+                            'avg_retail_price' => $row['avg_retail_price'] ?? null,
+                            'gross_margin' => $row['gross_margin'] ?? null,
+                            'report_id' => $this->reportId,
+                            'location' => $this->location,
+                            'diagnostic_report_id' => $tendyDaignosticReport->id ?? null,
+                            'date' => $reportDate, // Add report date to the model
+                        ]);
+                    }
+                }
+            }
+        }else{
+            return;
+        }
     }
 
     public function getErrors()

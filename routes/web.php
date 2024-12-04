@@ -14,10 +14,13 @@ use App\Http\Controllers\CarveoutController;
 use App\Http\Controllers\OfferLogController;
 use App\Http\Controllers\ProvinceController;
 use App\Http\Controllers\RetailerController;
+use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReportLogController;
 use App\Http\Controllers\ManageInfoController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\CarveoutLogController;
+use App\Http\Controllers\PerformanceController;
 use App\Http\Controllers\ProvinceLogController;
 use App\Http\Controllers\RetailerLogController;
 
@@ -35,10 +38,9 @@ use App\Http\Controllers\RetailerLogController;
 Route::get('/', function () {
     return view('welcome');
 });
-
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified', 'role:Super Admin'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified', 'role:Super Admin']) // Ensure only Super Admins can access
+    ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -184,6 +186,39 @@ Route::get('/retailers/{retailer}/reports/create', [ReportController::class, 'cr
 Route::post('/retailers/{retailer}/reports', [ReportController::class, 'store'])->name('retailers.reports.store');
 Route::post('retailers/{retailer}/reports/import', [ReportController::class, 'import'])->name('retailers.reports.import');
 Route::get('/report-logs', [ReportLogController::class, 'index'])->name('report.logs.index');
+Route::get('/retailers/{retailer}/reports', [ReportController::class, 'index'])->name('retailers.reports.index');
+Route::get('/super-admin/reports', [ReportController::class, 'index'])->name('super_admin.reports.index');
+Route::get('/retailer/reports', [ReportController::class, 'index'])->middleware('auth')->name('retailer.reports.index');
+Route::get('/report/{reportId}/download/{fileNumber}', [ReportController::class, 'downloadFile'])->name('report.download');
+Route::get('reports/download/{reportId}/{fileNumber}', [ReportController::class, 'downloadFile'])->name('reports.downloadFile');
+Route::get('/reports/{report_id}/export-clean-sheets', [ReportController::class, 'exportCleanSheets'])->name('reports.exportCleanSheets');
+Route::get('/reports/{report_id}/export-statement', [ReportController::class, 'exportStatement'])->name('reports.exportStatement');
+Route::delete('/reports/{report}', [ReportController::class, 'destroy'])->name('reports.destroy');
+// Route for creating a report in the retailer dashboard
+// Route to view the statement
+Route::get('/retailers/{retailer}/statement', [RetailerController::class, 'viewStatement'])->name('retailer.statement.view');
+Route::get('superadmin/lp/{lp_id}/statement', [LpController::class, 'viewStatement'])->name('lp.statement.view');
+
+Route::get('lp/statement/export/{lp_id}/{date}', [LpController::class, 'exportLpStatement'])->name('lp.statement.export');
+Route::patch('/lp/{lp}/status', [LPController::class, 'updateStatus'])->name('lp.updateStatus');
+
+Route::get('/account-created', function () {
+    return view('account-created');
+})->name('account.created');
+
+
+Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
+Route::get('/performance', [PerformanceController::class, 'index'])->name('performance.index');
+Route::get('/analytics/get-provinces', [AnalyticsController::class, 'getProvincesByDistributor']);
+
+// In web.php (routes file)
+// In your routes file (web.php or api.php)
+Route::get('/analytics/get-availed-vs-nonavailed', [AnalyticsController::class, 'getAvailedVsNonAvailed']);
+
+Route::post('/api/get-chart-data', [AnalyticsController::class, 'getChartData']);
+
+
+
 
 
 

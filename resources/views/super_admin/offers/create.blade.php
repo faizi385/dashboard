@@ -3,49 +3,48 @@
 @section('content')
 <div class="container p-2">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="text-white"><i class="fas fa-plus-circle text-white"></i> Add Single Offer</h1>
+        <h1 class="text-white"><i class="fas fa-plus-circle text-white"></i> Add Single Deal</h1>
         <a href="{{ url()->previous() }}" class="btn btn-primary">
             <i class="fas fa-arrow-left"></i> Back
         </a>
     </div>
 
     <div class="bg-white p-4 rounded shadow-sm mb-4">
-        <form action="{{ route('offers.store') }}" method="POST">
+        <form action="{{ route('offers.store') }}" method="POST" id="offerForm">
             @csrf
             <input type="hidden" name="source" value="2"> 
             <div class="row">
                 <!-- LP -->
                 <div class="mb-3 col-md-6">
-                    <label for="lp_id" class="form-label">LP</label>
+                    <label for="lp_id" class="form-label">Supplier <span class="text-danger">*</span></label>
                     @if(request('lp_id') && $lp)
-                    <!-- If lp_id is present in the request and $lp is defined, show the LP name and a hidden input -->
-                    <input type="hidden" name="lp_id" value="{{ request('lp_id') }}">
-                    <p><strong>{{ $lp->name }}</strong></p>
-                @else
-                    <!-- If lp_id is not present, show the dropdown -->
-                    <select name="lp_id" id="lp_id" class="form-control @error('lp_id') is-invalid @enderror">
-                        <option value="">Select LP</option>
-                        @foreach($lps as $lp)
-                            <option value="{{ $lp->id }}">{{ $lp->name }}</option>
-                        @endforeach
-                    </select>
-                    @error('lp_id')
-                        <div class="invalid-feedback">
-                            {{ $message }}
-                        </div>
-                    @enderror
-                @endif
-                    @error('lp_id')
-                        <div class="invalid-feedback">
-                            {{ $message }}
-                        </div>
-                    @enderror
+                        <!-- Hidden input for lp_id -->
+                        <input type="hidden" name="lp_id" value="{{ request('lp_id') }}">
+                        <!-- Display the LP name in a disabled input field -->
+                        <input type="text" class="form-control" value="{{ $lp->name }}" disabled>
+                    @else
+                        <!-- Dropdown for selecting LP -->
+                        <select name="lp_id" id="lp_id" class="form-control @error('lp_id') is-invalid @enderror">
+                            <option value="">Select Supplier</option>
+                            @foreach($lps as $lp)
+                                <option value="{{ $lp->id }}" {{ old('lp_id') == $lp->id ? 'selected' : '' }}>
+                                    {{ $lp->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('lp_id')
+                            <div class="invalid-feedback">
+                                {{ $message }}
+                            </div>
+                        @enderror
+                    @endif
                 </div>
+                
 
                 <!-- Product Name -->
                 <div class="mb-3 col-md-6">
-                    <label for="product_name" class="form-label">Product Name</label>
-                    <input type="text" name="product_name" id="product_name" class="form-control @error('product_name') is-invalid @enderror" >
+                    <label for="product_name" class="form-label">Product Name <span class="text-danger">*</span></label>
+                    <input type="text" name="product_name" id="product_name" class="form-control @error('product_name') is-invalid @enderror" placeholder="Enter Product Name" value="{{ old('product_name') }}" >
                     @error('product_name')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -59,8 +58,8 @@
             <div class="row">
                 <!-- Provincial SKU -->
                 <div class="mb-3 col-md-6">
-                    <label for="provincial_sku" class="form-label">Provincial SKU</label>
-                    <input type="text" name="provincial_sku" id="provincial_sku" class="form-control @error('provincial_sku') is-invalid @enderror" >
+                    <label for="provincial_sku" class="form-label">Provincial SKU <span class="text-danger">*</span></label>
+                    <input type="text" name="provincial_sku" id="provincial_sku" class="form-control @error('provincial_sku') is-invalid @enderror" placeholder="Enter Provincial Sku" value="{{ old('provincial_sku') }}">
                     @error('provincial_sku')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -70,8 +69,8 @@
 
                 <!-- GTIN -->
                 <div class="mb-3 col-md-6">
-                    <label for="gtin" class="form-label">GTIN</label>
-                    <input type="text" name="gtin" id="gtin" class="form-control @error('gtin') is-invalid @enderror" >
+                    <label for="gtin" class="form-label">GTIN <span class="text-danger">*</span></label>
+                    <input type="text" name="gtin" id="gtin" class="form-control @error('gtin') is-invalid @enderror" placeholder="Enter Gtin" value="{{ old('gtin') }}" >
                     @error('gtin')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -83,19 +82,27 @@
             <div class="row">
                 <!-- Province -->
                 <div class="mb-3 col-md-6">
-                    <label for="province" class="form-label">Province</label>
-                    <input type="text" name="province" id="province" class="form-control @error('province') is-invalid @enderror" >
+                    <label for="province" class="form-label">Province <span class="text-danger">*</span></label>
+                    <select name="province" id="province" class="form-control @error('province') is-invalid @enderror">
+                        <option value="">Select Province</option>
+                        @foreach($provinces as $province)
+                            <option value="{{ $province->id }}" {{ old('province') == $province->id ? 'selected' : '' }}>
+                                {{ $province->name }}
+                            </option>
+                        @endforeach
+                    </select>
                     @error('province')
                         <div class="invalid-feedback">
                             {{ $message }}
                         </div>
                     @enderror
                 </div>
+                
 
                 <!-- Data Fee -->
                 <div class="mb-3 col-md-6">
-                    <label for="general_data_fee" class="form-label">General Data Fee (%)</label>
-                    <input type="number" name="general_data_fee" id="general_data_fee" class="form-control @error('general_data_fee') is-invalid @enderror" >
+                    <label for="general_data_fee" class="form-label">General Data Fee (%) <span class="text-danger">*</span></label>
+                    <input type="number" name="general_data_fee" id="general_data_fee" class="form-control @error('general_data_fee') is-invalid @enderror" placeholder="Enter General Data Fee Name" value="{{ old('general_data_fee') }}">
                     @error('general_data_fee')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -107,8 +114,8 @@
             <div class="row">
                 <!-- Unit Cost -->
                 <div class="mb-3 col-md-6">
-                    <label for="unit_cost" class="form-label">Unit Cost (excl. HST)</label>
-                    <input type="number" name="unit_cost" id="unit_cost" class="form-control @error('unit_cost') is-invalid @enderror" >
+                    <label for="unit_cost" class="form-label">Unit Cost (excl. HST) <span class="text-danger">*</span></label>
+                    <input type="number" name="unit_cost" id="unit_cost" class="form-control @error('unit_cost') is-invalid @enderror" placeholder="Enter Unit Cost" value="{{ old('unit_cost') }}" >
                     @error('unit_cost')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -118,8 +125,8 @@
 
                 <!-- Category -->
                 <div class="mb-3 col-md-6">
-                    <label for="category" class="form-label">Category</label>
-                    <input type="text" name="category" id="category" class="form-control @error('category') is-invalid @enderror" >
+                    <label for="category" class="form-label">Category <span class="text-danger">*</span></label>
+                    <input type="text" name="category" id="category" class="form-control @error('category') is-invalid @enderror" placeholder="Enter Category" value="{{ old('category') }}" >
                     @error('category')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -131,8 +138,8 @@
             <div class="row">
                 <!-- Brand -->
                 <div class="mb-3 col-md-6">
-                    <label for="brand" class="form-label">Brand</label>
-                    <input type="text" name="brand" id="brand" class="form-control @error('brand') is-invalid @enderror" >
+                    <label for="brand" class="form-label">Brand <span class="text-danger">*</span></label>
+                    <input type="text" name="brand" id="brand" class="form-control @error('brand') is-invalid @enderror" placeholder="Enter Brand" value="{{ old('brand') }}" >
                     @error('brand')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -142,8 +149,8 @@
 
                 <!-- Case Quantity -->
                 <div class="mb-3 col-md-6">
-                    <label for="case_quantity" class="form-label">Case Quantity (Units per case)</label>
-                    <input type="number" name="case_quantity" id="case_quantity" class="form-control @error('case_quantity') is-invalid @enderror" >
+                    <label for="case_quantity" class="form-label">Case Quantity (Units per case) <span class="text-danger">*</span></label>
+                    <input type="number" name="case_quantity" id="case_quantity" class="form-control @error('case_quantity') is-invalid @enderror" placeholder="Enter Case Quantity" value="{{ old('case_quantity') }}" >
                     @error('case_quantity')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -155,8 +162,8 @@
             <div class="row">
                 <!-- Offer Start -->
                 <div class="mb-3 col-md-6">
-                    <label for="offer_start" class="form-label">Offer Start</label>
-                    <input type="date" name="offer_start" id="offer_start" class="form-control @error('offer_start') is-invalid @enderror" onchange="updateEndDate()">
+                    <label for="offer_start" class="form-label">Offer Start <span class="text-danger">*</span></label>
+                    <input type="date" name="offer_start" id="offer_start" class="form-control @error('offer_start') is-invalid @enderror" placeholder="Enter Offer Start" onchange="updateEndDate()" value="{{ old('offer_start') }}" >
                     @error('offer_start')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -166,8 +173,8 @@
 
                 <!-- Offer End -->
                 <div class="mb-3 col-md-6">
-                    <label for="offer_end" class="form-label">Offer End</label>
-                    <input type="date" name="offer_end" id="offer_end" class="form-control @error('offer_end') is-invalid @enderror" >
+                    <label for="offer_end" class="form-label">Offer End <span class="text-danger">*</span></label>
+                    <input type="date" name="offer_end" id="offer_end" class="form-control @error('offer_end') is-invalid @enderror" placeholder="Enter Offer End" value="{{ old('offer_end') }}"  >
                     @error('offer_end')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -180,8 +187,8 @@
             <div class="row">
                 <!-- Product Size -->
                 <div class="mb-3 col-md-6">
-                    <label for="product_size" class="form-label">Product Size (g)</label>
-                    <input type="number" name="product_size" id="product_size" class="form-control @error('product_size') is-invalid @enderror" >
+                    <label for="product_size" class="form-label">Product Size (g) <span class="text-danger">*</span></label>
+                    <input type="number" name="product_size" id="product_size" class="form-control @error('product_size') is-invalid @enderror" placeholder="Enter Product Size" value="{{ old('product_size') }}" >
                     @error('product_size')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -191,8 +198,8 @@
 
                 <!-- THC Range -->
                 <div class="mb-3 col-md-6">
-                    <label for="thc_range" class="form-label">THC % Range</label>
-                    <input type="text" name="thc_range" id="thc_range" class="form-control @error('thc_range') is-invalid @enderror" >
+                    <label for="thc_range" class="form-label">THC % Range <span class="text-danger">*</span></label>
+                    <input type="text" name="thc_range" id="thc_range" class="form-control @error('thc_range') is-invalid @enderror" placeholder="Enter Thc Range" value="{{ old('thc_range') }}" >
                     @error('thc_range')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -204,8 +211,8 @@
             <div class="row">
                 <!-- CBD Range -->
                 <div class="mb-3 col-md-6">
-                    <label for="cbd_range" class="form-label">CBD % Range</label>
-                    <input type="text" name="cbd_range" id="cbd_range" class="form-control @error('cbd_range') is-invalid @enderror" >
+                    <label for="cbd_range" class="form-label">CBD % Range <span class="text-danger">*</span></label>
+                    <input type="text" name="cbd_range" id="cbd_range" class="form-control @error('cbd_range') is-invalid @enderror" placeholder="Enter Cbd Range" value="{{ old('cbd_range') }}"  >
                     @error('cbd_range')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -215,8 +222,8 @@
 
                 <!-- Product Link -->
                 <div class="mb-3 col-md-6">
-                    <label for="product_link" class="form-label">Link to Product and Brand Info</label>
-                    <input type="url" name="product_link" id="product_link" class="form-control @error('product_link') is-invalid @enderror" >
+                    <label for="product_link" class="form-label">Link to Product and Brand Info </label>
+                    <input type="url" name="product_link" id="product_link" class="form-control @error('product_link') is-invalid @enderror" placeholder="Enter Product Link" value="{{ old('product_link') }}"  >
                     @error('product_link')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -228,8 +235,8 @@
             <div class="row">
                 <!-- Comment -->
                 <div class="mb-3 col-md-6">
-                    <label for="comment" class="form-label">Comment</label>
-                    <textarea name="comment" id="comment" class="form-control @error('comment') is-invalid @enderror" ></textarea>
+                    <label for="comment" class="form-label">Comment </label>
+                    <textarea name="comment" id="comment" class="form-control @error('comment') is-invalid @enderror" placeholder="Enter  Comment" value="{{ old('comment') }}" ></textarea>
                     @error('comment')
                         <div class="invalid-feedback">
                             {{ $message }}
@@ -237,86 +244,76 @@
                     @enderror
                 </div>
 
-                <!-- Offer Date -->
-                {{-- <div class="mb-3 col-md-6">
-                    <label for="offer_date" class="form-label">Offer Date</label>
-                    <input type="date" name="offer_date" id="offer_date" class="form-control @error('offer_date') is-invalid @enderror" >
-                    @error('offer_date')
-                        <div class="invalid-feedback">
-                            {{ $message }}
-                        </div>
-                    @enderror
-                </div> --}}
+             
             </div>
-<!-- First Checkbox: Add An Exclusive Offer -->
-<div class="form-check mb-3">
-    <input class="form-check-input" type="checkbox" id="addExclusiveOfferCheckbox" name="exclusive_offer" value="1">
-    <label class="form-check-label" for="addExclusiveOfferCheckbox">
-        Add An Exclusive Offer
-    </label>
-</div>
-
-<!-- Fields for 'Add An Exclusive Offer' -->
-<div id="addExclusiveOfferFields" style="display: none;">
-    <div class="row">
-        <!-- Exclusive Data Fee -->
-        <div class="mb-3 col-md-6">
-            <label for="exclusive_data_fee" class="form-label">Exclusive Data Fee (%)</label>
-            <input type="number" name="exclusive_data_fee" id="exclusive_data_fee" class="form-control @error('exclusive_data_fee') is-invalid @enderror">
-            @error('exclusive_data_fee')
-                <div class="invalid-feedback">
-                    {{ $message }}
+            <!-- First Checkbox: Add An Exclusive Offer -->
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="addExclusiveOfferCheckbox" name="exclusive_offer" value="1">
+                <label class="form-check-label" for="addExclusiveOfferCheckbox">
+                    Add An Exclusive Deal
+                </label>
+            </div>
+            
+            <!-- Fields for 'Add An Exclusive Offer' -->
+            <div id="addExclusiveOfferFields" style="display: none;">
+                <div class="row">
+                    <!-- Exclusive Data Fee -->
+                    <div class="mb-3 col-md-6">
+                        <label for="exclusive_data_fee" class="form-label">Exclusive Data Fee (%)</label>
+                        <input type="number" name="exclusive_data_fee" id="exclusive_data_fee" class="form-control @error('exclusive_data_fee') is-invalid @enderror">
+                        @error('exclusive_data_fee')
+                            <div class="invalid-feedback">
+                                {{ $message }}
+                            </div>
+                        @enderror
+                    </div>
+            
+                    <!-- Retailers -->
+                    <div class="mb-3 col-md-6">
+                        <label for="retailer_ids" class="form-label">Select Distributor </label>
+                        <select name="retailer_ids[]" id="retailer_ids" class="form-control select2 @error('retailer_ids') is-invalid @enderror" multiple>
+                            @foreach($retailers as $retailer)
+                                <option value="{{ $retailer->id }}">{{ $retailer->dba }}</option>
+                            @endforeach
+                        </select>
+                        @error('retailer_ids')
+                            <div class="invalid-feedback">
+                                {{ $message }}
+                            </div>
+                        @enderror
+                    </div>
                 </div>
-            @enderror
-        </div>
-
-        <!-- Retailers -->
-        <div class="mb-3 col-md-6">
-            <label for="retailer_ids" class="form-label">Select Retailers</label>
-            <select name="retailer_ids[]" id="retailer_ids" class="form-control select2 @error('retailer_ids') is-invalid @enderror" multiple>
-                @foreach($retailers as $retailer)
-                    <option value="{{ $retailer->id }}">{{ $retailer->dba }}</option>
-                @endforeach
-            </select>
-            @error('retailer_ids')
-                <div class="invalid-feedback">
-                    {{ $message }}
+            </div>
+            
+            <!-- Second Checkbox: Make It Exclusive to Specific Retailers -->
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="makeExclusiveOfferCheckbox" name="makeExclusiveOfferCheckbox" value="1" onclick="toggleExclusiveFields()">
+                <label class="form-check-label" for="makeExclusiveOfferCheckbox">
+                    Make It an Exclusive Deal for Specific Distributor 
+                </label>
+            </div>
+            
+            <!-- Fields for 'Make It an Exclusive Offer for Retailers' -->
+            <div id="makeExclusiveOfferFields" style="display: none;">
+                <div class="row">
+                    <!-- Retailer Names for Second Checkbox -->
+                    <div class="mb-3 col-md-6">
+                        <label for="exclusive_retailer_ids" class="form-label">Select Distributor </label>
+                        <select name="exclusive_retailer_ids[]" id="exclusive_retailer_ids" class="form-control select2 @error('exclusive_retailer_ids') is-invalid @enderror" multiple>
+                            @foreach($retailers as $retailer)
+                                <option value="{{ $retailer->id }}">{{ $retailer->dba }}</option>
+                            @endforeach
+                        </select>
+                        @error('exclusive_retailer_ids')
+                            <div class="invalid-feedback">
+                                {{ $message }}
+                            </div>
+                        @enderror
+                    </div>
                 </div>
-            @enderror
-        </div>
-    </div>
-</div>
-
-<!-- Second Checkbox: Make It Exclusive to Specific Retailers -->
-<div class="form-check mb-3">
-    <input class="form-check-input" type="checkbox" id="makeExclusiveOfferCheckbox" name="makeExclusiveOfferCheckbox" value="1" onclick="toggleExclusiveFields()">
-    <label class="form-check-label" for="makeExclusiveOfferCheckbox">
-        Make It an Exclusive Offer for Specific Retailers
-    </label>
-</div>
-
-<!-- Fields for 'Make It an Exclusive Offer for Retailers' -->
-<div id="makeExclusiveOfferFields" style="display: none;">
-    <div class="row">
-        <!-- Retailer Names for Second Checkbox -->
-        <div class="mb-3 col-md-6">
-            <label for="exclusive_retailer_ids" class="form-label">Select Retailers</label>
-            <select name="exclusive_retailer_ids[]" id="exclusive_retailer_ids" class="form-control select2 @error('exclusive_retailer_ids') is-invalid @enderror" multiple>
-                @foreach($retailers as $retailer)
-                    <option value="{{ $retailer->id }}">{{ $retailer->dba }}</option>
-                @endforeach
-            </select>
-            @error('exclusive_retailer_ids')
-                <div class="invalid-feedback">
-                    {{ $message }}
-                </div>
-            @enderror
-        </div>
-    </div>
-</div>
-
-            <!-- Submit Button -->
-            <button type="submit" class="btn btn-primary">Add Offer</button>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Add Deal</button>
         </form>
     </div>
 </div>
@@ -324,15 +321,34 @@
 <!-- JavaScript -->
 
 <script>
-    // Select2 Initialization
-    $(document).ready(function() {
+      // Select2 Initialization
+      $(document).ready(function() {
         $('.select2').select2({
             placeholder: 'Select Retailers',
             tags: true // Allows adding new tags if needed
         });
     });
 
-    // Function to toggle between checkboxes and disable the other checkbox when one is checked
+    document.addEventListener('DOMContentLoaded', function () {
+        // Function to remove 'is-invalid' class and error message when user starts typing
+        function removeValidationErrors(input) {
+            input.addEventListener('input', function () {
+                if (input.classList.contains('is-invalid')) {
+                    input.classList.remove('is-invalid');
+                    const errorDiv = input.nextElementSibling;
+                    if (errorDiv && errorDiv.classList.contains('invalid-feedback')) {
+                        errorDiv.style.display = 'none'; // Hide the error message
+                    }
+                }
+            });
+        }
+
+        // Add event listeners to all form inputs to remove validation errors when typing
+        const formInputs = document.querySelectorAll('#offerForm input, #offerForm select, #offerForm textarea');
+        formInputs.forEach(function (input) {
+            removeValidationErrors(input);
+        });
+    });
     function toggleCheckbox(checkboxId, otherCheckboxId, fieldsId) {
         const checkbox = document.getElementById(checkboxId);
         const otherCheckbox = document.getElementById(otherCheckboxId);

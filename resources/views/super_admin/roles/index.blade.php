@@ -54,6 +54,8 @@
      .table>:not(:last-child)>:last-child>* {
         width: 10%;
     }
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled{
+        color: white  !important;}
 </style>
 @endpush
 

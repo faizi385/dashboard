@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Complete Your Retailer Information</title>
+    <title>Complete Your Distributor Information</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -43,7 +43,7 @@
             border: none;
             border-radius: 5px;
             text-decoration: none;
-            margin-top: 20px;
+            margin-top: 2px;
         }
         .btn-complete:hover {
             background-color: #218838;
@@ -67,16 +67,16 @@
 <body>
     <div class="email-container">
         <div class="header">
-            Complete Your Retailer Information
+            Complete Your Distributor Information
         </div>
 
         <div class="content">
-            <p>Dear Retailer,</p>
+            <p>Dear Distributor,</p>
             <p>We hope this message finds you well. To help us keep your information up to date, please take a moment to complete your retailer profile by clicking the button below:</p>
             
             <a href="{{ $link }}" class="btn-complete">Complete Your Details</a>
 
-            <p>If you have any questions or require further assistance, feel free to contact us at any time.</p>
+            <p class="mt-2">If you have any questions or require further assistance, feel free to contact us at any time.</p>
             <p>Thank you for your prompt attention to this matter.</p>
         </div>
 
