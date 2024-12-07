@@ -13,17 +13,17 @@ class GlobalTillDiagnosticReportImport implements ToModel, WithHeadingRow
 {
     protected $location;
     protected $reportId;
-    protected $retailerId; // New property for retailer ID
+    protected $retailerId;
     protected $lpId;
-    protected $errors = []; // Array to store error messages
-    protected $hasCheckedHeaders = false; // Flag to check if headers have been validated
-    protected $diagnosticReportId; // To store the ID of the last imported diagnostic report
+    protected $errors = [];
+    protected $hasCheckedHeaders = false;
+    protected $diagnosticReportId;
 
     public function __construct($location, $reportId, $retailerId, $lpId = null)
     {
         $this->location = $location;
         $this->reportId = $reportId;
-        $this->retailerId = $retailerId; // Assign retailer ID
+        $this->retailerId = $retailerId;
         $this->lpId = $lpId;
     }
 
@@ -32,18 +32,14 @@ class GlobalTillDiagnosticReportImport implements ToModel, WithHeadingRow
      */
     private function cleanNumericValue($value)
     {
-        // If the value starts with a formula (=), return null
         if (is_string($value) && strpos($value, '=') === 0) {
             return null;
         }
-
-        // Return the numeric value if valid, otherwise return null
         return is_numeric($value) ? $value : null;
     }
 
     public function model(array $row)
     {
-        // List of required headers
         $requiredHeaders = [
             'storelocation',
             'store_sku',
@@ -65,29 +61,20 @@ class GlobalTillDiagnosticReportImport implements ToModel, WithHeadingRow
             'product_url',
             'inventory_transactions_url',
         ];
-
-        // Check if required headers are missing only once
         if (!$this->hasCheckedHeaders) {
             $missingHeaders = array_diff($requiredHeaders, array_keys($row));
             if (!empty($missingHeaders)) {
-                // Log an error
                 Log::error('Missing headers: ' . implode(', ', $missingHeaders));
-
-                // Format headers to replace underscores with spaces
                 $formattedHeaders = array_map(function ($header) {
-                    return str_replace('_', ' ', $header); // Replace underscores with spaces
+                    return str_replace('_', ' ', $header);
                 }, $missingHeaders);
-
-                // Throw an exception for missing headers
                 throw new \Exception('Missing headers: ' . implode(', ', $formattedHeaders));
             }
-            $this->hasCheckedHeaders = true; // Set the flag to prevent further checks
+            $this->hasCheckedHeaders = true;
         }
         $report = Report::find($this->reportId);
         $reportDate = $report ? $report->date : null;
-
         if(!empty($row['supplier_sku']) || !empty($row['compliance_code']) || $row['product']){
-            // Proceed with creating the model if headers are valid
             $diagnosticReport = new GlobalTillDiagnosticReport([
                 'report_id' => $this->reportId,
                 'storelocation' => $row['storelocation'] ?? null,
@@ -109,24 +96,19 @@ class GlobalTillDiagnosticReportImport implements ToModel, WithHeadingRow
                 'closing_inventory' => $this->cleanNumericValue($row['closing_inventory']),
                 'product_url' => $row['product_url'] ?? null,
                 'inventory_transactions_url' => $row['inventory_transactions_url'] ?? null,
-                'retailer_id' => $this->retailerId, // Include retailer ID
+                'retailer_id' => $this->retailerId,
                 'lp_id' => $this->lpId,
-                'date' => $reportDate, // Store the date from the report
+                'date' => $reportDate,
             ]);
 
             $diagnosticReport->save();
-            $this->diagnosticReportId = $diagnosticReport->id; // Store the ID of the last imported diagnostic report
+            $this->diagnosticReportId = $diagnosticReport->id;
         }
     }
 
     public function getErrors()
     {
-        return $this->errors; // Return collected errors
-    }
-
-    public function getId()
-    {
-        return $this->diagnosticReportId; // Return the ID of the last imported diagnostic report
+        return $this->errors;
     }
 }
 

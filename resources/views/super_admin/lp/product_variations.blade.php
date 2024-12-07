@@ -28,18 +28,24 @@
                         <th>GTIN</th>
                         <th>Category</th>
                         <th>Brand</th>
+                         <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($products as $product)
                     <tr>
-                        <td>{{ $product->lp->dba ?? 'N/A' }}</td> 
+                        <td>{{ $product->lp->dba ?? 'N/A' }}</td>
                         <td>{{ $product->province }}</td>
                         <td>{{ $product->product_name }}</td>
                         <td>{{ $product->provincial_sku }}</td>
                         <td>{{ $product->gtin }}</td>
                         <td>{{ $product->category }}</td>
                         <td>{{ $product->brand }}</td>
+                        <td class="text-center">
+                            <a href="{{ route('product_variation.edit', $product->id) }}" class="icon-action" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Product Variation">
+                                <i class="fas fa-edit" style="color: black;"></i> <!-- Yellow edit icon -->
+                            </a>
+                        </td>
                     </tr>
                     @empty
                     <tr>
@@ -65,7 +71,7 @@
         $('#productsTable').DataTable({
             responsive: true,
             "scrollX": true,
-            autoWidth: false, 
+            autoWidth: false,
             "language": {
                 "emptyTable": "No product variations found for this GTIN."
             },
@@ -81,7 +87,7 @@
         margin-top: 20px;
     }
 
-   
+
 
     .table th, .table td {
     padding: 0.75rem; /* Adjust padding for a balanced layout */
@@ -102,7 +108,7 @@
 }
 
 
-    
+
 </style>
 
 @endsection

@@ -10,17 +10,17 @@
         <h3 class="text-white">Supplier Details</h3>
         <div>
             <a href="{{ route('lp.index') }}" class="btn btn-primary ">Back </a>
-            
+
             <button class="btn btn-primary " data-bs-toggle="modal" data-bs-target="#addOfferModal">
                 Add Deal
             </button>
-            
-            <a href="{{ route('offers.index', ['lp_id' => $lp->id, 'from_lp_show' => 1]) }}" 
+
+            <a href="{{ route('all-offers.lp-wise', ['lp_id' => $lp->id]) }}"
                 class="btn btn-primary">
                 View Deal
              </a>
-             
-             
+
+
              <button class="btn btn-primary" onclick="window.location.href='{{ route('carveouts.index', ['lp_id' => $lp->id]) }}'">
                 View Carveouts
             </button>
@@ -34,7 +34,7 @@
             <button class="btn btn-primary" onclick="window.location.href='{{ route('lp.statement.view', ['lp_id' => $lp->id]) }}'">
                 View Supplier Statement
             </button>
-            
+
 
         </div>
     </div>
@@ -95,7 +95,16 @@
                             </div>
 
                             <!-- Radio buttons for Current Month and Previous Month -->
-                         
+
+                             <div class="mb-3">
+                                <label for="lpSelect" class="form-label">Select Province</label>
+                                <select class="form-select" id="lpSelect" name="province">
+                                    <option value="" selected disabled>Select Province</option>
+                                    @foreach($provinces as $province)
+                                        <option value="{{ $province->id }}">{{ $province->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
 
                             <!-- File Upload Section -->
                             <div class="mb-3">
@@ -147,7 +156,7 @@
         margin-top: 20px;
     }
 
-   
+
     .container {
         padding-bottom: 100px; /* Adjust this value based on footer height */
     }

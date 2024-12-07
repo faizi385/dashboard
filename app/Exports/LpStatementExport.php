@@ -32,7 +32,7 @@ class LpStatementExport implements FromCollection, WithMapping, WithHeadings
             $row->sku,
             $row->category,
             $row->brand,
-            $row->quantity_purchased,
+            !empty($row->quantity_purchased) ? $row->quantity_purchased : '0',
             !empty($row->sold) ? $row->sold : '0',
             !empty(str_replace('$', '', $row->average_price)) ? $row->average_price : number_format(0, 2, '.', ','),
             !empty($row->opening_inventory_unit) ? $row->opening_inventory_unit : '0',
@@ -54,7 +54,7 @@ class LpStatementExport implements FromCollection, WithMapping, WithHeadings
     {
         $headings = [
             "Province",
-            "Retailer DBA",
+            "Distributor",
             "Location",
             'Product',
             "SKU",

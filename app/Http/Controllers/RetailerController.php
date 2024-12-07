@@ -202,7 +202,7 @@ $topLocations = DB::table('top_locations_by_retailer')
                 'max:20',
                 'regex:/^\+?\d{1,3}\s*\(?\d{3}?\)?\s*\d{3}[-\s]?\d{4}$/'  // Accepts formats like +1 (425) 274-9782
             ],
-            'type' => 'required|string', 
+            'dba' => 'required|string', 
             // For Super Admin, validate LP if the user is Super Admin
             'lp_id' => auth()->user()->hasRole('Super Admin') ? 'required|exists:lps,id' : 'nullable',
         ]);
@@ -240,6 +240,7 @@ $topLocations = DB::table('top_locations_by_retailer')
             'last_name' => $validatedData['last_name'],
             'email' => $validatedData['email'],
             'phone' => $validatedData['phone'],
+            'dba' => $validatedData['dba'],
             'status' => 'requested',
             'lp_id' => $lpId, // Assign the lp_id
             'type' => $request->input('type'),
@@ -262,7 +263,7 @@ $topLocations = DB::table('top_locations_by_retailer')
         Mail::to($validatedData['email'])->send(new RetailerFormMail($link));
     
         // Redirect back with a success message
-        return redirect()->route('retailer.create')->with('success', 'Distributor created and email sent successfully!');
+        return redirect()->route('retailer.index')->with('success', 'Distributor created and email sent successfully!');
     }
     
     
@@ -287,7 +288,6 @@ $topLocations = DB::table('top_locations_by_retailer')
             'addresses.*.address' => 'required|string|max:255', // Replace street_no and street_name with address
             'addresses.*.province_id' => 'nullable|exists:provinces,id', // Ensure province_id exists in the provinces table
             'addresses.*.city' => 'nullable|string|max:255',
-            'addresses.*.location' => 'nullable|string|max:255',
             'addresses.*.contact_person_name' => 'nullable|string|max:255',
             'addresses.*.contact_person_phone' => 'nullable|string|max:20',
             'addresses.*.postal_code' => 'nullable|string|max:20',
@@ -357,7 +357,7 @@ $topLocations = DB::table('top_locations_by_retailer')
     public function edit($id)
     {
         $lps = Lp::all();
-        $retailer = Retailer::with('address')->findOrFail($id);
+        $retailer = Retailer::with('address.provinceDetails')->findOrFail($id);
         $provinces = Province::all();   
         return view('super_admin.retailer.edit', compact('retailer','lps', 'provinces'));
     }
@@ -370,7 +370,6 @@ $topLocations = DB::table('top_locations_by_retailer')
             'dba' => 'nullable|string|max:255',
             'phone' => 'required|string|max:20',
             'email' => 'required|email|regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/|max:255', // Updated email validation
-            'address.*.street_no' => 'required|string|max:50',
             'address.*.street_name' => 'required|string|max:255',
             'address.*.province' => 'required|string|max:255',
             'address.*.city' => 'required|string|max:255',
@@ -379,7 +378,6 @@ $topLocations = DB::table('top_locations_by_retailer')
             'address.*.contact_person_phone' => 'nullable|string|max:20',
             'address.*.postal_code' => 'nullable|string|max:20',
         ], [
-            'address.*.street_no.required' => 'Street No is required.',
             'address.*.street_name.required' => 'Street Name is required.',
             'address.*.province.required' => 'Province is required.',
             'address.*.city.required' => 'City is required.',
@@ -389,13 +387,20 @@ $topLocations = DB::table('top_locations_by_retailer')
         $retailer->update($request->only([
             'first_name', 'last_name', 'corporate_name', 'dba', 'phone', 'email', 'status'
         ]));
-        $retailer->address()->updateOrCreate(
-            ['retailer_id' => $retailer->id],
-            $request->only([
-                'street_no', 'street_name', 'province', 'city', 'location',
-                'contact_person_name', 'contact_person_phone'
-            ])
-        );
+        if($request->has('address')){
+            foreach ($request->address as $key => $value) {
+                RetailerAddress::updateOrCreate(
+                    [
+                        'id' => $value['address_id'] 
+                    ],
+                    [
+                        'street_name' => $value['street_name'], 
+                        'province' => $value['province'],
+                        'city' => $value['city']
+                    ]
+                );
+            }
+        }
     
         return redirect()->route('retailer.index')->with('success', 'Distributor updated successfully.');
     }
@@ -441,7 +446,6 @@ $topLocations = DB::table('top_locations_by_retailer')
     {
         
         $request->validate([
-            'addresses.*.street_no' => 'required|string|max:50',
             'addresses.*.street_name' => 'required|string|max:255',
             'addresses.*.province' => 'required|string|max:255',
             'addresses.*.city' => 'required|string|max:255',
@@ -449,7 +453,6 @@ $topLocations = DB::table('top_locations_by_retailer')
             'addresses.*.contact_person_name' => 'nullable|string|max:255',
             'addresses.*.contact_person_phone' => 'nullable|string|max:20',
         ], [
-            'addresses.*.street_no.required' => 'Street No is required.',
             'addresses.*.street_name.required' => 'Street Name is required.',
             'addresses.*.province.required' => 'Province is required.',
             'addresses.*.city.required' => 'City is required.',

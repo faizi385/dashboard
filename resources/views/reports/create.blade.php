@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container p-4">
-  
+
 
 
 
@@ -42,7 +42,7 @@
                         <option value="">Select POS</option>
                         <option value="greenline">Greenline</option>
                         <option value="techpos">TechPOS</option>
-                        <option value="cova">COVA</option>
+{{--                        <option value="cova">Cova</option>--}}
                         <option value="barnet">Barnet</option>
                         <option value="profittech">ProfitTech</option>
                         <option value="global">Global Till</option>
@@ -130,11 +130,11 @@
         const singleUpload = document.getElementById('singleUpload');
 
         // Show/hide uploads based on POS selection
-        if (['greenline', 'techpos', 'barnet', 'profittech', 'otherpos'].includes(selectedPos)) {
+        if (['greenline', 'techpos', 'barnet', 'profittech', 'otherpos', 'global'].includes(selectedPos)) {
             multipleUploads.style.display = 'none';
             salesSummaryUpload.style.display = 'none';
             singleUpload.style.display = 'block';
-        } else if (['cova', 'ideal', 'global', 'tendy'].includes(selectedPos)) {
+        } else if (['cova', 'ideal', 'tendy'].includes(selectedPos)) {
             multipleUploads.style.display = 'block';
             salesSummaryUpload.style.display = 'block';
             singleUpload.style.display = 'none';

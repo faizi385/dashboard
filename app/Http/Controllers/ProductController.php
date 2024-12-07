@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Lp;
-use App\Models\ProductVariation;
+use App\Models\ProductVariation; 
+use App\Models\Province;
 use App\Models\Product; // Make sure to import your Product model
 use Illuminate\Http\Request;
 
@@ -27,6 +28,7 @@ class ProductController extends Controller
     public function destroy($id)
     {
         $product = Product::findOrFail($id);
+        $productVariation = ProductVariation::where('product_id',$product->id)->delete();
         $product->delete(); // Soft delete or delete the product
         return redirect()->route('lp.products')->with('success', 'Product deleted successfully.');
     }
@@ -46,6 +48,12 @@ class ProductController extends Controller
     
         // Find the product by ID
         $product = Product::findOrFail($id);
+
+        if ($request->has('is_validate')) {
+           $isValidate = 1;
+        } else {
+            $isValidate = 0;
+        }
     
         // Update the product with the validated data
         $product->update([
@@ -55,6 +63,12 @@ class ProductController extends Controller
             'gtin' => $request->input('gtin'),
             'category' => $request->input('category'),
             'brand' => $request->input('brand'),
+            'case_quantity' => $request->input('case_quantity'),
+            'product_size' => $request->input('product_size'),
+            'thc_range' => $request->input('thc_range'),
+            'cbd_range' => $request->input('cbd_range'),
+            'unit_cost' => $request->input('unit_cost'),
+            'is_validate' => $isValidate,
         ]);
     
         // Redirect back with success message
@@ -77,23 +91,70 @@ class ProductController extends Controller
         return view('super_admin.lp.product_variations', compact('products', 'gtin', 'lp'));
     }
 
-    // Method to view products based on LP
+    public function update_variation_view($id)
+       {
+           $productVariation = ProductVariation::where('id', $id)->first();
+
+           $product = Product::where('id',$productVariation->product_id)->first();
+           $lpID = $product->lp_id;
+           $gtin = $product->gtin;
+
+           $provinces = Province::where('status',1)->get();
+
+           return view('super_admin.lp.product_variation_edit', compact('productVariation','provinces','lpID','gtin'));
+       }
+    public function update_variation(Request $request, $id)
+       {
+           $request->validate([
+               'product_name' => 'required|string|max:255',
+               'province' => 'required|string|max:255',
+               'provincial_sku' => 'required|string|max:255',
+               'gtin' => 'required|string|max:255',
+               'category' => 'required|string|max:255',
+               'brand' => 'required|string|max:255',
+           ]);
+       
+           $productVariation = ProductVariation::findOrFail($id);
+           $product = Product::where('id',$productVariation->product_id)->first();
+   
+           if ($request->has('is_validate')) {
+              $isValidate = 1;
+           } else {
+               $isValidate = 0;
+           }
+           $province = Province::where('id',$request->input('province'))->first();
+           $productVariation->update([
+               'product_name' => $request->input('product_name'),
+               'province_id' => $request->input('province'),
+               'province' => $province->name,
+               'provincial_sku' => $request->input('provincial_sku'),
+               'gtin' => $request->input('gtin'),
+               'category' => $request->input('category'),
+               'brand' => $request->input('brand'),
+            //    'case_quantity' => $request->input('case_quantity'),
+               'product_size' => $request->input('product_size'),
+               'thc_range' => $request->input('thc_range'),
+               'cbd_range' => $request->input('cbd_range'),
+               'price_per_unit' => $request->input('price_per_unit'),
+               'is_validate' => $isValidate,
+           ]);
+           $lpID = $product->lp_id;
+           $gtin = $product->gtin;
+           return redirect()->route('products.variations',[$lpID,$gtin])->with('success', 'Product Variation updated successfully.');
+       }
+
     public function viewProducts(Request $request, $lp_id = null)
     {
-        // Get the currently authenticated user
         $user = auth()->user();
     
-        // If $lp_id is provided, fetch specific LP products
         if ($lp_id) {
             $lp = Lp::find($lp_id);
             if ($lp) {
-                // Fetch products uploaded by this LP
                 $products = Product::with('lp')->where('lp_id', $lp->id)->get();
             } else {
                 return redirect()->back()->with('error', 'LP not found.');
             }
         } else {
-            // No LP ID provided, handle based on user role
             if ($user->hasRole('Super Admin')) {
                 // Super Admin: Fetch all products for all LPs
                 $products = Product::with('lp')->get();

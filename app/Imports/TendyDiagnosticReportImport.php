@@ -12,22 +12,21 @@ class TendyDiagnosticReportImport implements ToModel, WithHeadingRow
 {
     protected $reportId;
     protected $location;
-    protected $retailerId; // New property for retailer ID
+    protected $retailerId;
     protected $lpId;
-    protected $errors = []; // Array to store error messages
-    protected $hasCheckedHeaders = false; // Flag to check if headers have been validated
+    protected $errors = [];
+    protected $hasCheckedHeaders = false;
 
     public function __construct($reportId, $location, $retailerId, $lpId = null)
     {
         $this->reportId = $reportId;
         $this->location = $location;
-        $this->retailerId = $retailerId; // Assign retailer ID
+        $this->retailerId = $retailerId;
         $this->lpId = $lpId;
     }
 
     public function model(array $row)
     {
-        // List of required headers
         $requiredHeaders = [
             'product_sku',
             'opening_inventory_units',
@@ -58,29 +57,24 @@ class TendyDiagnosticReportImport implements ToModel, WithHeadingRow
             'closing_inventory_value',
         ];
 
-        // Check if required headers are missing only once
         if (!$this->hasCheckedHeaders) {
             $missingHeaders = array_diff($requiredHeaders, array_keys($row));
             if (!empty($missingHeaders)) {
-                // Log an error
                 Log::error('Missing headers in Tendy diagnostic report: ' . implode(', ', $missingHeaders));
 
-                // Format headers to replace underscores with spaces
                 $formattedHeaders = array_map(function ($header) {
-                    return str_replace('_', ' ', $header); // Replace underscores with spaces
+                    return str_replace('_', ' ', $header);
                 }, $missingHeaders);
 
-                // Throw an exception with a message listing the missing headers
                 throw new \Exception('Missing header: ' . implode(', ', $formattedHeaders));
             }
         }
         $report = Report::find($this->reportId);
 
-        // Check if the report exists and retrieve the date
         $reportDate = $report ? $report->date : null;
         if(!empty($row['product_sku'])) {
-           
-       
+
+
             return new TendyDiagnosticReport([
                 'report_id' => $this->reportId,
                 'location' => $this->location,
@@ -111,15 +105,15 @@ class TendyDiagnosticReportImport implements ToModel, WithHeadingRow
                 'other_reductions_value' => $row['other_reductions_value'] ?? null,
                 'closing_inventory_units' => $row['closing_inventory_units'] ?? null,
                 'closing_inventory_value' => $row['closing_inventory_value'] ?? null,
-                'retailer_id' => $this->retailerId, // Include retailer ID
+                'retailer_id' => $this->retailerId,
                 'lp_id' => $this->lpId,
-                'date' => $reportDate, // Add report date to the model
+                'date' => $reportDate,
             ]);
         }
     }
 
     public function getErrors()
     {
-        return $this->errors; // Return collected errors
+        return $this->errors;
     }
 }

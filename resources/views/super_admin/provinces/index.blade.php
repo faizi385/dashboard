@@ -6,7 +6,7 @@
     <div class="loader"></div>
 </div>
 
-<div class="container">
+<div class="container p-2">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="text-white">Provinces</h1>
         <a href="{{ route('provinces.create') }}" class="btn btn-primary">Create Province</a>
@@ -15,54 +15,60 @@
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
-
-    <table id="provincesTable" class="table table-bordered table-striped">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Slug</th>
-                <th>Timezone 1</th>
-                <th>Timezone 2</th>
-                <th>Tax Value</th>
-                <th>Status</th>
-                <th class="text-center">Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($provinces as $province)
-                <tr data-id="{{ $province->id }}">
-                    <td>{{ $province->name }}</td>
-                    <td>{{ $province->slug }}</td>
-                    <td>{{ $province->timezone_1 }}</td>
-                    <td>{{ $province->timezone_2 }}</td>
-                    <td>{{ $province->tax_value }}</td>
-                    <td class="status-text">
-                        {{ $province->status ? 'Active' : 'Inactive' }}
-                    </td>
-                    <td class="text-center">
-                        <div class="action-icons">
-                            <!-- Status Toggle Icon -->
-                            <button class="btn status-toggle p-0" data-id="{{ $province->id }}" data-bs-toggle="tooltip" data-bs-placement="top" title="Toggle Status">
-                                <i class="fas fa-toggle-{{ $province->status ? 'on' : 'off' }}"></i>
-                            </button>
-                            <!-- Edit Icon -->
-                            <a href="{{ route('provinces.edit', $province) }}" class="text-warning mx-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Province">
-                                <i style="color: black"  class="fas fa-edit"></i>
-                            </a>
-                            <!-- Delete Icon -->
-                            <form action="{{ route('provinces.destroy', $province) }}" method="POST" class="d-inline delete-form">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-link text-danger p-0" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete Province">
-                                    <i style="color: black"  class="fas fa-trash"></i>
-                                </button>
-                            </form>
-                        </div>
-                    </td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">Province</h5>
+        </div>
+        <div class="card-body">
+            <table id="provincesTable" class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Slug</th>
+                        <th>Timezone 1</th>
+                        <th>Timezone 2</th>
+                        <th>Tax Value</th>
+                        <th>Status</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($provinces as $province)
+                        <tr data-id="{{ $province->id }}">
+                            <td>{{ $province->name }}</td>
+                            <td>{{ $province->slug }}</td>
+                            <td>{{ $province->timezone_1 }}</td>
+                            <td>{{ $province->timezone_2 }}</td>
+                            <td>{{ $province->tax_value }}</td>
+                            <td class="status-text">
+                                {{ $province->status ? 'Active' : 'Inactive' }}
+                            </td>
+                            <td class="text-center">
+                                <div class="action-icons">
+                                    <!-- Status Toggle Icon -->
+                                    <button class="btn status-toggle p-0" data-id="{{ $province->id }}" data-bs-toggle="tooltip" data-bs-placement="top" title="Toggle Status">
+                                        <i class="fas fa-toggle-{{ $province->status ? 'on' : 'off' }}"></i>
+                                    </button>
+                                    <!-- Edit Icon -->
+                                    <a href="{{ route('provinces.edit', $province) }}" class="text-warning mx-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Province">
+                                        <i style="color: black"  class="fas fa-edit"></i>
+                                    </a>
+                                    <!-- Delete Icon -->
+                                    <form action="{{ route('provinces.destroy', $province) }}" method="POST" class="d-inline delete-form">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-link text-danger p-0" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete Province">
+                                            <i style="color: black"  class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 @push('styles')
@@ -74,7 +80,7 @@
 <!-- Loader CSS -->
 <style>
     /* Full-screen loader */
-   
+
     .action-icons {
         display: flex;
         justify-content: center;
@@ -94,17 +100,11 @@
     .status-toggle {
         text-decoration: none; /* Remove underline from toggle button */
     }
-    
-    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled{
-        color: white  !important;}
 </style>
 @endpush
 
 @push('scripts')
-<!-- jQuery -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<!-- DataTables JS -->
-<script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+
 <!-- Toastr JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <!-- SweetAlert2 JS -->
@@ -115,7 +115,7 @@
         $("#loader").fadeOut("slow");
         $('#provincesTable').DataTable({
             "initComplete": function() {
-        
+
             }
         });
 
@@ -126,7 +126,7 @@
         document.querySelectorAll('.delete-form').forEach(form => {
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
-                
+
                 Swal.fire({
                     title: 'Are you sure?',
                     text: "You won't be able to revert this!",

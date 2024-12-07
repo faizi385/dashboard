@@ -115,7 +115,7 @@
     
                 <!-- DBA -->
                 <div class="col-md-4 mb-3">
-                    <label for="dba" class="form-label"><i class="fas fa-tag"></i> DBA (Doing Business As) <span class="text-danger">*</span></label>
+                    <label for="dba" class="form-label"><i class="fas fa-tag"></i> Organization Name <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" name="dba" id="dba" value="{{ $retailer->dba }}" required >
                     <div class="invalid-feedback">Dba is required.</div>
                 </div>
@@ -154,19 +154,13 @@
                             <div class="invalid-feedback">Please provide a valid address.</div>
                         </div>
                         
-                        <div class="col-md-4 mb-3">
-                            <label for="location_0" class="form-label"><i class="fas fa-map-marker-alt"></i> Location <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="addresses[0][location]" id="location_0" required>
-                            <div class="invalid-feedback">Please provide a valid location.</div>
-                        </div>
+                        
                         <div class="col-md-4 mb-3">
                             <label for="city_0" class="form-label"><i class="fas fa-city"></i> City <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="addresses[0][city]" id="city_0" required>
                             <div class="invalid-feedback">Please provide a valid city.</div>
                         </div>
-                    </div>
-                
-                    <div class="row mb-3">
+                    
                         <!-- Province -->
                         <div class="col-md-4 mb-3">
                             <label for="province_0" class="form-label"><i class="fas fa-globe"></i> Province <span class="text-danger">*</span></label>
@@ -178,6 +172,9 @@
                             </select>
                             <div class="invalid-feedback">Please select a province.</div>
                         </div>
+                    </div>
+                
+                    <div class="row mb-3">
                 
                       
                 
@@ -238,19 +235,13 @@
                     <div class="invalid-feedback">Please provide a valid address.</div>
                 </div>
 
-                <div class="col-md-4 mb-3">
-                    <label for="location_${addressCount}" class="form-label"><i class="fas fa-map-marker-alt"></i> Location <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" name="addresses[${addressCount}][location]" id="location_${addressCount}" required>
-                    <div class="invalid-feedback">Please provide a valid location.</div>
-                </div>
+                
                   <div class="col-md-4 mb-3">
                     <label for="city_${addressCount}" class="form-label"><i class="fas fa-city"></i> City <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" name="addresses[${addressCount}][city]" id="city_${addressCount}" required>
                     <div class="invalid-feedback">Please provide a valid city.</div>
                 </div>
-            </div>
-
-            <div class="row mb-3">
+           
                 <div class="col-md-4 mb-3">
                     <label for="province_${addressCount}" class="form-label"><i class="fas fa-globe"></i> Province <span class="text-danger">*</span></label>
                     <select class="form-control" name="addresses[${addressCount}][province]" id="province_${addressCount}" required>
@@ -261,15 +252,15 @@
                     </select>
                     <div class="invalid-feedback">Please select a province.</div>
                 </div>
-
-              
-
-                <div class="col-md-4 mb-3">
-                    <label for="postal_code_${addressCount}" class="form-label"><i class="fas fa-envelope"></i> Postal Code <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" name="addresses[${addressCount}][postal_code]" id="postal_code_${addressCount}" required pattern="^\d{5}(-\d{4})?$">
-                    <div class="invalid-feedback">Please provide a valid postal code (5 digits).</div>
                 </div>
-            </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4 mb-3">
+                        <label for="postal_code_${addressCount}" class="form-label"><i class="fas fa-envelope"></i> Postal Code <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="addresses[${addressCount}][postal_code]" id="postal_code_${addressCount}" required pattern="^\d{5}(-\d{4})?$">
+                        <div class="invalid-feedback">Please provide a valid postal code (5 digits).</div>
+                    </div>
+                </div>
         </div>`;
     document.getElementById('address-fields').insertAdjacentHTML('beforeend', addressTemplate);
     addressCount++;

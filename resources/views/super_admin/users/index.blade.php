@@ -8,7 +8,7 @@
     <div class="loader"></div>
 </div>
 
-<div class="container p-3">
+<div class="container p-2">
 
     <div class="row mb-4">
         <div class="col text-end">
@@ -16,9 +16,12 @@
         </div>
     </div>
 
-    <div class="row">
-        <div class="col">
-            <table id="example" class="table table-hover">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">User</h5>
+        </div>
+        <div class="card-body">
+            <table id="example" class="table table-striped">
                 <thead>
                     <tr>
                         <th>Name</th>
@@ -40,7 +43,7 @@
                                 <a style="text-decoration: none" href="{{ route('users.edit', $user) }}" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit User" class="icon-action">
                                     <i style="color: black" class="fas fa-edit "></i>
                                 </a>
-                                
+
                                 <!-- Delete Icon -->
                                 <form action="{{ route('users.destroy', $user) }}" method="POST" class="d-inline delete-form" style="display: inline;">
                                     @csrf
@@ -57,12 +60,6 @@
         </div>
     </div>
 </div>
-
-<style>
-    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled{
-    color: white  !important;
-}
-</style>
 
 @push('scripts')
 <script>

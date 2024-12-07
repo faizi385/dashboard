@@ -5,18 +5,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Supplier Status Pending</title>
+    <title>Supplier Registration Received</title>
 </head>
 <body>
     <p>Dear {{ $lpName }},</p>
 
-    <p>Thank you for registering as a Supplier with us. Your registration status is currently <strong>pending</strong>.</p>
+    <p>Thank you for registering as a supplier with us. Your registration status is currently <strong>under review.</strong></p>
     
-    <p>Our admin team will review your details, and you will be notified via email once your registration is either accepted or rejected.</p>
+    <p>Our administrative team will carefully assess your details, and we will notify you via email once your registration has been either approved or declined.</p>
 
-    <p>We appreciate your patience and look forward to working with you.</p>
+    <p>We appreciate your patience during this process and look forward to the opportunity to collaborate with you.</p>
 
-    {{-- <p>If you have any questions, feel free to contact us at <a href="mailto:{{ $lpEmail }}">{{ $lpEmail }}</a>.</p> --}}
+    <p>If you have any questions or require assistance, please don’t hesitate to contact us at <strong>superadmin@gmail.com</strong></p>
 
     <p>Best regards,<br>
     The Supplier Registration Team</p>

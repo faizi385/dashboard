@@ -8,8 +8,6 @@
             <i class="fas fa-arrow-left"></i> Back
         </a>
     </div>
-{{-- 
-    <p class="text-muted"><small><span class="text-danger">*</span> indicates required fields.</small></p> --}}
 
     <div class="bg-white p-4 rounded shadow-sm mb-4">
         <form action="{{ isset($user) ? route('users.update', $user->id) : route('users.store') }}" method="POST" id="userForm">
@@ -103,26 +101,26 @@
             </div>
 
          <!-- Roles Field -->
-<div class="col-md-6 mb-3">
-    <label for="roles" class="form-label">
-        <i class="fas fa-user-tag"></i> Roles 
-    </label>
-    <select name="roles[]" id="roles" class="form-select @error('roles') is-invalid @enderror" oninput="removeValidation(this)">
-        <option value="">Select a role</option>
-        @foreach($roles as $role)
-            @if(!in_array($role->original_name, ['LP', 'Retailer']))
-                <option value="{{ $role->original_name }}" {{ isset($user) && $user->hasRole($role->name) ? 'selected' : '' }}>
-                    {{ $role->original_name }}
-                </option>
-            @endif
-        @endforeach
-    </select>
-    @error('roles')
-        <div class="invalid-feedback">
-            {{ $message }}
-        </div>
-    @enderror
-</div>
+            <div class="col-md-6 mb-3">
+                <label for="roles" class="form-label">
+                    <i class="fas fa-user-tag"></i> Roles
+                </label>
+                <select name="roles[]" id="roles" class="form-select @error('roles') is-invalid @enderror" oninput="removeValidation(this)">
+                    <option value="">Select a role</option>
+                    @foreach($roles as $role)
+                        @if(!in_array($role->original_name, ['LP', 'Retailer']))
+                            <option value="{{ $role->original_name }}" {{ isset($user) && $user->hasRole($role->name) ? 'selected' : '' }}>
+                                {{ $role->original_name }}
+                            </option>
+                        @endif
+                    @endforeach
+                </select>
+                @error('roles')
+                    <div class="invalid-feedback">
+                        {{ $message }}
+                    </div>
+                @enderror
+            </div>
 
 
             <div class="mb-3">

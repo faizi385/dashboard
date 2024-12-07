@@ -34,10 +34,9 @@ if($report) {
          DB::table('reports')->where('id', $report->id)->update(['status' => 'Retailer Statement Process']);
          DB::commit();
      } catch (\Exception $e) {
-         Log::error('Error in Greenline reconciliation: ' . $e->getMessage());
+         Log::error('Error in Greenline reconciliation: ' . $e);
          DB::rollBack();
          DB::table('reports')->where('id', $report->id)->update(['status' => 'failed']);
-
      }
      print_r('ReconciliationPos process completed successfully.');
 }

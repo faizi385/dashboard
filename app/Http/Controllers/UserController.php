@@ -36,7 +36,7 @@ class UserController extends Controller
 }
 
 public function store(Request $request)
-{
+    {
     // Validate the incoming request
     $request->validate([
         'first_name' => [
@@ -51,14 +51,14 @@ public function store(Request $request)
             'max:255',
             'regex:/^[a-zA-Z\s]+$/', // Only alphabets and spaces allowed
         ],
-  'email' => [
-    'required',
-    'string',
-    'email',
-    'max:255',
-    'unique:users,email,NULL,id,deleted_at,NULL', // Ensure email is unique
-    'regex:/^([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\.)com$/', // Ensure email ends with .com
-],
+        'email' => [
+            'required',
+            'string',
+            'email',
+            'max:255',
+            'unique:users,email,NULL,id,deleted_at,NULL', // Check uniqueness only for active users
+            'regex:/^([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\.)com$/', // Ensure email ends with .com
+        ],
 
         'password' => [
             !isset($user) ? 'required' : 'nullable', // Password is required for new users, optional for updates
@@ -68,60 +68,59 @@ public function store(Request $request)
         ],
         'phone' => [
             'required',
-            'regex:/^(\+?\d{1,3}[- ]?)?\(?\d{1,4}?\)?[- ]?\d{1,4}[- ]?\d{1,4}$/', // Allow international phone formats
             'max:20', // Ensure the phone number does not exceed 20 characters
         ],
-        'address' => 'nullable|string|max:255',
-        'roles' => 'required|array', // Ensure at least one role is selected
-        'permissions' => 'nullable|array',
-    ], [
-        'first_name.regex' => 'The first name may only contain letters ',
-        'last_name.regex' => 'The last name may only contain letters',
-        'email.unique' => 'This email address is already associated with another account.',
-        'email.regex' => 'The email must be a valid email address and must include the "@" symbol.',
-        'roles.required' => 'Please select at least one role.', // Custom message for roles validation
-        'phone.regex' => 'Please enter a valid phone number format.',
-    ]);
-    
-    // Create the user
-    $user = User::create([
-        'first_name' => $request->input('first_name'),
-        'last_name' => $request->input('last_name'),
-        'email' => $request->input('email'),
-        'password' => Hash::make($request->input('password')), // Hash the password
-        'phone' => $request->input('phone'),
-        'address' => $request->input('address'),
-        'created_by' => auth()->id(), // Log the user who created the account
-    ]);
+            'address' => 'nullable|string|max:255',
+            'roles' => 'required|array', // Ensure at least one role is selected
+            'permissions' => 'nullable|array',
+        ],
+        [
+            'first_name.regex' => 'The first name may only contain letters and spaces.',
+            'last_name.regex' => 'The last name may only contain letters and spaces.',
+            'email.unique' => 'This email address is already associated with another account.',
+            'roles.required' => 'Please select at least one role.', // Custom message for roles validation
+            'phone.regex' => 'Please enter a valid phone number format.',
+        ]);
 
-    // Assign roles if provided
-    if ($request->roles) {
-        $roles = Role::whereIn('original_name', $request->roles)->pluck('name')->toArray();
-        $user->assignRole($roles);
+        // Create the user
+        $user = User::create([
+            'first_name' => $request->input('first_name'),
+            'last_name' => $request->input('last_name'),
+            'email' => $request->input('email'),
+            'password' => Hash::make($request->input('password')),
+            'phone' => $request->input('phone'),
+            'address' => $request->input('address'),
+            'created_by' => auth()->id(),
+        ]);
+
+        // Assign roles if provided
+        if ($request->roles) {
+            $roles = Role::whereIn('original_name', $request->roles)->pluck('name')->toArray();
+            $user->assignRole($roles);
+        }
+
+        // Assign permissions if provided
+        if ($request->permissions) {
+            $permissions = Permission::whereIn('id', $request->permissions)->pluck('name')->toArray();
+            $user->givePermissionTo($permissions);
+        }
+
+        // Redirect back with success message
+        return redirect()->route('users.index')
+            ->with('toast_success', 'User created successfully.');
     }
-
-    // Assign permissions if provided
-    if ($request->permissions) {
-        $permissions = Permission::whereIn('id', $request->permissions)->pluck('name')->toArray();
-        $user->givePermissionTo($permissions);
-    }
-
-    // Redirect back with success message
-    return redirect()->route('users.index')
-        ->with('toast_success', 'User created successfully.');
-}
 
 
 
     public function edit(User $user)
     {
         // Roles are based on who created them
-        $roles = auth()->user()->hasRole('Super Admin') 
-            ? Role::where('created_by', auth()->id())->get() 
+        $roles = auth()->user()->hasRole('Super Admin')
+            ? Role::where('created_by', auth()->id())->get()
             : Role::where('created_by', auth()->id())->get();
 
         $permissions = Permission::all();
-        
+
         return view('super_admin.users.edit', compact('user', 'roles', 'permissions'));
     }
 
@@ -140,8 +139,8 @@ public function store(Request $request)
             'address' => 'nullable|string|max:255',
             'roles' => 'array',
             'permissions' => 'array',
-            'userable_id' => 'nullable|integer', 
-            'userable_type' => 'nullable|string', 
+            'userable_id' => 'nullable|integer',
+            'userable_type' => 'nullable|string',
         ]);
 
         $user->update([
@@ -151,8 +150,8 @@ public function store(Request $request)
             'password' => $request->password ? Hash::make($request->password) : $user->password,
             'phone' => $request->phone,
             'address' => $request->address,
-            'userable_id' => $request->input('userable_id'), 
-            'userable_type' => $request->input('userable_type'), 
+            'userable_id' => $request->input('userable_id'),
+            'userable_type' => $request->input('userable_type'),
         ]);
 
         // Sync roles
@@ -186,23 +185,32 @@ public function store(Request $request)
 
     public function settings()
     {
-        $user = Auth::user();  // Get authenticated user
+        $user = User::with('lp')->where('id', Auth::id())->first();
         return view('settings', compact('user'));
     }
 
     public function updateSettings(Request $request)
     {
         $request->validate([
-            'email' => 'required|string|email|max:255|unique:users,email,' . auth()->id(),
+            'first_name' => 'nullable|string|max:20',
+            'last_name' => 'required|string|max:255',
             'phone' => 'nullable|string|max:20',
+            'dba' => 'required|string|max:255',
         ]);
 
         $user = auth()->user(); // Fetch the authenticated user
+        if($request['password'] != null){
+            $user->update([
+                'password' => Hash::make($request->password)
+            ]);
+        }
 
         // Update the user details
         $user->update([
-            'email' => $request->input('email'),
+            'first_name' => $request->input('first_name'),
+            'last_name' => $request->input('last_name'),
             'phone' => $request->input('phone'),
+            'dba' => $request->input('dba'),
         ]);
 
         return redirect()->back()->with('toast_success', 'Settings updated successfully.');

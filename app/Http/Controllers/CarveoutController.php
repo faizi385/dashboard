@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Lp;
 use Carbon\Carbon;
 use App\Models\Carveout;
+use App\Models\RetailerStatement;
+use App\Models\RetailerAddress;
+use App\Models\CleanSheet;
 use App\Models\Province;
 use App\Models\Retailer;
 use Illuminate\Http\Request;
@@ -12,47 +15,44 @@ use Illuminate\Http\Request;
 class CarveoutController extends Controller
 {
     public function index($lp_id)
-{
-    // Get the authenticated user's LP
-    $userLp = Lp::where('user_id', auth()->user()->id)->first();
+    {
+        // Get the authenticated user's LP
+        $userLp = Lp::where('user_id', auth()->user()->id)->first();
 
-    // Initialize carveouts and lp variables
-    $carveouts = collect();
-    $lp = null;
+        $date = Carbon::now()->startOfMonth()->subMonth()->format('Y-m-01');
 
-    // Check if the user is a Super Admin or an LP user
-    if (auth()->user()->hasRole('Super Admin')) {
-        // Super Admin can see carveouts for the specified LP ID or all carveouts if lp_id is 0
-        $carveouts = Carveout::with(['retailer', 'lp'])
-            ->when($lp_id > 0, function ($query) use ($lp_id) {
-                return $query->where('lp_id', $lp_id);
-            })
-            ->get();
+        // Initialize carveouts and lp variables
+        $carveouts = collect();
+        $lp = null;
 
-        // Fetch the LP details based on lp_id
-        $lp = Lp::find($lp_id);
-    } elseif ($userLp) {
-        // For LP users: Fetch carveouts related to their own LP ID
-        $carveouts = Carveout::with(['retailer', 'lp'])
-            ->where('lp_id', $userLp->id)
-            ->get();
+        // Check if the user is a Super Admin or an LP user
+        if (auth()->user()->hasRole('Super Admin')) {
+            // Super Admin can see carveouts for the specified LP ID or all carveouts if lp_id is 0
+            $carveouts = Carveout::with(['retailer', 'lp','retailerAddress'])->where('date',$date)
+                ->when($lp_id > 0, function ($query) use ($lp_id) {
+                    return $query->where('lp_id', $lp_id);
+                })
+                ->get();
 
-        // Set the authenticated LP for the LP user
-        $lp = $userLp;
+            // Fetch the LP details based on lp_id
+            $lp = Lp::find($lp_id);
+            $retailers = Retailer::get();
+        } elseif ($userLp) {
+            // For LP users: Fetch carveouts related to their own LP ID
+            $carveouts = Carveout::with(['retailer', 'lp','retailerAddress'])->where('date',$date)
+                ->where('lp_id', $userLp->id)
+                ->get();
+            $lp = $userLp;
+            $retailers = Retailer::where('lp_id',$userLp->id)->get();
+        }
+        // dd($carveouts);
+
+
+        $provinces = Province::where('status',1)->get();
+
+        // Return the view with the required data
+        return view('super_admin.carveouts.index', compact('carveouts', 'retailers', 'lp_id','lp', 'provinces'));
     }
-
-    // Fetch all retailers (optional based on view requirements)
-    $retailers = Retailer::all();
-
-    // Fetch all LPs (optional based on view requirements)
-    $lps = Lp::all();
-
-    // Fetch all provinces from the database
-    $provinces = Province::all(); // Assumes you have a Province model
-
-    // Return the view with the required data
-    return view('super_admin.carveouts.index', compact('carveouts', 'retailers', 'lp_id', 'lps', 'lp', 'provinces'));
-}
 
 
     public function create()
@@ -80,6 +80,13 @@ class CarveoutController extends Controller
 
 
         $carveoutExists = Carveout::where('retailer_id', $request->retailer)
+            ->where('lp_id', $request->lp_id)
+            ->when(!empty($request->location), function ($query) use ($request) {
+                $query->where('location', $request->location);
+            })
+            ->when(!empty($request->sku), function ($query) use ($request) {
+                $query->where('sku', $request->sku);
+            })
             ->whereYear('date', Carbon::parse($request->carveout_date)->year)
             ->whereMonth('date', Carbon::parse($request->carveout_date)->month)
             ->exists();
@@ -88,12 +95,23 @@ class CarveoutController extends Controller
             return redirect()->back()->withErrors(['retailer' => 'This retailer can only have one carveout per month.']);
         }
 
-        $province = Province::where('name',$request->province)->first();
-
+        if(!empty($request->location)){
+            // dump('1');
+            $location = RetailerAddress::where('id',$request->location)->first();
+            // dump($location);
+            $province = Province::where('id',$location->province)->first();
+            if(!$province){
+                $province = Province::where('id',$request->province)->first();
+            }
+        }else{
+            // dump('2');
+            $province = Province::where('id',$request->province)->first();
+        }
+// dd($province);
         // Create the carveout
-        Carveout::create([
+        $carveout = Carveout::create([
             'province_id' => $province->id,
-            'province' => $request->province,
+            'province' => $province->name,
             'province_slug' => $province->slug,
             'retailer_id' => $request->retailer,
             'location' => $request->location,
@@ -101,11 +119,66 @@ class CarveoutController extends Controller
             'date' => Carbon::parse($request->carveout_date)->startOfMonth(),
             'lp_id' => $lpId, // Automatically assign the LP ID if the user is an LP
         ]);
-
+        $this->carveout($carveout);
         // Redirect back to the index with success message
         return redirect()->route('carveouts.index', ['lp_id' => $lpId])->with('success', 'Carveout added successfully.');
     }
 
+    public function carveout($data)
+    {
+        $date = Carbon::parse($data->date);
+        $carveout = $data;
+        $RetailerStatements = [];
+
+        $RetailerStatements = RetailerStatement::where('lp_id', $carveout->lp_id)
+            ->where('province_id',$carveout->province_id)
+            ->where('retailer_id', $carveout->retailer_id)
+            ->whereMonth('reconciliation_date', $date->format('m'))
+            ->whereYear('reconciliation_date', $date->format('Y'))
+            ->when(!empty($carveout->sku), function ($query) use ($carveout) {
+                $query->where('sku',$carveout->sku);
+            })
+            ->when(!empty($carveout->location), function ($query) use ($carveout) {
+                $query->where('address_id',$carveout->location);
+            })
+            ->get();
+
+        foreach ($RetailerStatements as $key => $r) {
+            $r->update([
+                'flag' => 1,
+                'carve_out' => 'yes',
+                'carveout_id' => $carveout->id
+            ]);
+        }
+
+        $this->update_cleanSheet_flag($carveout);
+    }
+    public function update_cleanSheet_flag($carveout){
+
+        $date = Carbon::parse($carveout->date);
+        $clean_sheets = [];
+
+        $clean_sheets = CleanSheet::where('lp_id', $carveout->lp_id)
+            ->where('province_id',$carveout->province_id)
+            ->where('retailer_id', $carveout->retailer_id)
+            ->whereMonth('reconciliation_date', $date->format('m'))
+            ->whereYear('reconciliation_date', $date->format('Y'))
+            ->when(!empty($carveout->sku), function ($query) use ($carveout) {
+                $query->where('sku',$carveout->sku);
+            })
+            ->when(!empty($carveout->location), function ($query) use ($carveout) {
+                $query->where('address_id',$carveout->location);
+            })
+            ->get();
+
+        foreach ($clean_sheets as $key => $r) {
+                $r->update([
+                    'c_flag' => 'yes',
+                    'carveout_id' => $carveout->id
+                ]);
+            }
+
+    }
 
     public function edit($id)
     {
@@ -161,6 +234,27 @@ class CarveoutController extends Controller
     {
         // Find the carveout to be deleted
         $carveout = Carveout::findOrFail($id);
+
+        $RetailerStatements = RetailerStatement::where('carveout_id',$carveout->id)->get();
+        if (count($RetailerStatements) > 0) {
+            foreach ($RetailerStatements as $key => $r) {
+                $r->update([
+                    'flag' => 0,
+                    'carve_out' => 'no',
+                    'carveout_id' => null
+                ]);
+            }
+        }
+        $clean_sheets = CleanSheet::where('carveout_id',$carveout->id)->get();
+        if (count($clean_sheets) > 0) {
+
+            foreach ($clean_sheets as $key => $r) {
+                    $r->update([
+                        'c_flag' => 'no',
+                        'carveout_id' => null
+                    ]);
+                }
+        }
 
         // Delete the carveout
         $carveout->delete();

@@ -12,9 +12,7 @@ if($report) {
     try {
         DB::table('reports')->where('id', $report->id)->update(['status' => 'Reconciliation Start']);
         DB::beginTransaction();
-//    $retailer_id = $retailerReportSubmission->retailer_id;
         $covaDaignosticReports = CovaDiagnosticReport::with('CovaSalesSummaryReport')->where('report_id', $report->id)->where('status', 'pending')->get();
-//    dump('covaDaignosticReports fetch -- '.date('Y-m-d H:i:s'));
         $data = [];
         $cleanSheet = [];
         $insertionCount = 1;
@@ -36,9 +34,6 @@ if($report) {
             }
         }
         DB::table('reports')->where('id', $report->id)->update(['status' => 'Retailer Statement Process']);
-        // $insertIntoLogs = DB::table('cron_logs')->where('report_id', $report->id)->update([
-        //     'end_time' => now()
-        // ]);
         DB::commit();
     } catch (\Exception $e) {
         Log::error('Error in Cova reconciliation: ' . $e->getMessage());
